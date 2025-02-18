@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { formatCurrency } from "../utils/utils"
+import { formatCurrency, UrlApi } from "../utils/utils"
 import { FiDollarSign, FiShoppingCart, FiCheckCircle, FiUsers, FiBarChart2 } from "react-icons/fi"
 
 const ReginDetalles = () => {
@@ -19,7 +19,7 @@ const ReginDetalles = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/dashdoard/${region}`)
+        const response = await fetch(`${UrlApi}/api/dashdoard/${region}`)
         if (!response.ok) {
           throw new Error("No se pudieron cargar los datos")
         }
@@ -243,7 +243,7 @@ const ReginDetalles = () => {
           </button>
         </div>
       </div>
-      <div className="fixed bottom-4 right-4 flex gap-4">
+      {/* <div className="fixed bottom-4 right-4 flex gap-4">
         <div className="bg-white rounded-lg p-4 shadow-lg w-48 border border-gray-200 hover:shadow-xl transition-shadow duration-300">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Total</h3>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(costoTotal)}</p>
@@ -252,7 +252,7 @@ const ReginDetalles = () => {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Rentabilidad</h3>
           <p className="text-2xl font-bold text-green-600">{formatPercentage(rentabilidad)}</p>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
