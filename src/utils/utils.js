@@ -1,29 +1,21 @@
 import Swal from "sweetalert2";
 
-export function formatearFecha(fechaISO, formato = "dd/mm/yyyy") {
-  // Crear un objeto Date a partir de la fecha ISO
+export function formatearFechaUTC(fechaISO) {
   const fecha = new Date(fechaISO);
 
-  // Extraer componentes de la fecha
-  const dia = fecha.getDate().toString().padStart(2, "0"); // Día con dos dígitos
-  const mes = (fecha.getMonth() + 1).toString().padStart(2, "0"); // Mes (0-indexed, sumamos 1)
-  const anio = fecha.getFullYear();
-  const nombreMes = fecha.toLocaleString("es-ES", { month: "long" }); // Nombre del mes en español
+  // Extraer los componentes de la fecha en UTC
+  const anio = fecha.getUTCFullYear();
+  const mes = fecha.getUTCMonth() + 1; // Los meses en JavaScript son base 0, por eso sumamos 1
+  const dia = fecha.getUTCDate();
 
-  // Formatear según el parámetro "formato"
-  switch (formato) {
-    case "dd/mm/yyyy":
-      return `${dia}/${mes}/${anio}`;
-    case "mm/dd/yyyy":
-      return `${mes}/${dia}/${anio}`;
-    case "yyyy-mm-dd":
-      return `${anio}-${mes}-${dia}`;
-    case "nombre-mes":
-      return `${dia} de ${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} de ${anio}`;
-    default:
-      return `${dia}/${mes}/${anio}`; // Formato predeterminado
-  }
+  // Opcional: Formatear con ceros iniciales para el día y el mes
+  const diaFormateado = dia.toString().padStart(2, '0');
+  const mesFormateado = mes.toString().padStart(2, '0');
+
+  // Retornar la fecha en el formato deseado (personalizable)
+  return `${diaFormateado}/${mesFormateado}/${anio}`; // Ejemplo: "19/02/2025"
 }
+
 
 const showNotification = (type, title, text = "") => {
   const swalOptions = {

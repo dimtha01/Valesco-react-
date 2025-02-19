@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import Swal from "sweetalert2"
-import { UrlApi } from "../utils/utils"
+import { formatearFechaUTC, UrlApi } from "../utils/utils"
 
 const AvanceFisico = () => {
   const params = useParams()
@@ -140,6 +140,7 @@ const AvanceFisico = () => {
       })
       return
     }
+    console.log(new Date().toISOString().split("T")[0]);
 
     try {
       const response = await fetch(`${UrlApi}/api/avanceFisico`, {
@@ -256,13 +257,15 @@ const AvanceFisico = () => {
             </button>
           </div>
         </form>
-        <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-              <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Físicos</h2>
+        <div className="text-[#141313] xl:mx-20 mt-2">
+          <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
+                <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Físicos</h2>
+              </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto min-h-[310px]">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -290,12 +293,12 @@ const AvanceFisico = () => {
                   ) : (
                     paginatedData.map((avance, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{avance.fecha}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{avance.avance_real}%</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{formatearFechaUTC(avance.fecha)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{avance.avance_real}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
                           {avance.avance_planificado}%
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{avance.puntos_atencion}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{avance.puntos_atencion}</td>
                       </tr>
                     ))
                   )}

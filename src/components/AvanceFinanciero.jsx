@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import showNotification, { UrlApi } from "../utils/utils"
+import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
 
 const AvanceFinanciero = () => {
   const params = useParams()
@@ -289,29 +289,26 @@ const AvanceFinanciero = () => {
         <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-              <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Financieros</h2>
+              <h2 className="text-lg font-semibold text-gray-700">Registro de Administración de Contratos</h2>
             </div>
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300 hidden md:table-cell">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300 hidden md:table-cell">
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center hidden md:table-cell">
                       Fecha
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
                       Número de Valuación
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
                       Monto (USD)
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300 hidden md:table-cell">
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center hidden md:table-cell">
                       Número de Factura
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
                       Estatus
                     </th>
                   </tr>
@@ -330,22 +327,20 @@ const AvanceFinanciero = () => {
                         onClick={() => handleRowClick(avance)}
                         className="cursor-pointer hover:bg-gray-200 transition duration-200"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 hidden md:table-cell">
-                          {avance.id}
+
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center hidden md:table-cell">
+                          {formatearFechaUTC(avance.fecha)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 hidden md:table-cell">
-                          {new Date(avance.fecha).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
                           {avance.numero_valuacion}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
                           ${avance.monto_usd}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 hidden md:table-cell">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center hidden md:table-cell">
                           {avance.numero_factura || "No hay factura"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
                           {avance.estatus_proceso_nombre}
                         </td>
                       </tr>
@@ -360,14 +355,14 @@ const AvanceFinanciero = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="relative inline-flex items-center px-4 py-2 borde text-center text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Anterior
               </button>
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === Math.ceil(avancesFinancieros.length / rowsPerPage)}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="ml-3 relative inline-flex items-center px-4 py-2 borde text-center text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Siguiente
               </button>
@@ -385,7 +380,7 @@ const AvanceFinanciero = () => {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md borde text-center bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   >
                     <span className="sr-only">Anterior</span>
                     <svg
@@ -405,7 +400,7 @@ const AvanceFinanciero = () => {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === Math.ceil(avancesFinancieros.length / rowsPerPage)}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md borde text-center bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   >
                     <span className="sr-only">Siguiente</span>
                     <svg
@@ -445,7 +440,7 @@ const AvanceFinanciero = () => {
                   <span className="font-semibold">Nuevo estado:</span>
                   <select
                     id="nuevoEstado"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                    className="mt-1 block w-full borde text-center rounded-md p-2"
                     defaultValue={valuacionSeleccionada.estatus_proceso_nombre}
                   >
                     {getValidOptions(valuacionSeleccionada.estatus_proceso_nombre).map((option) => (
@@ -462,7 +457,7 @@ const AvanceFinanciero = () => {
                       <input
                         type="text"
                         id="numeroFactura"
-                        className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                        className="mt-1 block w-full borde text-center rounded-md p-2"
                         required
                       />
                     </label>
