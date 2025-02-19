@@ -66,11 +66,6 @@ const GestionGerencia = () => {
       currency: "MXN",
     }).format(amount)
   }
-
-  const formatPercentage = (value) => {
-    return `${(value * 100).toFixed(2)}%`
-  }
-
   const Card = ({ title, amount, icon: Icon, color, percentage, link, total_proyectos }) => (
     <Link to={link} className="group">
       <div className="bg-gray-50 rounded-lg p-5 shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-300 w-full max-w-sm border border-gray-200">
@@ -198,12 +193,12 @@ const GestionGerencia = () => {
 
       <div className="fixed bottom-4 right-4 flex gap-4">
         <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Total</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Plan</h3>
           <p className="text-lg font-bold text-gray-900">{formatCurrency(costoTotal)}</p>
         </div>
         <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Rentabilidad</h3>
-          <p className="text-lg font-bold text-green-600">{formatPercentage(rentabilidad)}</p>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
+          <p className="text-lg font-bold text-green-600">{formatCurrency(rentabilidad)}</p>
         </div>
       </div>
     </>
