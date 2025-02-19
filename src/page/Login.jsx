@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import img from "../assets/image 3.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importar íconos de react-icons
+import { AuthContext } from "../components/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // Estado para mostrar errores
+  const [error, setError] = useState(""); // Estado para manejar errores
   const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Usar el contexto de autenticación
 
   // Simulación de usuarios en la base de datos
   const users = [
@@ -19,17 +21,15 @@ const Login = () => {
   // Función para manejar el inicio de sesión
   const handleLogin = (e) => {
     e.preventDefault();
-    // Buscar si existe un usuario con el correo y contraseña ingresados
     const user = users.find((u) => u.email === email && u.password === password);
     if (user) {
-      // Redirigir según el rol del usuario
+      login(user.role); // Iniciar sesión y establecer el rol del usuario
       if (user.role === "planificador") {
         navigate("/InicioPlanificador");
       } else if (user.role === "administrador") {
         navigate("/GestionGerencia");
       }
     } else {
-      // Mostrar mensaje de error si las credenciales son incorrectas
       setError("Correo electrónico o contraseña incorrectos.");
     }
   };

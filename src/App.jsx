@@ -9,6 +9,7 @@ import Cliente from "./page/Cliente";
 import CrearProyecto from "./page/CrearProyecto";
 import ActualizarProyecto from "./page/ActualizarProyecto";
 import ReginDetalles from "./page/RegionDetalles";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./components/AuthContext";
 import DetallesProyecto from "./page/DetallesProyecto";
 
@@ -20,17 +21,80 @@ const App = () => {
         <Routes>
           {/* Ruta pública: Inicio de sesión */}
           <Route path="/" element={<Login />} />
-          
-          {/* Todas las demás rutas ahora son públicas */}
-          <Route path="/InicioPlanificador" element={<InicioPlanificador />} />
-          <Route path="/InicioPlanificador/Proyecto" element={<Proyecto />} />
-          <Route path="/GestionGerencia" element={<GestionGerencia />} />
-          <Route path="/InicioPlanificador/Cliente" element={<Cliente />} />
-          <Route path="/InicioPlanificador/CrearProyecto" element={<CrearProyecto />} />
-          <Route path="/InicioPlanificador/CrearProyecto/crearCliente" element={<NuevoCliente />} />
-          <Route path="/InicioPlanificador/Proyecto/ActualizarProyecto/:Proyecto/:id" element={<ActualizarProyecto />} />
-          <Route path="/GestionGerencia/:region" element={<ReginDetalles />} />
-          <Route path="/proyecto/:id" element={<DetallesProyecto />} />
+
+          {/* Rutas protegidas */}
+          <Route
+            path="/InicioPlanificador"
+            element={
+              <ProtectedRoute>
+                <InicioPlanificador />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/Proyecto"
+            element={
+              <ProtectedRoute>
+                <Proyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/GestionGerencia"
+            element={
+              <ProtectedRoute>
+                <GestionGerencia />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/Cliente"
+            element={
+              <ProtectedRoute>
+                <Cliente />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/CrearProyecto"
+            element={
+              <ProtectedRoute>
+                <CrearProyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/CrearProyecto/crearCliente"
+            element={
+              <ProtectedRoute>
+                <NuevoCliente />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/Proyecto/ActualizarProyecto/:Proyecto/:id"
+            element={
+              <ProtectedRoute>
+                <ActualizarProyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/GestionGerencia/:region"
+            element={
+              <ProtectedRoute>
+                <ReginDetalles />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/proyecto/:id"
+            element={
+              <ProtectedRoute>
+                <DetallesProyecto />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
