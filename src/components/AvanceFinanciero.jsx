@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import showNotification, { UrlApi } from "../utils/utils"
+import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
 
 const AvanceFinanciero = () => {
   const params = useParams()
@@ -250,14 +250,7 @@ const AvanceFinanciero = () => {
     return estatusMap[estatus] || null
   }
 
-  const formatearFechaUTC = (fechaUTC) => {
-    if (!fechaUTC) return "Sin fecha"
-    const fecha = new Date(fechaUTC)
-    const dia = fecha.getDate().toString().padStart(2, "0")
-    const mes = (fecha.getMonth() + 1).toString().padStart(2, "0")
-    const anio = fecha.getFullYear()
-    return `${dia}/${mes}/${anio}`
-  }
+ 
 
   return (
     <div className="p-4">
