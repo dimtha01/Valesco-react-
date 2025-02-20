@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
+import showNotification, { UrlApi } from "../utils/utils"
 
 const AvanceFinanciero = () => {
   const params = useParams()
@@ -11,6 +11,8 @@ const AvanceFinanciero = () => {
   const [nuevoAvance, setNuevoAvance] = useState({
     numero_valuacion: "",
     monto_usd: "",
+    fecha_inicio: "",
+    fecha_fin: "",
   })
   const [valuacionSeleccionada, setValuacionSeleccionada] = useState(null) // Estado para la valuación seleccionada
   const [mostrarModal, setMostrarModal] = useState(false) // Estado para controlar el modal
@@ -103,6 +105,20 @@ const AvanceFinanciero = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!nuevoAvance.fecha_inicio || !nuevoAvance.fecha_fin) {
+      showNotification(
+        "warning",
+        "Campos incompletos",
+        "Por favor, completa todos los campos antes de agregar el avance financiero.",
+      )
+      return
+    }
+
+    if (new Date(nuevoAvance.fecha_fin) < new Date(nuevoAvance.fecha_inicio)) {
+      showNotification("error", "Fechas inválidas", "La fecha de fin no puede ser anterior a la fecha de inicio.")
+      return
+    }
+
     if (!nuevoAvance.numero_valuacion || !nuevoAvance.monto_usd) {
       showNotification(
         "warning",
@@ -136,6 +152,8 @@ const AvanceFinanciero = () => {
           fecha: new Date().toISOString().split("T")[0],
           numero_valuacion: nuevoAvance.numero_valuacion.trim(),
           monto_usd: Number.parseFloat(nuevoAvance.monto_usd),
+          fecha_inicio: nuevoAvance.fecha_inicio,
+          fecha_fin: nuevoAvance.fecha_fin,
           id_estatus_proceso: obtenerIdEstatus("Por Valuar"),
         }),
       })
@@ -147,6 +165,8 @@ const AvanceFinanciero = () => {
       setNuevoAvance({
         numero_valuacion: "",
         monto_usd: "",
+        fecha_inicio: "",
+        fecha_fin: "",
       })
       fetchAvancesFinancieros()
       showNotification("success", "Éxito", "El avance financiero ha sido agregado exitosamente.")
@@ -230,6 +250,15 @@ const AvanceFinanciero = () => {
     return estatusMap[estatus] || null
   }
 
+  const formatearFechaUTC = (fechaUTC) => {
+    if (!fechaUTC) return "Sin fecha"
+    const fecha = new Date(fechaUTC)
+    const dia = fecha.getDate().toString().padStart(2, "0")
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, "0")
+    const anio = fecha.getFullYear()
+    return `${dia}/${mes}/${anio}`
+  }
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Administración de Contratos</h1>
@@ -269,6 +298,34 @@ const AvanceFinanciero = () => {
                 required
               />
             </label>
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text text-[#000000]">Fecha de Inicio</span>
+              </div>
+              <input
+                type="date"
+                name="fecha_inicio"
+                className="input input-bordered w-full bg-[#f0f0f0]"
+                value={nuevoAvance.fecha_inicio}
+                onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_inicio: e.target.value })}
+                required
+              />
+            </label>
+
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text text-[#000000]">Fecha de Fin</span>
+              </div>
+              <input
+                type="date"
+                name="fecha_fin"
+                className="input input-bordered w-full bg-[#f0f0f0]"
+                value={nuevoAvance.fecha_fin}
+                onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_fin: e.target.value })}
+                min={nuevoAvance.fecha_inicio}
+                required
+              />
+            </label>
           </div>
 
           {/* Botón de envío */}
@@ -289,26 +346,35 @@ const AvanceFinanciero = () => {
         <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-              <h2 className="text-lg font-semibold text-gray-700">Registro de Administración de Contratos</h2>
+              <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Financieros</h2>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto min-h-[310px]">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
                       Fecha
                     </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
                       Número de Valuación
                     </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
                       Monto (USD)
                     </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center hidden md:table-cell">
-                      Número de Factura
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                      Fecha Inicio
                     </th>
                     <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                      Fecha Fin
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
+                      Número de Factura
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
                       Estatus
                     </th>
                   </tr>
@@ -316,7 +382,7 @@ const AvanceFinanciero = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedData.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="text-center py-4 text-gray-500">
+                      <td colSpan="9" className="text-center py-4 text-gray-500">
                         No hay datos disponibles.
                       </td>
                     </tr>
@@ -327,20 +393,28 @@ const AvanceFinanciero = () => {
                         onClick={() => handleRowClick(avance)}
                         className="cursor-pointer hover:bg-gray-200 transition duration-200"
                       >
-
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center hidden md:table-cell">
-                          {formatearFechaUTC(avance.fecha)}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
+                          {avance.id}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
+                          {new Date(avance.fecha).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
                           {avance.numero_valuacion}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
                           ${avance.monto_usd}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center hidden md:table-cell">
-                          {avance.numero_factura || "No hay factura"}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
+                          {formatearFechaUTC(avance.fecha_inicio)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
+                          {formatearFechaUTC(avance.fecha_fin)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
+                          {avance.numero_factura || "No hay factura"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
                           {avance.estatus_proceso_nombre}
                         </td>
                       </tr>
@@ -355,14 +429,14 @@ const AvanceFinanciero = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 borde text-center text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="relative inline-flex items-center px-4 py-2  text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Anterior
               </button>
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === Math.ceil(avancesFinancieros.length / rowsPerPage)}
-                className="ml-3 relative inline-flex items-center px-4 py-2 borde text-center text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="ml-3 relative inline-flex items-center px-4 py-2  text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Siguiente
               </button>
@@ -380,7 +454,7 @@ const AvanceFinanciero = () => {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md borde text-center bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md  bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   >
                     <span className="sr-only">Anterior</span>
                     <svg
@@ -400,7 +474,7 @@ const AvanceFinanciero = () => {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === Math.ceil(avancesFinancieros.length / rowsPerPage)}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md borde text-center bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md  bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                   >
                     <span className="sr-only">Siguiente</span>
                     <svg
@@ -440,7 +514,7 @@ const AvanceFinanciero = () => {
                   <span className="font-semibold">Nuevo estado:</span>
                   <select
                     id="nuevoEstado"
-                    className="mt-1 block w-full borde text-center rounded-md p-2"
+                    className="mt-1 block w-full border border-gray-950 rounded-md p-2"
                     defaultValue={valuacionSeleccionada.estatus_proceso_nombre}
                   >
                     {getValidOptions(valuacionSeleccionada.estatus_proceso_nombre).map((option) => (
@@ -457,7 +531,7 @@ const AvanceFinanciero = () => {
                       <input
                         type="text"
                         id="numeroFactura"
-                        className="mt-1 block w-full borde text-center rounded-md p-2"
+                        className="mt-1 block w-full border border-gray-950 rounded-md p-2"
                         required
                       />
                     </label>

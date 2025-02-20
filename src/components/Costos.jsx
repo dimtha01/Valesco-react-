@@ -12,6 +12,8 @@ const Costos = () => {
   const [costoTotal, setCostoTotal] = useState(0)
   const [nuevoCosto, setNuevoCosto] = useState({
     costo: "",
+    fecha_inicio: "",
+    fecha_fin: "",
   })
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 5
@@ -64,8 +66,14 @@ const Costos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!nuevoCosto.costo) {
-      showNotification("warning", "Campo incompleto", "Por favor, ingresa el costo antes de agregar.")
+    if (!nuevoCosto.costo || !nuevoCosto.fecha_inicio || !nuevoCosto.fecha_fin) {
+      showNotification("warning", "Campos incompletos", "Por favor, completa todos los campos antes de agregar.")
+      return
+    }
+
+    // Validar que la fecha de fin no sea anterior a la fecha de inicio
+    if (new Date(nuevoCosto.fecha_fin) < new Date(nuevoCosto.fecha_inicio)) {
+      showNotification("error", "Fechas inválidas", "La fecha de fin no puede ser anterior a la fecha de inicio.")
       return
     }
 
@@ -96,9 +104,11 @@ const Costos = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id_proyecto: Number.parseInt(params.id),
-          fecha: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+          fecha: new Date().toISOString().split("T")[0],
           costo: nuevoCostoNumerico,
           monto_sobrepasado: montoSobrepasado,
+          fecha_inicio: nuevoCosto.fecha_inicio,
+          fecha_fin: nuevoCosto.fecha_fin,
         }),
       })
 
@@ -106,7 +116,11 @@ const Costos = () => {
         throw new Error("Error al agregar el costo")
       }
 
-      setNuevoCosto({ costo: "" })
+      setNuevoCosto({
+        costo: "",
+        fecha_inicio: "",
+        fecha_fin: "",
+      })
       fetchCostos()
       showNotification("success", "Éxito", "El costo ha sido agregado exitosamente.")
     } catch (error) {
@@ -159,8 +173,6 @@ const Costos = () => {
         </ul>
       </div>
       <div className="p-4">
-
-
         <h1 className="text-2xl font-bold mb-4">Gestión de Costos</h1>
 
         {/* Formulario para agregar nuevos costos */}
@@ -186,6 +198,40 @@ const Costos = () => {
               />
             </div>
 
+            <div className="mb-4">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text text-[#000000]">Fecha de Inicio</span>
+                </div>
+                <input
+                  type="date"
+                  name="fecha_inicio"
+                  className="input input-bordered w-full bg-[#f0f0f0]"
+                  value={nuevoCosto.fecha_inicio}
+                  onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_inicio: e.target.value })}
+                  min={new Date().toISOString().split("T")[0]}
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text text-[#000000]">Fecha de Fin</span>
+                </div>
+                <input
+                  type="date"
+                  name="fecha_fin"
+                  className="input input-bordered w-full bg-[#f0f0f0]"
+                  value={nuevoCosto.fecha_fin}
+                  onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_fin: e.target.value })}
+                  min={nuevoCosto.fecha_inicio}
+                  required
+                />
+              </label>
+            </div>
+
             <button
               type="submit"
               className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -207,7 +253,7 @@ const Costos = () => {
                     Costo Planificado: <span className="font-bold">${costoOfertado.toFixed(2)}</span>
                   </p>
                   <p>
-                    Costo Total: <span className="font-bold">${costoTotal.toFixed(2)}</span>
+                    Costo Real: <span className="font-bold">${costoTotal.toFixed(2)}</span>
                   </p>
                 </div>
               </div>
@@ -226,12 +272,18 @@ const Costos = () => {
                     <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Monto Sobrepasado
                     </th>
+                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha Inicio
+                    </th>
+                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha Fin
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedData.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                         No hay datos disponibles.
                       </td>
                     </tr>
@@ -246,6 +298,12 @@ const Costos = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
                           ${Number(costo.monto_sobrepasado).toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {formatearFechaUTC(costo.fecha_inicio)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {formatearFechaUTC(costo.fecha_fin)}
                         </td>
                       </tr>
                     ))

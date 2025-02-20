@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import Swal from "sweetalert2"
 import { formatearFechaUTC, UrlApi } from "../utils/utils"
@@ -12,11 +12,13 @@ const AvanceFisico = () => {
     avanceReal: "",
     avancePlanificado: "",
     puntoAtencion: "",
+    fecha_inicio: "",
+    fecha_fin: "",
   })
   const [formularioDeshabilitado, setFormularioDeshabilitado] = useState(false)
-  const [ultimoAvanceReal, setUltimoAvanceReal] = useState(0) // Estado para almacenar el último avance real
-  const rowsPerPage = 5 // Máximo de filas por página
-  // Estado para la página actual
+  const [ultimoAvanceReal, setUltimoAvanceReal] = useState(0)
+  const [ultimoAvancePlanificado, setUltimoAvancePlanificado] = useState(0)
+  const rowsPerPage = 5
   const [currentPage, setCurrentPage] = useState(1)
 
   // Función para cambiar de página
@@ -30,7 +32,7 @@ const AvanceFisico = () => {
   const paginatedData = avancesFisicos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
 
   // Función para cargar los avances físicos
-  const fetchAvancesFisicos = async () => {
+  const fetchAvancesFisicos = useCallback(async () => {
     try {
       const response = await fetch(`${UrlApi}/api/avanceFisico/${params.id}`)
       if (!response.ok) {
@@ -38,15 +40,16 @@ const AvanceFisico = () => {
       }
       const data = await response.json()
       setAvancesFisicos(data)
-      // Encontrar el último avance real registrado
+      // Encontrar el máximo avance real y planificado registrado
       const maxAvanceReal = Math.max(...data.map((avance) => Number.parseFloat(avance.avance_real)), 0)
+      const maxAvancePlanificado = Math.max(...data.map((avance) => Number.parseFloat(avance.avance_planificado)), 0)
       setUltimoAvanceReal(maxAvanceReal)
+      setUltimoAvancePlanificado(maxAvancePlanificado)
       // Verificar si algún avance real ya alcanzó el 100%
       const algunAvanceCompleto = data.some((avance) => Number.parseFloat(avance.avance_real) >= 100)
       if (algunAvanceCompleto) {
-        setFormularioDeshabilitado(true) // Deshabilitar el formulario si hay un avance completo
+        setFormularioDeshabilitado(true)
       }
-      // Mostrar mensaje si no hay datos de avance
       if (data.length === 0) {
         Swal.fire({
           icon: "info",
@@ -62,12 +65,12 @@ const AvanceFisico = () => {
         text: "Ocurrió un problema al cargar los avances físicos. Por favor, inténtalo de nuevo.",
       })
     }
-  }
+  }, [params.id])
 
   // Cargar datos cuando el componente se monta
   useEffect(() => {
     fetchAvancesFisicos()
-  }, [params.id]) // Updated dependency array to include params.id
+  }, [fetchAvancesFisicos])
 
   // Validar que el valor esté entre 1 y 100
   const validarRango = (valor) => {
@@ -75,15 +78,9 @@ const AvanceFisico = () => {
     return !isNaN(numero) && numero >= 1 && numero <= 100
   }
 
-  // Validar que el avance real no esté duplicado
-  const isAvanceRealUnico = (avanceReal) => {
-    return !avancesFisicos.some((avance) => Number.parseFloat(avance.avance_real) === Number.parseFloat(avanceReal))
-  }
-
   // Manejar cambios en los campos numéricos
   const handleChangeNumero = (e, campo) => {
     const valor = e.target.value
-    // Permitir solo números y validar el rango
     if (/^\d*\.?\d*$/.test(valor)) {
       if (valor === "" || validarRango(valor)) {
         setNuevoAvance({ ...nuevoAvance, [campo]: valor })
@@ -97,12 +94,16 @@ const AvanceFisico = () => {
     }
   }
 
-  // Manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Validar que todos los campos estén completos
-    if (!nuevoAvance.avanceReal || !nuevoAvance.avancePlanificado || !nuevoAvance.puntoAtencion) {
+    if (
+      !nuevoAvance.avanceReal ||
+      !nuevoAvance.avancePlanificado ||
+      !nuevoAvance.puntoAtencion ||
+      !nuevoAvance.fecha_inicio ||
+      !nuevoAvance.fecha_fin
+    ) {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
@@ -111,8 +112,19 @@ const AvanceFisico = () => {
       return
     }
 
-    // Validar que el avance real y planificado estén en el rango de 1 a 100
-    if (!validarRango(nuevoAvance.avanceReal) || !validarRango(nuevoAvance.avancePlanificado)) {
+    if (new Date(nuevoAvance.fecha_fin) < new Date(nuevoAvance.fecha_inicio)) {
+      Swal.fire({
+        icon: "error",
+        title: "Fechas inválidas",
+        text: "La fecha de fin no puede ser anterior a la fecha de inicio.",
+      })
+      return
+    }
+
+    const avanceRealNumerico = Number.parseFloat(nuevoAvance.avanceReal)
+    const avancePlanificadoNumerico = Number.parseFloat(nuevoAvance.avancePlanificado)
+
+    if (!validarRango(avanceRealNumerico) || !validarRango(avancePlanificadoNumerico)) {
       Swal.fire({
         icon: "error",
         title: "Valor inválido",
@@ -121,26 +133,25 @@ const AvanceFisico = () => {
       return
     }
 
-    // Validar que el nuevo avance real no sea menor al último registrado
-    if (Number.parseFloat(nuevoAvance.avanceReal) < ultimoAvanceReal) {
+    // Validar que el avance real sea mayor o igual al último registrado
+    if (avanceRealNumerico < ultimoAvanceReal) {
       Swal.fire({
         icon: "error",
         title: "Valor inválido",
-        text: `El avance real no puede ser menor al último registrado (${ultimoAvanceReal}%).`,
+        text: `El avance real debe ser mayor o igual al último registrado (${ultimoAvanceReal}%).`,
       })
       return
     }
 
-    // Validar que el avance real no esté duplicado
-    if (!isAvanceRealUnico(nuevoAvance.avanceReal)) {
+    // Validar que el avance planificado sea mayor o igual al último registrado
+    if (avancePlanificadoNumerico < ultimoAvancePlanificado) {
       Swal.fire({
         icon: "error",
-        title: "Valor duplicado",
-        text: "El avance real ingresado ya existe. No se permiten valores duplicados.",
+        title: "Valor inválido",
+        text: `El avance planificado debe ser mayor o igual al último registrado (${ultimoAvancePlanificado}%).`,
       })
       return
     }
-    console.log(new Date().toISOString().split("T")[0]);
 
     try {
       const response = await fetch(`${UrlApi}/api/avanceFisico`, {
@@ -150,10 +161,12 @@ const AvanceFisico = () => {
         },
         body: JSON.stringify({
           id_proyecto: params.id,
-          fecha: new Date().toISOString().split("T")[0], // Fecha actual
-          avance_real: Number.parseFloat(nuevoAvance.avanceReal),
-          avance_planificado: Number.parseFloat(nuevoAvance.avancePlanificado),
+          fecha: new Date().toISOString().split("T")[0],
+          avance_real: avanceRealNumerico,
+          avance_planificado: avancePlanificadoNumerico,
           puntos_atencion: nuevoAvance.puntoAtencion,
+          fecha_inicio: nuevoAvance.fecha_inicio,
+          fecha_fin: nuevoAvance.fecha_fin,
         }),
       })
 
@@ -161,15 +174,14 @@ const AvanceFisico = () => {
         throw new Error("Error al agregar el avance físico")
       }
 
-      // Limpiar el formulario
       setNuevoAvance({
         avanceReal: "",
         avancePlanificado: "",
         puntoAtencion: "",
+        fecha_inicio: "",
+        fecha_fin: "",
       })
-      // Recargar los avances físicos
       fetchAvancesFisicos()
-      // Mostrar mensaje de éxito
       Swal.fire({
         icon: "success",
         title: "Éxito",
@@ -229,6 +241,38 @@ const AvanceFisico = () => {
                 required
               />
             </label>
+
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text text-[#000000]">Fecha de Inicio</span>
+              </div>
+              <input
+                type="date"
+                name="fecha_inicio"
+                className="input input-bordered w-full bg-[#f0f0f0]"
+                value={nuevoAvance.fecha_inicio}
+                onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_inicio: e.target.value })}
+                disabled={formularioDeshabilitado}
+                required
+              />
+            </label>
+
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text text-[#000000]">Fecha de Fin</span>
+              </div>
+              <input
+                type="date"
+                name="fecha_fin"
+                className="input input-bordered w-full bg-[#f0f0f0]"
+                value={nuevoAvance.fecha_fin}
+                onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_fin: e.target.value })}
+                min={nuevoAvance.fecha_inicio}
+                disabled={formularioDeshabilitado}
+                required
+              />
+            </label>
+
             <label className="form-control w-full md:col-span-2">
               <div className="label">
                 <span className="label-text text-[#000000]">Punto de Atención</span>
@@ -257,6 +301,7 @@ const AvanceFisico = () => {
             </button>
           </div>
         </form>
+
         <div className="text-[#141313] xl:mx-20 mt-2">
           <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -269,36 +314,54 @@ const AvanceFisico = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Fecha
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Avance Real (%)
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Avance Planificado (%)
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Puntos de Atención
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha Inicio
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha Fin
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedData.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
                         No hay datos disponibles.
                       </td>
                     </tr>
                   ) : (
                     paginatedData.map((avance, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{formatearFechaUTC(avance.fecha)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{avance.avance_real}%</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {formatearFechaUTC(avance.fecha)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {avance.avance_real}%
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
                           {avance.avance_planificado}%
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">{avance.puntos_atencion}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {avance.puntos_atencion}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {formatearFechaUTC(avance.fecha_inicio)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                          {formatearFechaUTC(avance.fecha_fin)}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -306,6 +369,7 @@ const AvanceFisico = () => {
               </table>
             </div>
           </div>
+
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
               <button

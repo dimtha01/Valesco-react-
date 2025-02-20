@@ -45,5 +45,5 @@ export function formatCurrency(number, currency = "USD") {
   return formatter.format(number);
 }
 
-export const UrlApi ="https://apiprueba-production-2ab7.up.railway.app"
+export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app"
 // export const UrlApi = "http://localhost:3000"
