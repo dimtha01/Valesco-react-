@@ -390,7 +390,7 @@ const AvanceFinanciero = () => {
                           {avance.id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
-                          {new Date(avance.fecha).toLocaleDateString()}
+                          {formatearFechaUTC(avance.fecha)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
                           {avance.numero_valuacion}
