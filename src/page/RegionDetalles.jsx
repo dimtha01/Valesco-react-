@@ -263,24 +263,13 @@ function ProgressIndicator({ progress }) {
   const planned = progress.planned || 0;
   const completed = progress.completed || 0;
 
+  // Determinar si el avance real supera el planificado
+  const isRealOverPlanned = real > planned;
+
   return (
     <div className="space-y-1">
       {/* Barra de progreso */}
       <div className="h-2 bg-blue-100 rounded-full relative">
-        {/* Barra de progreso real */}
-        <div
-          className="absolute h-full bg-blue-600 rounded-full"
-          style={{ width: `${real}%` }}
-        />
-        {/* Barra de progreso planificado */}
-        <div
-          className="absolute h-full bg-blue-400 rounded-full"
-          style={{
-            left: `${real}%`,
-            width: `${planned - real}%`,
-            display: planned > real ? "block" : "none", // Ocultar si no hay diferencia entre planificado y real
-          }}
-        />
         {/* Barra de progreso completado */}
         <div
           className="absolute h-full bg-blue-200 rounded-full"
@@ -290,10 +279,31 @@ function ProgressIndicator({ progress }) {
             display: completed > planned ? "block" : "none", // Ocultar si no hay diferencia entre completado y planificado
           }}
         />
+
+        {/* Barra de progreso planificado */}
+        <div
+          className="absolute h-full bg-blue-400 rounded-full"
+          style={{
+            left: `${real}%`,
+            width: `${planned - real}%`,
+            display: planned > real ? "block" : "none", // Ocultar si no hay diferencia entre planificado y real
+            zIndex: isRealOverPlanned ? 1 : 3, // Ajustar z-index según la condición
+          }}
+        />
+
+        {/* Barra de progreso real */}
+        <div
+          className={`absolute h-full rounded-full ${isRealOverPlanned ? "bg-red-600" : "bg-blue-700"
+            }`}
+          style={{
+            width: `${real}%`,
+            zIndex: isRealOverPlanned ? 3 : 1, // Ajustar z-index según la condición
+          }}
+        />
       </div>
 
       {/* Etiquetas de porcentaje */}
-      <div className="flex justify-between text-xs md:text-sm text-gray-500">
+      <div className="flex justify-between text-xs md:text-sm text-gray-500 mt-2">
         <span>{real}%</span>
         <span>{planned}%</span>
         <span>{completed}%</span>
@@ -302,7 +312,9 @@ function ProgressIndicator({ progress }) {
       {/* Bloque de etiquetas adicionales */}
       <div className="flex justify-between mt-2 text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-1 bg-blue-700" />
+          <div
+            className={`w-4 h-1 ${isRealOverPlanned ? "bg-red-600" : "bg-blue-700"}`}
+          />
           <span>Real</span>
           <span className="font-medium">{real}%</span>
         </div>
@@ -321,5 +333,6 @@ function ProgressIndicator({ progress }) {
   );
 }
 
-export default ProgressIndicator;
+
+export default ReginDetalles
 
