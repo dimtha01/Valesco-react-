@@ -209,7 +209,6 @@ const Costos = () => {
                   className="input input-bordered w-full bg-[#f0f0f0]"
                   value={nuevoCosto.fecha_inicio}
                   onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_inicio: e.target.value })}
-                  min={new Date().toISOString().split("T")[0]}
                   required
                 />
               </label>
