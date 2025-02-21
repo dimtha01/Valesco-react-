@@ -265,6 +265,7 @@ function ProgressIndicator({ progress }) {
 
   return (
     <div className="space-y-1">
+      {/* Barra de progreso */}
       <div className="h-2 bg-blue-100 rounded-full relative">
         {/* Barra de progreso real */}
         <div
@@ -290,15 +291,35 @@ function ProgressIndicator({ progress }) {
           }}
         />
       </div>
+
       {/* Etiquetas de porcentaje */}
       <div className="flex justify-between text-xs md:text-sm text-gray-500">
         <span>{real}%</span>
         <span>{planned}%</span>
         <span>{completed}%</span>
       </div>
+
+      {/* Bloque de etiquetas adicionales */}
+      <div className="flex justify-between mt-2 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-1 bg-blue-700" />
+          <span>Real</span>
+          <span className="font-medium">{real}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-1 bg-blue-400" />
+          <span>Planificado</span>
+          <span className="font-medium">{planned}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-1 bg-blue-200" />
+          <span>Proyecto</span>
+          <span className="font-medium">{completed}%</span>
+        </div>
+      </div>
     </div>
   );
 }
 
-export default ReginDetalles
+export default ProgressIndicator;
 
