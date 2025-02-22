@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
+import showNotification, { formatCurrency, formatearFechaUTC, UrlApi } from "../utils/utils"
 import Swal from "sweetalert2"
 
 const Costos = () => {
@@ -131,78 +131,38 @@ const Costos = () => {
 
   return (
     <>
-      <div className="breadcrumbs text-lg mx-2 mt-2 text-[#0f0f0f]">
-        <ul>
-          <li>
-            <Link to="/InicioPlanificador" className="flex items-center hover:text-blue-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="h-6 w-6 stroke-current mr-1"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-              Sistema Gerencial
-            </Link>
-          </li>
-          <li>
-            <Link to="/InicioPlanificador/Proyecto" className="flex items-center hover:text-blue-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="h-6 w-6 stroke-current mr-1"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-              Proyecto
-            </Link>
-          </li>
-          <li>{params.Proyecto}</li>
-        </ul>
-      </div>
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Gestión de Costos</h1>
 
+      <div className="p-4">
+        <h1 className="text-2xl text-center mb-4">Gestión de Costos</h1>
         {/* Formulario para agregar nuevos costos */}
         <div className="mb-8">
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md max-w-md mx-auto">
-            <div className="mb-4">
-              <label className="form-control w-full">
-                <div className="label">
-                  <span className="label-text text-[#000000]"> Costo (USD)</span>
-                </div>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                id="costo"
-                name="costo"
-                placeholder="Ingrese el costo en USD"
-                className="input input-bordered w-full bg-[#f0f0f0]"
-                value={nuevoCosto.costo}
-                onChange={handleChangeNumero}
-                min="0"
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md max-w-2xl mx-auto">
+            {/* Contenedor flex para los campos en línea */}
+            <div className="flex flex-wrap gap-4 mb-4 items-center justify-center ">
+              {/* Campo de Costo */}
+              <div className="flex flex-col w-full md:w-auto">
+                <label className="label">
+                  <span className="label-text text-[#000000]">Costo (USD)</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="costo"
+                  name="costo"
+                  placeholder="Ingrese el costo en USD"
+                  className="input input-bordered w-full bg-[#f0f0f0]"
+                  value={nuevoCosto.costo}
+                  onChange={handleChangeNumero}
+                  min="0"
+                  required
+                />
+              </div>
 
-            <div className="mb-4">
-              <label className="form-control w-full">
-                <div className="label">
+              {/* Campo de Fecha de Inicio */}
+              <div className="flex flex-col w-full md:w-auto">
+                <label className="label">
                   <span className="label-text text-[#000000]">Fecha de Inicio</span>
-                </div>
+                </label>
                 <input
                   type="date"
                   name="fecha_inicio"
@@ -211,14 +171,13 @@ const Costos = () => {
                   onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_inicio: e.target.value })}
                   required
                 />
-              </label>
-            </div>
+              </div>
 
-            <div className="mb-4">
-              <label className="form-control w-full">
-                <div className="label">
+              {/* Campo de Fecha de Fin */}
+              <div className="flex flex-col w-full md:w-auto">
+                <label className="label">
                   <span className="label-text text-[#000000]">Fecha de Fin</span>
-                </div>
+                </label>
                 <input
                   type="date"
                   name="fecha_fin"
@@ -228,33 +187,27 @@ const Costos = () => {
                   min={nuevoCosto.fecha_inicio}
                   required
                 />
-              </label>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              aria-label="Agregar costo"
-            >
-              Agregar
-            </button>
+            {/* Botón de Agregar */}
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline"
+                aria-label="Agregar costo"
+              >
+                Agregar
+              </button>
+            </div>
           </form>
         </div>
-
         {/* Tabla de costos */}
         <div className="text-[#141313] xl:mx-20 mt-2">
           <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
                 <h2 className="text-lg font-semibold text-gray-700">Registro de Costos</h2>
-                <div className="text-sm text-gray-600">
-                  <p>
-                    Costo Planificado: <span className="font-bold">${costoOfertado.toFixed(2)}</span>
-                  </p>
-                  <p>
-                    Costo Real: <span className="font-bold">${costoTotal.toFixed(2)}</span>
-                  </p>
-                </div>
               </div>
             </div>
 
@@ -388,6 +341,17 @@ const Costos = () => {
           </div>
         </div>
       </div>
+      <div className="fixed bottom-4 right-4 flex gap-4">
+        <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2"> Costo Planificado</h3>
+          <p className="text-lg font-bold text-gray-900">${costoOfertado.toFixed(2)}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
+          <p className="text-lg font-bold text-green-600">${costoTotal.toFixed(2)}</p>
+        </div>
+      </div>
+
     </>
   )
 }
