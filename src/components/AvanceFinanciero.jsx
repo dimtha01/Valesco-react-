@@ -250,18 +250,18 @@ const AvanceFinanciero = () => {
     return estatusMap[estatus] || null
   }
 
- 
+
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Administración de Contratos</h1>
+      <h1 className="text-2xl text-center mb-4">Administración de Contratos</h1>
       <div className="mb-8">
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md max-w-4xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-4xl">
             {/* Campo: Número de Valuación */}
             <label className="form-control w-full">
               <div className="label">
-                <span className="label-text text-[#000000]">Número de Valuación</span>
+                <span className="label-text text-[#000000]">N° Valuación</span>
               </div>
               <input
                 type="text"
@@ -353,7 +353,7 @@ const AvanceFinanciero = () => {
                       Fecha
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
-                      Número de Valuación
+                      N° Valuación
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
                       Monto (USD)

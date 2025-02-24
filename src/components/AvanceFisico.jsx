@@ -199,7 +199,7 @@ const AvanceFisico = () => {
 
   return (
     <>
-      <h1 className="ml-4 text-3xl mt-3 text-center">Informe de Avance Físico</h1>
+      <h1 className="text-2xl text-center mb-4">Informe de Avance Físico</h1>
       <div className="p-2">
         <form
           onSubmit={handleSubmit}
