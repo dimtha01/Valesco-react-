@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Link, useParams } from "react-router-dom"
 import { UrlApi } from "../utils/utils"
-import { FiDollarSign, FiBarChart2, FiShoppingCart, FiCheckCircle, FiUsers } from "react-icons/fi"
+import { FiDollarSign, FiBarChart2, FiShoppingCart, FiCheckCircle, FiUsers, FiTrendingUp } from "react-icons/fi"
 import LoadingBar from "./LoadingBar"
 
 const AvanceFinancieroGerencial = () => {
@@ -94,31 +94,37 @@ const AvanceFinancieroGerencial = () => {
       {
         title: "Ofertado",
         value: proyectoDetails ? Number.parseFloat(proyectoDetails.monto_ofertado) : 0,
-        icon: FiDollarSign,
+        icon: "FiDollarSign",
         color: "bg-green-100 text-green-600",
       },
       {
         title: "Costo Estimado",
         value: proyectoDetails ? Number.parseFloat(proyectoDetails.costo_estimado) : 0,
-        icon: FiBarChart2,
+        icon: "FiBarChart2",
         color: "bg-blue-100 text-blue-600",
+      },
+      {
+        title: "Costo Real",
+        value: proyectoDetails ? Number.parseFloat(proyectoDetails.costo_real_total) : 0,
+        icon: "FiTrendingUp",
+        color: "bg-red-100 text-red-600",
       },
       {
         title: "Por Facturar",
         value: porFacturar,
-        icon: FiShoppingCart,
+        icon: "FiShoppingCart",
         color: "bg-yellow-100 text-yellow-600",
       },
       {
         title: "Facturado",
         value: facturado,
-        icon: FiCheckCircle,
+        icon: "FiCheckCircle",
         color: "bg-purple-100 text-purple-600",
       },
       {
         title: "Por Valuar",
         value: porValuar,
-        icon: FiUsers,
+        icon: "FiUsers",
         color: "bg-pink-100 text-pink-600",
       },
     ]
@@ -201,7 +207,7 @@ const AvanceFinancieroGerencial = () => {
         <h1 className="text-center text-lg font-semibold">Administración de Contratos</h1>
 
         {/* Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
           {calculateMetrics().map((metric, index) => (
             <div key={index} className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300">
               <div className="flex justify-between items-start">
@@ -210,7 +216,12 @@ const AvanceFinancieroGerencial = () => {
                   <p className="text-2xl font-bold text-gray-900">$ {metric.value.toLocaleString()}</p>
                 </div>
                 <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
-                  <metric.icon className="h-5 w-5" />
+                  {metric.icon === "FiDollarSign" && <FiDollarSign className="h-5 w-5" />}
+                  {metric.icon === "FiBarChart2" && <FiBarChart2 className="h-5 w-5" />}
+                  {metric.icon === "FiTrendingUp" && <FiTrendingUp className="h-5 w-5" />}
+                  {metric.icon === "FiShoppingCart" && <FiShoppingCart className="h-5 w-5" />}
+                  {metric.icon === "FiCheckCircle" && <FiCheckCircle className="h-5 w-5" />}
+                  {metric.icon === "FiUsers" && <FiUsers className="h-5 w-5" />}
                 </div>
               </div>
             </div>
@@ -293,10 +304,10 @@ const AvanceFinancieroGerencial = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
-                                ? "bg-green-100 text-green-800"
-                                : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-blue-100 text-blue-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-blue-100 text-blue-800"
                                 }`}
                             >
                               {avance.estatus_proceso_nombre}

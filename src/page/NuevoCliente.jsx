@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useContext, useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Swal from "sweetalert2"
 import { UrlApi } from "../utils/utils"
+import { AuthContext } from "../components/AuthContext"
 
 const NuevoCliente = () => {
+  const { region } = useContext(AuthContext)
   const navigate = useNavigate()
+
   const [formData, setFormData] = useState({
     nombre: "",
     razon_social: "",
@@ -20,11 +23,16 @@ const NuevoCliente = () => {
     direccion: "",
   })
 
-  const regiones = [
-    { id: 1, nombre: "Centro" },
-    { id: 2, nombre: "Occidente" },
-    { id: 3, nombre: "Oriente" },
-  ]
+  // Set the region ID based on the user's region when component mounts
+  useEffect(() => {
+    if (region) {
+      const regionId = getRegionIdByName(region)
+      setFormData((prevState) => ({
+        ...prevState,
+        id_region: regionId,
+      }))
+    }
+  }, [region])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -37,7 +45,7 @@ const NuevoCliente = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const requiredFields = ["nombre", "razon_social", "direccion_fiscal", "pais", "id_region", "unidad_negocio"]
+    const requiredFields = ["nombre", "razon_social", "direccion_fiscal", "pais", "unidad_negocio"]
     const emptyFields = requiredFields.filter((field) => !formData[field])
 
     if (emptyFields.length > 0) {
@@ -45,6 +53,16 @@ const NuevoCliente = () => {
         icon: "error",
         title: "Campos incompletos",
         text: `Por favor, completa los siguientes campos obligatorios: ${emptyFields.join(", ")}`,
+      })
+      return
+    }
+
+    // Validate that we have a region
+    if (!region || !formData.id_region) {
+      Swal.fire({
+        icon: "error",
+        title: "Error de región",
+        text: "No se pudo determinar la región del usuario. Por favor, contacte al administrador.",
       })
       return
     }
@@ -88,6 +106,18 @@ const NuevoCliente = () => {
         title: "Error",
         text: error.message || "Ocurrió un error inesperado al intentar crear el cliente.",
       })
+    }
+  }
+
+  const getRegionIdByName = (regionName) => {
+    if (regionName === "Centro") {
+      return "1"
+    } else if (regionName === "Occidente") {
+      return "2"
+    } else if (regionName === "Oriente") {
+      return "3"
+    } else {
+      return null // Retorna null si el nombre no existe
     }
   }
 
@@ -160,6 +190,15 @@ const NuevoCliente = () => {
       <div>
         <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-auto mt-6 p-6">
           <h3 className="font-bold text-2xl mb-6">Registrar Nuevo Cliente</h3>
+
+          {/* Display current region */}
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-blue-700">
+              <span className="font-medium">Región actual:</span> {region || "No definida"}
+            </p>
+            <p className="text-sm text-blue-600 mt-1">El cliente será registrado automáticamente en esta región.</p>
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control w-full">
@@ -234,26 +273,6 @@ const NuevoCliente = () => {
                   onChange={handleChange}
                   required
                 />
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">Región</span>
-                </label>
-                <select
-                  name="id_region"
-                  className="select select-bordered w-full"
-                  value={formData.id_region}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Seleccione una región</option>
-                  {regiones.map((region) => (
-                    <option key={region.id} value={region.id}>
-                      {region.nombre}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div className="form-control w-full">

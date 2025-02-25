@@ -1,18 +1,32 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { UrlApi } from "../utils/utils"
+import { AuthContext } from "../components/AuthContext"
 
 const Proyecto = () => {
   const [proyectos, setProyectos] = useState([])
   const [filteredProyectos, setFilteredProyectos] = useState([])
   const [regions, setRegions] = useState([])
-  const [selectedRegion, setSelectedRegion] = useState("all")
+  const { region } = useContext(AuthContext) // Get region from AuthContext
   const rowsPerPage = 7
   const [currentPage, setCurrentPage] = useState(1)
 
   const navigate = useNavigate()
+
+  const filterProyectosByRegion = useCallback(
+    (data) => {
+      if (!region || region === "all") {
+        setFilteredProyectos(data)
+      } else {
+        const filtered = data.filter((proyecto) => proyecto.nombre_region === region)
+        setFilteredProyectos(filtered)
+      }
+      setCurrentPage(1)
+    },
+    [region],
+  )
 
   useEffect(() => {
     const fetchProyectos = async () => {
@@ -20,36 +34,25 @@ const Proyecto = () => {
         const response = await fetch(`${UrlApi}/api/proyectos`)
         const data = await response.json()
         setProyectos(data)
-        setFilteredProyectos(data)
 
         // Extract unique regions
         const uniqueRegions = [...new Set(data.map((proyecto) => proyecto.nombre_region))]
         setRegions(uniqueRegions)
+
+        // Filter projects based on user's region from context
+        filterProyectosByRegion(data)
       } catch (error) {
         console.error("Error al cargar los proyectos:", error)
       }
     }
 
     fetchProyectos()
-  }, [])
+  }, [filterProyectosByRegion]) // Removed region as dependency and added filterProyectosByRegion
 
+  // Update filter when projects or region changes
   useEffect(() => {
-    filterProyectos()
-  }, [selectedRegion]) //Fixed: Removed unnecessary dependency 'proyectos'
-
-  const filterProyectos = () => {
-    if (selectedRegion === "all") {
-      setFilteredProyectos(proyectos)
-    } else {
-      const filtered = proyectos.filter((proyecto) => proyecto.nombre_region === selectedRegion)
-      setFilteredProyectos(filtered)
-    }
-    setCurrentPage(1)
-  }
-
-  const handleRegionChange = (e) => {
-    setSelectedRegion(e.target.value)
-  }
+    filterProyectosByRegion(proyectos)
+  }, [region, proyectos, filterProyectosByRegion])
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= Math.ceil(filteredProyectos.length / rowsPerPage)) {
@@ -100,30 +103,17 @@ const Proyecto = () => {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              Actualización de Proyecto
+              Actualización de Proyecto
             </Link>
           </li>
         </ul>
       </div>
 
-      {/* Filtro de regiones */}
+      {/* Región actual */}
       <div className="mb-4 mx-20 mt-4">
-        <label htmlFor="region-filter" className="mr-2 text-gray-700">
-          Filtrar por Región:
-        </label>
-        <select
-          id="region-filter"
-          value={selectedRegion}
-          onChange={handleRegionChange}
-          className="border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-white text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">Todas las Regiones</option>
-          {regions.map((region, index) => (
-            <option key={index} value={region}>
-              {region}
-            </option>
-          ))}
-        </select>
+        <span className="text-gray-700 font-medium">
+          Región actual: {region === "all" ? "Todas las Regiones" : region || "Todas las Regiones"}
+        </span>
       </div>
 
       {/* Tabla */}
@@ -136,9 +126,7 @@ const Proyecto = () => {
               {/* Encabezado */}
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    ID
-                  </th>
+
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
                     Número
                   </th>
@@ -148,12 +136,11 @@ const Proyecto = () => {
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
                     Región
                   </th>
+                 
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    Monto Ofertado
+                    Avance Real
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    Unidad Negocio
-                  </th>
+
                 </tr>
               </thead>
               {/* Cuerpo */}
@@ -171,9 +158,7 @@ const Proyecto = () => {
                       onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
                       className="cursor-pointer hover:bg-gray-100 transition duration-200"
                     >
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-300">
-                        {proyecto.id}
-                      </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
                         {proyecto.numero}
                       </td>
@@ -183,12 +168,11 @@ const Proyecto = () => {
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-300">
                         {proyecto.nombre_region}
                       </td>
+                     
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-300">
-                        ${proyecto.monto_ofertado}
+                        {proyecto.avance_real_maximo || 0}%
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
-                        {proyecto.unidad_negocio}
-                      </td>
+
                     </tr>
                   ))
                 )}

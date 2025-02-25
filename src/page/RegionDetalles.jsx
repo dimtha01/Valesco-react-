@@ -38,9 +38,7 @@ const ReginDetalles = () => {
     return <p>Cargando...</p>
   }
 
-  if (error) {
-    return <p>Error: {error}</p>
-  }
+  
 
   // Función para manejar el clic en una fila
   const handleRowClick = (idProyecto) => {

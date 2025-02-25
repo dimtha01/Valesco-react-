@@ -123,7 +123,7 @@ const GestionGerencia = () => {
                     </h3>
                     <p className="text-base font-medium text-gray-600">Facturado</p>
                     <p className="text-sm font-medium text-green-600">
-                      {(((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2)}%
+                      {(((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2) || 0}%
                     </p>
                   </div>
                 </div>
@@ -139,7 +139,7 @@ const GestionGerencia = () => {
                     </h3>
                     <p className="text-base font-medium text-gray-600">Por Facturar</p>
                     <p className="text-sm font-medium text-blue-600">
-                      {(((estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2)}%
+                      {(((estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2) || 0}%
                     </p>
                   </div>
                 </div>
@@ -155,7 +155,7 @@ const GestionGerencia = () => {
                     </h3>
                     <p className="text-base font-medium text-gray-600">Por Valuar</p>
                     <p className="text-sm font-medium text-yellow-600">
-                      {(((estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2)}%       </p>
+                      {(((estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2) || 0}%       </p>
                   </div>
                 </div>
               </Link>
@@ -166,9 +166,9 @@ const GestionGerencia = () => {
             <h2 className="text-3xl font-semibold text-white mb-4 text-center bg-[#015999] rounded-md p-2 opacity-70">Regiones</h2>
             {loading ? (
               <p className="text-center col-span-full text-gray-600 text-base">Cargando regiones...</p>
-            ) : regiones.length > 0 ? (
+            ) : regiones.regiones.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
-                {regiones.map((region) => (
+                {regiones.regiones.map((region) => (
                   <Link key={region.id} to={`/GestionGerencia/${region.nombre_region}`} className="flex justify-center">
                     <div className="bg-gray-50 rounded-lg p-5 shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-300 w-full max-w-sm border border-gray-200">
                       {/* Contenedor para el ícono y el nombre de la región */}
@@ -199,11 +199,11 @@ const GestionGerencia = () => {
       <div className="fixed bottom-4 right-4 flex gap-4">
         <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Plan</h3>
-          <p className="text-lg font-bold text-gray-900">{formatCurrency(costoTotal)}</p>
+          <p className="text-lg font-bold text-gray-900">{formatCurrency(regiones.costo_planificado_total)}</p>
         </div>
         <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
-          <p className="text-lg font-bold text-green-600">{formatCurrency(rentabilidad)}</p>
+          <p className="text-lg font-bold text-green-600">{formatCurrency(regiones.costo_real_total)}</p>
         </div>
       </div>
     </>

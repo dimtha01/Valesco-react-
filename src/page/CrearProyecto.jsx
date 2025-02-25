@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import showNotification, { UrlApi } from "../utils/utils"
-import NuevoCliente from "./NuevoCliente"
+import { AuthContext } from "../components/AuthContext"
 
 const CrearProyecto = () => {
   const [numero, setNumero] = useState("")
@@ -16,6 +16,7 @@ const CrearProyecto = () => {
   const [fechaInicio, setFechaInicio] = useState("")
   const [fechaFinal, setFechaFinal] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { region } = useContext(AuthContext)
 
   const navigate = useNavigate()
 
@@ -23,42 +24,67 @@ const CrearProyecto = () => {
 
   // Estado para los clientes cargados desde la API
   const [clientes, setClientes] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Función para cargar los clientes desde la API
-  const fetchClientes = async () => {
+  // Función para obtener el ID de la región por su nombre
+  const getRegionIdByName = useCallback((regionName) => {
+    if (!regionName) return null
+
+    // Normalizar el nombre de la región (minúsculas y sin espacios extra)
+    const normalizedName = regionName.toLowerCase().trim()
+
+    if (normalizedName === "centro" || normalizedName.includes("centro")) {
+      return "1"
+    } else if (normalizedName === "occidente" || normalizedName.includes("occidente")) {
+      return "2"
+    } else if (normalizedName === "oriente" || normalizedName.includes("oriente")) {
+      return "3"
+    } else {
+      console.warn("Región no reconocida:", regionName)
+      return null
+    }
+  }, [])
+
+  // Función para cargar los clientes desde la API usando el filtro por región
+  const fetchClientes = useCallback(async () => {
+    setIsLoading(true)
     try {
-      const response = await fetch(`${UrlApi}/api/clientes`)
+      // Usar el endpoint con filtro por región si hay una región seleccionada
+      const url =
+        region && region !== "all"
+          ? `${UrlApi}/api/clientes?region=${encodeURIComponent(region)}`
+          : `${UrlApi}/api/clientes`
+
+      console.log("Consultando API:", url)
+
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error(`Error al cargar los datos: ${response.statusText}`)
       }
-      const data = await response.json()
-      setClientes(data || []) // Asegúrate de que sea un array
-    } catch (err) {
-      console.error(err)
-      showNotification("error", "Error", "Ocurrió un error al cargar los clientes.")
-    }
-  }
 
-  // Usar useEffect para cargar los datos cuando el componente se monta
+      const data = await response.json()
+      console.log("Clientes recibidos:", data)
+      setClientes(data || [])
+    } catch (err) {
+      console.error("Error al cargar clientes:", err)
+      showNotification("error", "Error", "Ocurrió un error al cargar los clientes.")
+      setClientes([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [region])
+
+  // Usar useEffect para cargar los datos cuando el componente se monta o cambia la región
   useEffect(() => {
     fetchClientes()
-  }, []) // Removed UrlApi as a dependency
+  }, [fetchClientes])
 
   // Función para manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault() // Evitar el comportamiento predeterminado del formulario
 
     // Validar que todos los campos estén completos
-    if (
-      !numero ||
-      !nombre ||
-      !idCliente ||
-      !idRegion ||
-      !costoEstimado ||
-      !montoOfertado ||
-      !fechaInicio ||
-      !fechaFinal
-    ) {
+    if (!numero || !nombre || !idCliente || !costoEstimado || !montoOfertado || !fechaInicio || !fechaFinal) {
       showNotification("warning", "Campos Incompletos", "Por favor, completa todos los campos.")
       return
     }
@@ -72,10 +98,6 @@ const CrearProyecto = () => {
     // Validar que los valores numéricos sean válidos
     if (isNaN(Number.parseInt(idCliente))) {
       showNotification("error", "Cliente Inválido", "El ID del cliente debe ser un número válido.")
-      return
-    }
-    if (isNaN(Number.parseInt(idRegion))) {
-      showNotification("error", "Región Inválida", "El ID de la región debe ser un número válido.")
       return
     }
     if (isNaN(Number.parseFloat(costoEstimado)) || Number.parseFloat(costoEstimado) <= 0) {
@@ -93,7 +115,7 @@ const CrearProyecto = () => {
       nombre,
       idCliente: Number.parseInt(idCliente),
       idResponsable: Number.parseInt(idResponsable),
-      idRegion: Number.parseInt(idRegion),
+      idRegion: Number.parseInt(getRegionIdByName(region)),
       costoEstimado: Number.parseFloat(costoEstimado),
       montoOfertado: Number.parseFloat(montoOfertado),
       fechaInicio,
@@ -194,6 +216,14 @@ const CrearProyecto = () => {
 
       <div className="flex justify-center mt-3">
         <div className="p-6 rounded-lg w-full max-w-4xl bg-white shadow-md">
+          {/* Información de región */}
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-blue-700">
+              <span className="font-medium">Región actual:</span> {region || "Todas las regiones"}
+            </p>
+            <p className="text-sm text-blue-600 mt-1">Solo se muestran los clientes de esta región.</p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Título del formulario */}
             <h2 className="text-2xl font-bold text-center text-gray-800">Crear Proyecto</h2>
@@ -229,8 +259,6 @@ const CrearProyecto = () => {
                   onChange={(e) => setNombre(e.target.value)}
                 />
               </div>
-
-              {/* Campo: Cliente */}
               <div className="form-control w-full">
                 <label className="label">
                   <span className="label-text text-gray-700">Cliente</span>
@@ -241,6 +269,7 @@ const CrearProyecto = () => {
                     className="select select-bordered w-full bg-gray-100 text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
                     value={idCliente}
                     onChange={(e) => setIdCliente(e.target.value)}
+                    disabled={isLoading}
                   >
                     <option value="">Seleccionar Cliente</option>
                     {clientes.map((cliente) => (
@@ -253,27 +282,13 @@ const CrearProyecto = () => {
                     +
                   </Link>
                 </div>
+                {isLoading && <div className="mt-2 text-sm text-gray-500">Cargando clientes...</div>}
+                {!isLoading && clientes.length === 0 && (
+                  <div className="mt-2 text-sm text-amber-600">
+                    No hay clientes disponibles para esta región. Puede crear uno nuevo con el botón +
+                  </div>
+                )}
               </div>
-
-              {/* Campo: Región */}
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text text-gray-700">Región</span>
-                </label>
-                <select
-                  name="idRegion"
-                  className="select select-bordered w-full bg-gray-100 text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
-                  value={idRegion}
-                  onChange={(e) => setIdRegion(e.target.value)}
-                >
-                  <option value="">Seleccionar Región</option>
-                  <option value="1">Centro</option>
-                  <option value="2">Occidente</option>
-                  <option value="3">Oriente</option>
-                </select>
-              </div>
-
-              {/* Campo: Costo Estimado */}
               <div className="form-control w-full">
                 <label className="label">
                   <span className="label-text text-gray-700">Costo Estimado</span>

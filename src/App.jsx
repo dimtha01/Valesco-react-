@@ -12,6 +12,8 @@ import ReginDetalles from "./page/RegionDetalles";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./components/AuthContext";
 import DetallesProyecto from "./page/DetallesProyecto";
+import Gestion from "./page/Gestion";
+import GestionProyectos from "./page/GestionProyectos";
 
 const App = () => {
   return (
@@ -72,10 +74,26 @@ const App = () => {
             }
           />
           <Route
+            path="/Gestion"
+            element={
+              <ProtectedRoute>
+                <Gestion />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/InicioPlanificador/Proyecto/ActualizarProyecto/:Proyecto/:id"
             element={
               <ProtectedRoute>
                 <ActualizarProyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/GestionProyectos/:Proyecto/:id"
+            element={
+              <ProtectedRoute>
+                <GestionProyectos />
               </ProtectedRoute>
             }
           />

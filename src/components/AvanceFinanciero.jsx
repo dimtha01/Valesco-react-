@@ -30,7 +30,10 @@ const AvanceFinanciero = () => {
   }
 
   // Datos paginados
-  const paginatedData = avancesFinancieros.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+  const paginatedData =
+    avancesFinancieros && avancesFinancieros.length > 0
+      ? avancesFinancieros.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+      : []
 
   // Función para cargar los avances financieros
   const fetchAvancesFinancieros = useCallback(async () => {
@@ -45,16 +48,14 @@ const AvanceFinanciero = () => {
 
       const data = await response.json()
 
-      // Verificar si la API devuelve un mensaje cuando no hay datos
-      if (data.length === 0) {
-        const apiMessage = data.message || "No se encontraron avances financieros para este proyecto."
-        showNotification("info", "Sin datos", apiMessage)
+      // Verificar si la API devuelve un array vacío
+      if (Array.isArray(data) && data.length === 0) {
+        showNotification("info", "Sin datos", "No se encontraron avances financieros para este proyecto.")
         setAvancesFinancieros([]) // Asegurarse de limpiar los avances financieros
-        return
+      } else {
+        // Actualizar el estado con los datos obtenidos
+        setAvancesFinancieros(data)
       }
-
-      // Actualizar el estado con los datos obtenidos
-      setAvancesFinancieros(data)
     } catch (error) {
       console.error("Error al cargar los avances financieros:", error)
       showNotification(
@@ -62,6 +63,10 @@ const AvanceFinanciero = () => {
         "Error",
         error.message || "Ocurrió un problema al cargar los avances financieros. Por favor, inténtalo de nuevo.",
       )
+      setAvancesFinancieros([]) // Asegurarse de limpiar los avances financieros en caso de error
+    } finally {
+      // Asegurarse de que isLoading se establezca en false incluso si hay un error
+      setIsLoading(false)
     }
   }, [params.id])
 
@@ -85,9 +90,15 @@ const AvanceFinanciero = () => {
       console.error("Error al cargar el proyecto:", error)
       showNotification("error", "Error", "Ocurrió un problema al cargar el proyecto. Por favor, inténtalo de nuevo.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }, [params.id])
+
+  // Calcular el costo real (suma de todos los montos de avances financieros)
+  const calcularCostoReal = () => {
+    if (!avancesFinancieros || avancesFinancieros.length === 0) return 0
+    return avancesFinancieros.reduce((total, avance) => total + Number(avance.monto_usd || 0), 0).toFixed(2)
+  }
 
   // Cargar datos cuando el componente se monta
   useEffect(() => {
@@ -132,6 +143,12 @@ const AvanceFinanciero = () => {
       )
       return
     }
+
+    if (!proyecto) {
+      showNotification("error", "Error", "No se ha cargado la información del proyecto.")
+      return
+    }
+
     const sumaMontos = avancesFinancieros.reduce((total, avance) => total + Number.parseFloat(avance.monto_usd || 0), 0)
     const nuevoMonto = Number.parseFloat(nuevoAvance.monto_usd)
     if (sumaMontos + nuevoMonto > proyecto.monto_ofertado) {
@@ -254,8 +271,6 @@ const AvanceFinanciero = () => {
     }
     return estatusMap[estatus] || null
   }
-
-
 
   return (
     <div className="p-4">
@@ -384,7 +399,7 @@ const AvanceFinanciero = () => {
                     {paginatedData.length === 0 ? (
                       <tr>
                         <td colSpan="9" className="text-center py-4 text-gray-500">
-                          No hay datos disponibles.
+                          {isLoading ? "Cargando datos..." : "No hay datos disponibles."}
                         </td>
                       </tr>
                     ) : (
@@ -403,9 +418,7 @@ const AvanceFinanciero = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
                             {avance.numero_valuacion}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
-                            ${avance.monto_usd}
-                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">${avance.monto_usd}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
                             {formatearFechaUTC(avance.fecha_inicio)}
                           </td>
@@ -446,7 +459,11 @@ const AvanceFinanciero = () => {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Mostrando <span className="font-medium">{(currentPage - 1) * rowsPerPage + 1}</span> a{" "}
+                  Mostrando{" "}
+                  <span className="font-medium">
+                    {avancesFinancieros.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}
+                  </span>{" "}
+                  a{" "}
                   <span className="font-medium">{Math.min(currentPage * rowsPerPage, avancesFinancieros.length)}</span>{" "}
                   de <span className="font-medium">{avancesFinancieros.length}</span> resultados
                 </p>
@@ -572,6 +589,16 @@ const AvanceFinanciero = () => {
           </div>
         </div>
       )}
+      <div className="fixed bottom-4 right-4 flex gap-4">
+        <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Monto ofertado</h3>
+          <p className="text-lg font-bold text-gray-900">${proyecto?.monto_ofertado || 0}</p>
+        </div>
+        {/* <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
+          <p className="text-lg font-bold text-green-600">${calcularCostoReal()}</p>
+        </div> */}
+      </div>
     </div>
   )
 }

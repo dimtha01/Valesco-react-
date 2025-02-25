@@ -1,8 +1,15 @@
+import { useContext } from "react";
 import { Link } from "react-router-dom";
-import imgProyecto1 from "../assets/Proyecto1.png"
-import imgProyecto2 from "../assets/Crear proyecto.png"
+import imgProyecto1 from "../assets/Proyecto1.png";
+import imgProyecto2 from "../assets/Crear proyecto.png";
+import imgProyecto3 from "../assets/Crear proyecto.png"; // Nueva imagen para la tercera tarjeta
+import { AuthContext } from "../components/AuthContext";
 
 const InicioPlanificador = () => {
+  const { permissionEdit } = useContext(AuthContext); // Obtener el email del contexto
+  console.log(permissionEdit);
+
+
   return (
     <>
       {/* Breadcrumbs */}
@@ -41,7 +48,7 @@ const InicioPlanificador = () => {
               <img
                 src={imgProyecto2}
                 alt="Crear Proyecto"
-                className="w-full h-full object-cover transition-transform duration-300 "
+                className="w-full h-full object-cover transition-transform duration-300"
               />
             </figure>
             <div className="card-body p-4 text-center">
@@ -81,7 +88,7 @@ const InicioPlanificador = () => {
               <img
                 src={imgProyecto1}
                 alt="Proyectos"
-                className="w-full h-full object-cover transition-transform duration-300 "
+                className="w-full h-full object-cover transition-transform duration-300"
               />
             </figure>
             <div className="card-body p-4 text-center">
@@ -89,7 +96,7 @@ const InicioPlanificador = () => {
                 Actualizar Proyectos
               </h2>
               <p className="text-xs md:text-sm text-gray-600 mt-2">
-                Edita y gestiona los proyectos existentes.
+                Gestiona los proyectos existentes.
               </p>
               <div className="card-actions mt-4">
                 <Link
@@ -114,9 +121,50 @@ const InicioPlanificador = () => {
               </div>
             </div>
           </div>
+
+          {/* Tercera tarjeta solo para el nuevo planificador */}
+          {permissionEdit && (
+            <div className="card bg-white shadow-md rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg">
+              <figure className="h-48 overflow-hidden">
+                <img
+                  src={imgProyecto3}
+                  alt="Tercer Proyecto"
+                  className="w-full h-full object-cover transition-transform duration-300"
+                />
+              </figure>
+              <div className="card-body p-4 text-center">
+                <h2 className="card-title text-base md:text-lg font-semibold text-gray-800">
+                  Tercer Proyecto
+                </h2>
+                <p className="text-xs md:text-sm text-gray-600 mt-2">
+                  Accede a funciones exclusivas para este planificador.
+                </p>
+                <div className="card-actions mt-4">
+                  <Link
+                    to="/InicioPlanificador/TercerProyecto"
+                    className="btn btn-primary w-full flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 rounded-md transition-colors duration-300"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      className="h-5 w-5 stroke-current"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Acceder
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
     </>
   );
 };
