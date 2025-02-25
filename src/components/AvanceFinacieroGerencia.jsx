@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Link, useParams } from "react-router-dom"
 import { UrlApi } from "../utils/utils"
 import { FiDollarSign, FiBarChart2, FiShoppingCart, FiCheckCircle, FiUsers } from "react-icons/fi"
+import LoadingBar from "./LoadingBar"
 
 const AvanceFinancieroGerencial = () => {
   const params = useParams()
@@ -236,9 +237,7 @@ const AvanceFinancieroGerencial = () => {
         )}
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
+          <LoadingBar />
         ) : (
           <div className="flex flex-col">
             <div className="mb-4 overflow-x-auto">

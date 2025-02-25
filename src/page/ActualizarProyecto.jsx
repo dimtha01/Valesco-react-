@@ -71,7 +71,7 @@ const ActualizarProyecto = () => {
             }`}
           onClick={() => setActiveComponent("avanceFinanciero")}
         >
-          Avance Financiero
+          Administración de Contratos
         </button>
       </div>
 

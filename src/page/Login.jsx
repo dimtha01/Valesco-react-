@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import img from "../assets/image 3.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Importar íconos de react-icons
+import { ClipLoader } from "react-spinners"; // Importar spinner de react-spinners
 import { AuthContext } from "../components/AuthContext";
 
 const Login = () => {
@@ -9,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // Estado para manejar errores
   const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
+  const [isLoading, setIsLoading] = useState(false); // Estado para controlar el spinner
   const navigate = useNavigate();
   const { login } = useContext(AuthContext); // Usar el contexto de autenticación
 
@@ -19,18 +21,30 @@ const Login = () => {
   ];
 
   // Función para manejar el inicio de sesión
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const user = users.find((u) => u.email === email && u.password === password);
-    if (user) {
-      login(user.role); // Iniciar sesión y establecer el rol del usuario
-      if (user.role === "planificador") {
-        navigate("/InicioPlanificador");
-      } else if (user.role === "administrador") {
-        navigate("/GestionGerencia");
+    setError(""); // Limpiar errores previos
+    setIsLoading(true); // Activar el spinner
+
+    try {
+      // Simular una demora en la validación (puedes reemplazar esto con una llamada API)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const user = users.find((u) => u.email === email && u.password === password);
+      if (user) {
+        login(user.role); // Iniciar sesión y establecer el rol del usuario
+        if (user.role === "planificador") {
+          navigate("/InicioPlanificador");
+        } else if (user.role === "administrador") {
+          navigate("/GestionGerencia");
+        }
+      } else {
+        setError("Correo electrónico o contraseña incorrectos.");
       }
-    } else {
-      setError("Correo electrónico o contraseña incorrectos.");
+    } catch (err) {
+      setError("Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo.");
+    } finally {
+      setIsLoading(false); // Desactivar el spinner
     }
   };
 
@@ -77,9 +91,14 @@ const Login = () => {
               </div>
               <button
                 type="submit"
-                className="bg-[#002D74] rounded-xl text-white py-2 hover:scale-105 duration-300"
+                className="bg-[#002D74] rounded-xl text-white py-2 hover:scale-105 duration-300 flex justify-center items-center"
+                disabled={isLoading} // Deshabilitar el botón mientras se carga
               >
-                Iniciar sesión
+                {isLoading ? (
+                  <ClipLoader color="#ffffff" size={20} /> // Mostrar spinner mientras se carga
+                ) : (
+                  "Iniciar sesión"
+                )}
               </button>
             </form>
           </div>

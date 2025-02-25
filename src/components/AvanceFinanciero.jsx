@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
+import LoadingBar from "./LoadingBar"
 
 const AvanceFinanciero = () => {
   const params = useParams()
   const [avancesFinancieros, setAvancesFinancieros] = useState([])
   const [proyecto, setProyecto] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
   const [nuevoAvance, setNuevoAvance] = useState({
     numero_valuacion: "",
     monto_usd: "",
@@ -81,6 +84,8 @@ const AvanceFinanciero = () => {
     } catch (error) {
       console.error("Error al cargar el proyecto:", error)
       showNotification("error", "Error", "Ocurrió un problema al cargar el proyecto. Por favor, inténtalo de nuevo.")
+    } finally {
+      setIsLoading(false);
     }
   }, [params.id])
 
@@ -343,78 +348,82 @@ const AvanceFinanciero = () => {
             </div>
 
             <div className="overflow-x-auto min-h-[310px]">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
-                      N° Valuación
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
-                      Monto (USD)
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
-                      Fecha Inicio
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
-                      Fecha Fin
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
-                      Número de Factura
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
-                      Estatus
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.length === 0 ? (
+              {isLoading ? (
+                <LoadingBar />
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0">
                     <tr>
-                      <td colSpan="9" className="text-center py-4 text-gray-500">
-                        No hay datos disponibles.
-                      </td>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
+                        Fecha
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
+                        N° Valuación
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
+                        Monto (USD)
+                      </th>
+                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                        Fecha Inicio
+                      </th>
+                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                        Fecha Fin
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider  hidden md:table-cell">
+                        Número de Factura
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ">
+                        Estatus
+                      </th>
                     </tr>
-                  ) : (
-                    paginatedData.map((avance) => (
-                      <tr
-                        key={avance.id}
-                        onClick={() => handleRowClick(avance)}
-                        className="cursor-pointer hover:bg-gray-200 transition duration-200"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
-                          {avance.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
-                          {formatearFechaUTC(avance.fecha)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
-                          {avance.numero_valuacion}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
-                          ${avance.monto_usd}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
-                          {formatearFechaUTC(avance.fecha_inicio)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
-                          {formatearFechaUTC(avance.fecha_fin)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
-                          {avance.numero_factura || "No hay factura"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
-                          {avance.estatus_proceso_nombre}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedData.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="text-center py-4 text-gray-500">
+                          No hay datos disponibles.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      paginatedData.map((avance) => (
+                        <tr
+                          key={avance.id}
+                          onClick={() => handleRowClick(avance)}
+                          className="cursor-pointer hover:bg-gray-200 transition duration-200"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
+                            {avance.id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
+                            {formatearFechaUTC(avance.fecha)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
+                            {avance.numero_valuacion}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
+                            ${avance.monto_usd}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
+                            {formatearFechaUTC(avance.fecha_inicio)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 borde text-center">
+                            {formatearFechaUTC(avance.fecha_fin)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900  hidden md:table-cell">
+                            {avance.numero_factura || "No hay factura"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 ">
+                            {avance.estatus_proceso_nombre}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">

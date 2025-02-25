@@ -4,12 +4,15 @@ import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import showNotification, { formatCurrency, formatearFechaUTC, UrlApi } from "../utils/utils"
 import Swal from "sweetalert2"
+import LoadingBar from "./LoadingBar"
 
 const Costos = () => {
   const params = useParams()
   const [costos, setCostos] = useState([])
   const [costoOfertado, setCostoOfertado] = useState(0)
   const [costoTotal, setCostoTotal] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+
   const [nuevoCosto, setNuevoCosto] = useState({
     costo: "",
     fecha_inicio: "",
@@ -49,6 +52,8 @@ const Costos = () => {
     } catch (error) {
       console.error("Error al cargar los costos:", error)
       showNotification("error", "Error", "Ocurrió un problema al cargar los costos. Por favor, inténtalo de nuevo.")
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -212,56 +217,62 @@ const Costos = () => {
             </div>
 
             <div className="overflow-x-auto min-h-[310px]">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Costo (USD)
-                    </th>
-                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Monto Sobrepasado
-                    </th>
-                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Inicio
-                    </th>
-                    <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Fin
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.length === 0 ? (
+              {isLoading ? (
+
+                <LoadingBar />
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No hay datos disponibles.
-                      </td>
+                      <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha
+                      </th>
+                      <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Costo (USD)
+                      </th>
+                      <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Monto Sobrepasado
+                      </th>
+                      <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha Inicio
+                      </th>
+                      <th className="px-6 py-3 text-center   text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha Fin
+                      </th>
                     </tr>
-                  ) : (
-                    paginatedData.map((costo) => (
-                      <tr key={costo.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {formatearFechaUTC(costo.fecha)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          ${Number(costo.costo).toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          ${Number(costo.monto_sobrepasado).toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {formatearFechaUTC(costo.fecha_inicio)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {formatearFechaUTC(costo.fecha_fin)}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedData.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                          No hay datos disponibles.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      paginatedData.map((costo) => (
+                        <tr key={costo.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {formatearFechaUTC(costo.fecha)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            ${Number(costo.costo).toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            ${Number(costo.monto_sobrepasado).toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {formatearFechaUTC(costo.fecha_inicio)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {formatearFechaUTC(costo.fecha_fin)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+
             </div>
 
             {/* Paginador */}
@@ -341,16 +352,19 @@ const Costos = () => {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-4 right-4 flex gap-4">
-        <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2"> Costo Planificado</h3>
-          <p className="text-lg font-bold text-gray-900">${costoOfertado.toFixed(2)}</p>
+      {costoOfertado > 0 && (
+        <div className="fixed bottom-4 right-4 flex gap-4">
+          <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2"> Costo Planificado</h3>
+            <p className="text-lg font-bold text-gray-900">${costoOfertado.toFixed(2)}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
+            <p className="text-lg font-bold text-green-600">${costoTotal.toFixed(2)}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-lg p-4 shadow-lg w-40 border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
-          <p className="text-lg font-bold text-green-600">${costoTotal.toFixed(2)}</p>
-        </div>
-      </div>
+      )}
+
 
     </>
   )

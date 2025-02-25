@@ -269,7 +269,7 @@ function ProgressIndicator({ progress }) {
   return (
     <div className="space-y-1">
       {/* Barra de progreso */}
-      <div className="h-2 bg-blue-100 rounded-full relative">
+      <div className="h-2  bg-blue-100 rounded-full relative">
         {/* Barra de progreso completado */}
         <div
           className="absolute h-full bg-blue-200 rounded-full"

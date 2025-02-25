@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import Swal from "sweetalert2"
 import { formatearFechaUTC, UrlApi } from "../utils/utils"
+import LoadingBar from "./LoadingBar"
 
 const AvanceFisico = () => {
   const params = useParams()
@@ -15,6 +16,8 @@ const AvanceFisico = () => {
     fecha_inicio: "",
     fecha_fin: "",
   })
+  const [isLoading, setIsLoading] = useState(true)
+
   const [formularioDeshabilitado, setFormularioDeshabilitado] = useState(false)
   const [ultimoAvanceReal, setUltimoAvanceReal] = useState(0)
   const [ultimoAvancePlanificado, setUltimoAvancePlanificado] = useState(0)
@@ -64,6 +67,8 @@ const AvanceFisico = () => {
         title: "Error",
         text: "Ocurrió un problema al cargar los avances físicos. Por favor, inténtalo de nuevo.",
       })
+    } finally {
+      setIsLoading(false);
     }
   }, [params.id])
 
@@ -311,62 +316,66 @@ const AvanceFisico = () => {
             </div>
 
             <div className="overflow-x-auto min-h-[310px]">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avance Real (%)
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avance Planificado (%)
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Puntos de Atención
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Inicio
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Fin
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.length === 0 ? (
+              {isLoading ? (
+                <LoadingBar />
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                        No hay datos disponibles.
-                      </td>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Registrado
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avance Real (%)
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avance Planificado (%)
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Puntos de Atención
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha Inicio
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha Fin
+                      </th>
                     </tr>
-                  ) : (
-                    paginatedData.map((avance, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {formatearFechaUTC(avance.fecha)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {avance.avance_real}%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {avance.avance_planificado}%
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {avance.puntos_atencion}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {formatearFechaUTC(avance.fecha_inicio)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                          {formatearFechaUTC(avance.fecha_fin)}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedData.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                          No hay datos disponibles.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      paginatedData.map((avance, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {formatearFechaUTC(avance.fecha)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {avance.avance_real}%
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {avance.avance_planificado}%
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {avance.puntos_atencion}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {formatearFechaUTC(avance.fecha_inicio)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                            {formatearFechaUTC(avance.fecha_fin)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
 

@@ -59,6 +59,9 @@ const GestionGerencia = () => {
       console.error(error)
     }
   }
+  const sumaTotal = estatus.reduce((acc, curr) => acc + parseFloat(curr.suma_montos), 0);
+  console.log(sumaTotal);
+
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-MX", {
@@ -105,10 +108,9 @@ const GestionGerencia = () => {
 
       <main className="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8">
         <div className="px-4 py-1 sm:px-0">
-          {/* <h1 className="text-3xl font-bold text-gray-900 mb-6">Gestión de Gerencia</h1> */}
 
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Resumen de Estados</h2>
+            <h2 className="text-3xl font-semibold text-white mb-4 text-center bg-[#015999] rounded-md p-2 opacity-70"> Resumen de Estados</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
               <Link to="" className="flex justify-center">
                 <div className="bg-gray-50 rounded-lg p-5 shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-300 w-full max-w-sm border border-gray-200">
@@ -121,7 +123,7 @@ const GestionGerencia = () => {
                     </h3>
                     <p className="text-base font-medium text-gray-600">Facturado</p>
                     <p className="text-sm font-medium text-green-600">
-                      {estatus.find((e) => e.nombre_estatus === "Facturado")?.porcentaje_cambio || 0}% desde ayer
+                      {(((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2)}%
                     </p>
                   </div>
                 </div>
@@ -137,7 +139,7 @@ const GestionGerencia = () => {
                     </h3>
                     <p className="text-base font-medium text-gray-600">Por Facturar</p>
                     <p className="text-sm font-medium text-blue-600">
-                      {estatus.find((e) => e.nombre_estatus === "Por Facturar")?.porcentaje_cambio || 0}% desde ayer
+                      {(((estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2)}%
                     </p>
                   </div>
                 </div>
@@ -153,8 +155,7 @@ const GestionGerencia = () => {
                     </h3>
                     <p className="text-base font-medium text-gray-600">Por Valuar</p>
                     <p className="text-sm font-medium text-yellow-600">
-                      {estatus.find((e) => e.nombre_estatus === "Por Valuar")?.porcentaje_cambio || 0}% desde ayer
-                    </p>
+                      {(((estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0) / sumaTotal) * 100).toFixed(2)}%       </p>
                   </div>
                 </div>
               </Link>
@@ -162,7 +163,7 @@ const GestionGerencia = () => {
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Regiones</h2>
+            <h2 className="text-3xl font-semibold text-white mb-4 text-center bg-[#015999] rounded-md p-2 opacity-70">Regiones</h2>
             {loading ? (
               <p className="text-center col-span-full text-gray-600 text-base">Cargando regiones...</p>
             ) : regiones.length > 0 ? (
@@ -170,14 +171,18 @@ const GestionGerencia = () => {
                 {regiones.map((region) => (
                   <Link key={region.id} to={`/GestionGerencia/${region.nombre_region}`} className="flex justify-center">
                     <div className="bg-gray-50 rounded-lg p-5 shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-300 w-full max-w-sm border border-gray-200">
-                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                        <FiUsers className="w-5 h-5 text-indigo-600" />
+                      {/* Contenedor para el ícono y el nombre de la región */}
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <FiUsers className="w-5 h-5 text-indigo-600" />
+                        </div>
+                        <p className="text-xl  text-gray-900">{region.nombre_region}</p>
                       </div>
                       <div className="space-y-1">
+                        <p className="text-base  text-gray-900">Ofertado</p>
                         <h3 className="text-2xl font-bold tracking-tight text-gray-900">
                           {formatCurrency(region.total_monto_ofertado)}
                         </h3>
-                        <p className="text-base font-medium text-gray-600">{region.nombre_region}</p>
                         <p className="text-sm font-medium text-indigo-600">{region.total_proyectos} proyectos</p>
                       </div>
                     </div>
