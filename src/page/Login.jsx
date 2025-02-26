@@ -60,14 +60,15 @@ const Login = () => {
       password: "manuel2025",
       role: "planificador",
       permissionEdit: false,
-      region: "Occidente",
+      region: "Oriente",
     },
     {
       email: "Luisvasquez-oriente@business.com",
       password: "luis2025",
       role: "planificador",
       permissionEdit: false,
-      region: "Oriente",
+      region: "Occidente",
+
     },
     {
       email: "direccion@business.com",
@@ -165,8 +166,8 @@ const Login = () => {
                 <input
                   id="email"
                   className={`pl-10 w-full p-3 border ${formSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     } rounded-lg transition-all duration-200`}
                   type="email"
                   name="email"
@@ -201,8 +202,8 @@ const Login = () => {
                 <input
                   id="password"
                   className={`pl-10 w-full p-3 border ${formSubmitted && !password
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     } rounded-lg transition-all duration-200`}
                   type={showPassword ? "text" : "password"}
                   name="password"
