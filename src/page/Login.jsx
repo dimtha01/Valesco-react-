@@ -56,14 +56,14 @@ const Login = () => {
       region: "Centro",
     },
     {
-      email: "manuelviera-occidente@business.com",
+      email: "manuelviera-oriente@business.com",
       password: "manuel2025",
       role: "planificador",
       permissionEdit: false,
       region: "Oriente",
     },
     {
-      email: "Luisvasquez-oriente@business.com",
+      email: "Luisvasquez-occidente@business.com",
       password: "luis2025",
       role: "planificador",
       permissionEdit: false,
