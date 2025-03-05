@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import * as XLSX from "xlsx" // Importar la biblioteca xlsx
 import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
+import ExcelExport from "./ExcelExport"
 
 const GestionAvanceFisicos = () => {
   const params = useParams()
@@ -45,39 +45,101 @@ const GestionAvanceFisicos = () => {
     fetchAvancesFisicos()
   }, [fetchAvancesFisicos])
 
-  // Función para exportar la tabla como XLSX
-  const exportToXLSX = () => {
-    // Verificar si hay datos para exportar
-    if (avancesFisicos.length === 0) {
-      showNotification("warning", "Sin datos", "No hay datos disponibles para exportar.")
-      return
-    }
-
-    // Preparar los datos para la exportación
-    const worksheetData = [
-      ["Registrado", "Avance Real (%)", "Avance Planificado (%)", "Puntos de Atención", "Fecha Inicio", "Fecha Fin"], // Encabezados
-      ...avancesFisicos.map((avance) => [
-        formatearFechaUTC(avance.fecha),
-        `${avance.avance_real}%`,
-        `${avance.avance_planificado}%`,
-        avance.puntos_atencion,
-        formatearFechaUTC(avance.fecha_inicio),
-        formatearFechaUTC(avance.fecha_fin),
-      ]),
-    ]
-
-    // Crear una hoja de trabajo
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-
-    // Crear un libro de trabajo
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Avances Físicos")
-
-    // Exportar el archivo XLSX
-    XLSX.writeFile(workbook, "avances_fisicos.xlsx")
-
-    showNotification("success", "Éxito", "Los datos han sido exportados exitosamente.")
+  // Función para formatear los datos para Excel
+  const formatAvancesData = (data) => {
+    return data.map((avance) => [
+      {
+        v: formatearFechaUTC(avance.fecha),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: `${avance.avance_real}%`,
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: `${avance.avance_planificado}%`,
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: avance.puntos_atencion || "",
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: formatearFechaUTC(avance.fecha_inicio),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: formatearFechaUTC(avance.fecha_fin),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+    ])
   }
+
+  // Configuración para la exportación a Excel
+  const exportToXLSX = ExcelExport({
+    data: avancesFisicos,
+    fileName: `avances_fisicos_${params.Proyecto}`,
+    sheetName: `Avances Físicos de ${params.Proyecto}`,
+    title: `Registro de Avances Físicos de ${params.Proyecto}`,
+    headers: [
+      "Registrado",
+      "Avance Real (%)",
+      "Avance Planificado (%)",
+      "Puntos de Atención",
+      "Fecha Inicio",
+      "Fecha Fin",
+    ],
+    columnWidths: [20, 15, 20, 30, 20, 20],
+    formatData: formatAvancesData,
+  })
 
   return (
     <div className="text-[#141313] xl:mx-20 mt-2">

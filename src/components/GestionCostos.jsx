@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import * as XLSX from "xlsx" // Importar la biblioteca xlsx
 import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
+import ExcelExport from "../components/ExcelExport"
 
 const GestionCostos = () => {
   const params = useParams()
@@ -40,31 +40,84 @@ const GestionCostos = () => {
     fetchCostos()
   }, [fetchCostos])
 
-  const exportToXLSX = () => {
-    if (costos.length === 0) {
-      showNotification("warning", "Sin datos", "No hay datos disponibles para exportar.")
-      return
-    }
-
-    const worksheetData = [
-      ["Registrado", "Costo (USD)", "Monto Sobrepasado", "Fecha Inicio", "Fecha Fin"], // Encabezados
-      ...costos.map((costo) => [
-        formatearFechaUTC(costo.fecha),
-        `$${Number(costo.costo).toFixed(2)}`,
-        `$${Number(costo.monto_sobrepasado).toFixed(2)}`,
-        formatearFechaUTC(costo.fecha_inicio),
-        formatearFechaUTC(costo.fecha_fin),
-      ]),
-    ]
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Costos")
-
-    XLSX.writeFile(workbook, "costos.xlsx")
-
-    showNotification("success", "Éxito", "Los datos han sido exportados exitosamente.")
+  // Función para formatear los datos de costos para Excel
+  const formatCostosData = (data) => {
+    return data.map((costo) => [
+      {
+        v: formatearFechaUTC(costo.fecha),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: Number(costo.costo),
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
+      {
+        v: Number(costo.monto_sobrepasado),
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
+      {
+        v: formatearFechaUTC(costo.fecha_inicio),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: formatearFechaUTC(costo.fecha_fin),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+    ])
   }
+
+  // Configuración para la exportación a Excel
+  const exportToXLSX = ExcelExport({
+    data: costos,
+    fileName: `costos_${params.Proyecto}`,
+    sheetName: `Costos ${params.Proyecto}`,
+    title: `Registro de Costos de ${params.Proyecto}`,
+    headers: ["Registrado", "Costo (USD)", "Monto Sobrepasado", "Fecha Inicio", "Fecha Fin"],
+    columnWidths: [20, 15, 20, 20, 20],
+    formatData: formatCostosData,
+  })
 
   return (
     <div className="text-[#141313] xl:mx-20 mt-2">
@@ -213,9 +266,6 @@ const GestionCostos = () => {
           </div>
         </div>
       </div>
-
-
-
     </div>
   )
 }

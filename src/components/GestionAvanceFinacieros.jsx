@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import * as XLSX from "xlsx" // Importar la biblioteca xlsx
 import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
+import ExcelExport from "../components/ExcelExport"
 
 const GestionAvanceFinacieros = () => {
   const params = useParams()
@@ -66,47 +66,114 @@ const GestionAvanceFinacieros = () => {
     fetchAvancesFinancieros()
   }, [fetchAvancesFinancieros])
 
-  // Función para exportar la tabla como XLSX
-  const exportToXLSX = () => {
-    // Verificar si hay datos para exportar
-    if (avancesFinancieros.length === 0) {
-      showNotification("warning", "Sin datos", "No hay datos disponibles para exportar.")
-      return
-    }
-
-    // Preparar los datos para la exportación
-    const worksheetData = [
-      ["Fecha", "N° Valuación", "Monto (USD)", "Fecha Inicio", "Fecha Fin", "Número de Factura", "Estatus"], // Encabezados
-      ...avancesFinancieros.map((avance) => [
-        formatearFechaUTC(avance.fecha),
-        avance.numero_valuacion,
-        avance.monto_usd,
-        formatearFechaUTC(avance.fecha_inicio),
-        formatearFechaUTC(avance.fecha_fin),
-        avance.numero_factura || "No hay factura",
-        avance.estatus_proceso_nombre,
-      ]),
-    ]
-
-    // Crear una hoja de trabajo
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-
-    // Crear un libro de trabajo
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Avances Financieros")
-
-    // Exportar el archivo XLSX
-    XLSX.writeFile(workbook, "avances_financieros.xlsx")
-
-    showNotification("success", "Éxito", "Los datos han sido exportados exitosamente.")
+  // Función para formatear los datos para Excel
+  const formatAvancesFinancierosData = (data) => {
+    return data.map((avance) => [
+      {
+        v: formatearFechaUTC(avance.fecha),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: avance.numero_valuacion,
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: Number(avance.monto_usd),
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
+      {
+        v: formatearFechaUTC(avance.fecha_inicio),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: formatearFechaUTC(avance.fecha_fin),
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: avance.numero_factura || "No hay factura",
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: avance.estatus_proceso_nombre,
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+    ])
   }
+
+  // Configuración para la exportación a Excel
+  const exportToXLSX = ExcelExport({
+    data: avancesFinancieros,
+    fileName: `Valuación_${params.Proyecto}`,
+    sheetName: `Valuación ${params.Proyecto}`,
+    title: `Registro de Valuación del ${params.Proyecto}`,
+    headers: ["Fecha", "N° Valuación", "Monto (USD)", "Fecha Inicio", "Fecha Fin", "Número de Factura", "Estatus"],
+    columnWidths: [20, 15, 20, 20, 20, 25, 20],
+    formatData: formatAvancesFinancierosData,
+  })
 
   return (
     <div className="text-[#141313] xl:mx-20 mt-2">
       <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-            <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Financieros</h2>
+            <h2 className="text-lg font-semibold text-gray-700">Registro de Valuación</h2>
             <button
               onClick={exportToXLSX}
               disabled={isLoading || avancesFinancieros.length === 0}

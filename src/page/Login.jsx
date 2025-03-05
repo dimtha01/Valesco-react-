@@ -112,7 +112,7 @@ const Login = () => {
         } else if (user.role === "administrador") {
           navigate("/GestionGerencia")
         } else if (user.role === "gestion") {
-          navigate("/Gestion")
+          navigate("/InicioGestion")
         }
       } else {
         setError("Correo electrónico o contraseña incorrectos.")

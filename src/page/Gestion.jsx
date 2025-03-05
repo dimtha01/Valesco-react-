@@ -1,19 +1,31 @@
 "use client"
 
 import { useEffect, useState, useContext, useCallback } from "react"
-import { useNavigate } from "react-router-dom"
-import * as XLSX from "xlsx" // Importar la biblioteca xlsx
+import { Link, useNavigate } from "react-router-dom"
 import { UrlApi } from "../utils/utils"
 import LoadingBar from "../components/LoadingBar"
 import { AuthContext } from "../components/AuthContext"
+import ExcelExport from "../components/ExcelExport"
+
+// Configuración para la exportación a Excel con múltiples hojas
+
 
 const Gestion = () => {
   const [proyectos, setProyectos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 8 // Tamaño de página fijo de 10
+  const rowsPerPage = 8
   const navigate = useNavigate()
-  const { region } = useContext(AuthContext) // Obtener región del contexto si es necesario
+  const { region } = useContext(AuthContext)
+  const [regions, setRegions] = useState([])
+  const [selectedRegion, setSelectedRegion] = useState(region || "all")
+
+  // Función para asegurar que las fechas se formateen correctamente para Excel
+  const formatExcelDate = (dateString) => {
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    return isNaN(date.getTime()) ? "" : date
+  }
 
   // Función para cargar los proyectos desde la API
   const fetchProyectos = useCallback(async () => {
@@ -24,9 +36,15 @@ const Gestion = () => {
       }
       const data = await response.json()
 
-      // Filtrar por región si es necesario
+      // Extract unique regions for the filter
+      const uniqueRegions = [...new Set(data.map((proyecto) => proyecto.nombre_region))].filter(Boolean)
+      setRegions(uniqueRegions)
+
+      // Filter by region if selected
       const filteredData =
-        region && region !== "all" ? data.filter((proyecto) => proyecto.nombre_region === region) : data
+        selectedRegion && selectedRegion !== "all"
+          ? data.filter((proyecto) => proyecto.nombre_region === selectedRegion)
+          : data
 
       setProyectos(filteredData)
     } catch (error) {
@@ -34,7 +52,7 @@ const Gestion = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [region])
+  }, [selectedRegion])
 
   // Función para manejar el clic en una fila
   const handleRowClick = (id, nombre) => {
@@ -48,44 +66,355 @@ const Gestion = () => {
     }
   }
 
+  // Función para manejar el cambio de región
+  const handleRegionChange = (e) => {
+    setSelectedRegion(e.target.value)
+    setCurrentPage(1) // Reset to first page when changing filter
+  }
+
   // Calcular los datos paginados
   const paginatedData = proyectos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
 
-  // Función para exportar la tabla como XLSX
-  const exportToXLSX = () => {
-    const worksheetData = [
-      ["Número", "Nombre Proyecto", "Región", "Monto Ofertado", "Avance Real Máximo", "Avance Planificado Máximo"], // Encabezados
-      ...proyectos.map((proyecto) => [
-        proyecto.numero,
-        proyecto.nombre_proyecto,
-        proyecto.nombre_region,
-        proyecto.monto_ofertado,
-        `${proyecto.avance_real_maximo || 0}%`, // Agregar el símbolo %
-        `${proyecto.avance_planificado_maximo || 0}%`, // Agregar el símbolo %
+  // Función para formatear fechas
+  const formatDate = (dateString) => {
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    return date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+  }
+
+  // Configuración para la exportación a Excel
+  const formatProyectosData = (data) => {
+    return data.map((proyecto) => [
+      {
+        v: proyecto.numero,
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: proyecto.nombre_proyecto,
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: proyecto.nombre_cliente || "",
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: proyecto.costo_estimado || "",
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
+      {
+        v: proyecto.monto_ofertado || "",
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
+      {
+        v: formatExcelDate(proyecto.fecha_inicio),
+        t: proyecto.fecha_inicio ? "d" : "s",
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: "dd/mm/yyyy",
+        },
+      },
+      {
+        v: formatExcelDate(proyecto.fecha_final),
+        t: proyecto.fecha_final ? "d" : "s",
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: "dd/mm/yyyy",
+        },
+      },
+    ])
+  }
+
+  // Crear una segunda hoja con resumen
+  const createResumenSheet = () => {
+    // Preparar datos para el resumen
+    const totalProyectos = proyectos.length
+    const totalMontoOfertado = proyectos.reduce(
+      (sum, proyecto) => sum + (Number.parseFloat(proyecto.monto_ofertado) || 0),
+      0,
+    )
+    const totalCostoEstimado = proyectos.reduce(
+      (sum, proyecto) => sum + (Number.parseFloat(proyecto.costo_estimado) || 0),
+      0,
+    )
+
+    // Agrupar por región
+    const proyectosPorRegion = {}
+    proyectos.forEach((proyecto) => {
+      const region = proyecto.nombre_region || "Sin región"
+      if (!proyectosPorRegion[region]) {
+        proyectosPorRegion[region] = 0
+      }
+      proyectosPorRegion[region]++
+    })
+
+    // Crear datos para la hoja de resumen
+    const resumenData = [
+      // Título
+      [
+        {
+          v: "Resumen de Proyectos",
+          s: {
+            font: { bold: true, color: { rgb: "FF0000" }, sz: 14 },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+      ],
+      [""], // Fila vacía
+      // Datos generales
+      [
+        {
+          v: "Estadísticas Generales",
+          s: {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "DDDDDD" } },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+      ],
+      [""], // Fila vacía
+      [
+        { v: "Total de Proyectos", s: { font: { bold: true }, alignment: { horizontal: "center" } } },
+        { v: totalProyectos, s: { alignment: { horizontal: "center" } } },
+      ],
+      [
+        { v: "Monto Total Ofertado", s: { font: { bold: true }, alignment: { horizontal: "center" } } },
+        {
+          v: totalMontoOfertado,
+          s: {
+            alignment: { horizontal: "center" },
+            numFmt: '"$"#,##0.00',
+          },
+        },
+      ],
+      [
+        { v: "Costo Total Estimado", s: { font: { bold: true }, alignment: { horizontal: "center" } } },
+        {
+          v: totalCostoEstimado,
+          s: {
+            alignment: { horizontal: "center" },
+            numFmt: '"$"#,##0.00',
+          },
+        },
+      ],
+      [""], // Fila vacía
+      // Distribución por región
+      [
+        {
+          v: "Distribución por Región",
+          s: {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "DDDDDD" } },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+      ],
+      [""], // Fila vacía
+      [
+        {
+          v: "Región",
+          s: {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+        {
+          v: "Cantidad de Proyectos",
+          s: {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+      ],
+      // Filas de regiones
+      ...Object.entries(proyectosPorRegion).map(([region, cantidad]) => [
+        {
+          v: region,
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          },
+        },
+        {
+          v: cantidad,
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          },
+        },
       ]),
     ]
 
-    // Crear una hoja de trabajo
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-
-    // Crear un libro de trabajo
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Proyectos")
-
-    // Exportar el archivo XLSX
-    XLSX.writeFile(workbook, "proyectos.xlsx")
+    return resumenData
   }
+  const exportToXLSX = ExcelExport({
+    data: proyectos,
+    fileName: "proyectos",
+    sheetName: "Proyectos",
+    title: "Datos de la Creación de Proyectos",
+    headers: [
+      "N°",
+      "Nombre del Contrato",
+      "Cliente",
+      "Costo Estimado (Planificado)",
+      "Monto Ofertado (Cliente)",
+      "Fecha Inicio",
+      "Fecha Fin",
+    ],
+    columnWidths: [8, 40, 20, 25, 25, 15, 15],
+    formatData: formatProyectosData,
+    additionalSheets: [
+      {
+        name: "Resumen",
+        data: createResumenSheet(),
+        cols: [
+          { wch: 25 }, // Primera columna
+          { wch: 25 }, // Segunda columna
+        ],
+        merges: [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Título
+          { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, // Estadísticas Generales
+          { s: { r: 8, c: 0 }, e: { r: 8, c: 1 } }, // Distribución por Región
+        ],
+      },
+    ],
+  })
 
   useEffect(() => {
     fetchProyectos()
-  }, [fetchProyectos]) // Añadir region como dependencia si es necesario
+  }, [fetchProyectos])
 
   return (
     <>
+      <div className="breadcrumbs text-sm md:text-lg mx-2 mt-2 text-[#0f0f0f]">
+        <ul className="flex items-center space-x-2">
+          <li>
+            <Link to="/InicioGestion" className="flex items-center hover:text-blue-500 transition-colors duration-300">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-5 w-5 stroke-current mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              Gestion
+            </Link>
+          </li>
+          <li>
+            <Link to="/Gestion" className="flex items-center hover:text-blue-500 transition-colors duration-300">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-5 w-5 stroke-current mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              Proyectos
+            </Link>
+          </li>
+        </ul>
+      </div>
       <div className="mt-8 bg-white rounded-lg shadow overflow-hidden mx-4">
         {/* Botones de exportar */}
-        <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Registro de Proyectos</h2>
+        <div className="p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-gray-50 border-b">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-700">Registro de Proyectos</h2>
+            <div className="flex items-center">
+              <label htmlFor="region-filter" className="mr-2 text-gray-700">
+                Filtrar por región:
+              </label>
+              <select
+                id="region-filter"
+                value={selectedRegion}
+                onChange={handleRegionChange}
+                className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Todas las regiones</option>
+                {regions.map((region) => (
+                  <option key={region} value={region}>
+                    {region}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="flex gap-4">
             <button
               onClick={exportToXLSX}
@@ -112,16 +441,19 @@ const Gestion = () => {
                     Nombre Proyecto
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    Cliente
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Región
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Monto Ofertado
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Avance Real Máximo
+                    Fecha Inicio
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Avance Planificado Máximo
+                    Fecha Fin
                   </th>
                 </tr>
               </thead>
@@ -129,7 +461,7 @@ const Gestion = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-500">
+                    <td colSpan="7" className="text-center py-4 text-gray-500">
                       {proyectos === null ? "Cargando datos..." : "No hay proyectos disponibles"}
                     </td>
                   </tr>
@@ -147,16 +479,19 @@ const Gestion = () => {
                         {proyecto.nombre_proyecto}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {proyecto.nombre_region}
+                        {proyecto.nombre_cliente || "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        ${proyecto.monto_ofertado}
+                        {proyecto.nombre_region || "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {proyecto.avance_real_maximo || 0}%
+                        ${proyecto.monto_ofertado || "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {proyecto.avance_planificado_maximo || 0}%
+                        {formatDate(proyecto.fecha_inicio) || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
+                        {formatDate(proyecto.fecha_final) || "-"}
                       </td>
                     </tr>
                   ))
@@ -224,10 +559,11 @@ const Gestion = () => {
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
-                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                          }`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === pageNum
+                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
                       >
                         {pageNum}
                       </button>
@@ -262,7 +598,9 @@ const Gestion = () => {
       </div>
     </>
   )
+  
 }
+
 
 export default Gestion
 

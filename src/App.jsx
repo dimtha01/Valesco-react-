@@ -14,6 +14,7 @@ import { AuthProvider } from "./components/AuthContext";
 import DetallesProyecto from "./page/DetallesProyecto";
 import Gestion from "./page/Gestion";
 import GestionProyectos from "./page/GestionProyectos";
+import InicioGestion from "./page/InicioGestion";
 
 const App = () => {
   return (
@@ -70,6 +71,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <NuevoCliente />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioGestion"
+            element={
+              <ProtectedRoute>
+                <InicioGestion />
               </ProtectedRoute>
             }
           />

@@ -10,16 +10,19 @@ const GestionProyectos = () => {
 
   return (
     <>
-    <div className="breadcrumbs text-lg mx-2 mt-2 text-[#0f0f0f]">
+      <div className="breadcrumbs text-lg mx-2 mt-2 text-[#0f0f0f]">
         <ul>
-          
+
           <li>
-            <Link to="/Gestion" className="flex items-center hover:text-blue-500">
+            <Link
+              to="/InicioGestion"
+              className="flex items-center hover:text-blue-500 transition-colors duration-300"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                className="h-6 w-6 stroke-current mr-1"
+                className="h-5 w-5 stroke-current mr-1"
               >
                 <path
                   strokeLinecap="round"
@@ -28,7 +31,28 @@ const GestionProyectos = () => {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              Proyecto
+              Gestion
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/Gestion"
+              className="flex items-center hover:text-blue-500 transition-colors duration-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-5 w-5 stroke-current mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              Proyectos
             </Link>
           </li>
           <li>{params.Proyecto}</li>
@@ -54,7 +78,7 @@ const GestionProyectos = () => {
             }`}
           onClick={() => setActiveComponent("avanceFinanciero")}
         >
-          Administración de Contratos
+          Valuación
         </button>
       </div>
 

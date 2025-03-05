@@ -359,7 +359,7 @@ const AvanceFinanciero = () => {
         <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-              <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Financieros</h2>
+              <h2 className="text-lg font-semibold text-gray-700">Registro de Administración de Contratos</h2>
             </div>
 
             <div className="overflow-x-auto min-h-[310px]">
