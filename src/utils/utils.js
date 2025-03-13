@@ -34,16 +34,44 @@ const showNotification = (type, title, text = "") => {
 
 export default showNotification;
 
-export function formatCurrency(number, currency = "USD") {
-  const formatter = new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: currency, // Puedes cambiar a "EUR", "MXN", etc.
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
-  return formatter.format(number);
+export const formatCurrency = (amount) => {
+  if (amount === undefined || amount === null) return "$0"
+
+  // Convertir a número si es string
+  const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
+
+  // Para números muy grandes (mil millones o más)
+  if (Math.abs(numAmount) >= 1000000000) {
+    const billions = (numAmount / 1000000000).toFixed(1)
+    // Eliminar el .0 si es un número entero
+    const formatted = billions.endsWith(".0") ? billions.slice(0, -2) : billions
+    return `$${formatted} MM`
+  }
+  // Para millones
+  else if (Math.abs(numAmount) >= 1000000) {
+    const millions = (numAmount / 1000000).toFixed(1)
+    // Eliminar el .0 si es un número entero
+    const formatted = millions.endsWith(".0") ? millions.slice(0, -2) : millions
+    return `$${formatted} M`
+  }
+  // Para miles
+  else if (Math.abs(numAmount) >= 1000) {
+    const thousands = (numAmount / 1000).toFixed(1)
+    // Eliminar el .0 si es un número entero
+    const formatted = thousands.endsWith(".0") ? thousands.slice(0, -2) : thousands
+    return `$${formatted} K`
+  }
+  // Para números pequeños
+  else {
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(numAmount)
+  }
 }
 
+
 export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app"
- 
