@@ -74,7 +74,6 @@ export const formatCurrency = (amount) => {
 };
 
 
-// export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app"
-export const UrlApi = "http://localhost:3000"
+export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app"
 
 
