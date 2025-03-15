@@ -8,6 +8,7 @@ import { AuthContext } from "../components/AuthContext"
 const CrearProyecto = () => {
   const [numero, setNumero] = useState("")
   const [nombre, setNombre] = useState("")
+  const [nombreCorto, setNombreCorto] = useState("")
   const [idCliente, setIdCliente] = useState("")
   const [idResponsable, setIdResponsable] = useState(2) // Fijo como 2
   const [idRegion, setIdRegion] = useState("")
@@ -33,9 +34,7 @@ const CrearProyecto = () => {
     // Normalizar el nombre de la región (minúsculas y sin espacios extra)
     const normalizedName = regionName.toLowerCase().trim()
 
-    if (normalizedName === "centro" || normalizedName.includes("centro")) {
-      return "1"
-    } else if (normalizedName === "occidente" || normalizedName.includes("occidente")) {
+    if (normalizedName === "occidente" || normalizedName.includes("occidente")) {
       return "2"
     } else if (normalizedName === "oriente" || normalizedName.includes("oriente")) {
       return "3"
@@ -113,6 +112,7 @@ const CrearProyecto = () => {
     const nuevoProyecto = {
       numero,
       nombre,
+      nombreCorto,
       idCliente: Number.parseInt(idCliente),
       idResponsable: Number.parseInt(idResponsable),
       idRegion: Number.parseInt(getRegionIdByName(region)),
@@ -149,6 +149,7 @@ const CrearProyecto = () => {
       // Limpiar los campos del formulario
       setNumero("")
       setNombre("")
+      setNombreCorto("")
       setIdCliente("")
       setIdRegion("")
       setCostoEstimado("")
@@ -219,7 +220,8 @@ const CrearProyecto = () => {
           {/* Información de región */}
           <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-blue-700">
-              <span className="font-medium">Región actual:</span> {region || "Todas las regiones"}
+              <span className="font-medium">Región actual:</span>{" "}
+              {region === "all" ? "Todas las regiones" : region || "Todas las regiones"}
             </p>
             <p className="text-sm text-blue-600 mt-1">Solo se muestran los clientes de esta región.</p>
           </div>
@@ -248,7 +250,7 @@ const CrearProyecto = () => {
               {/* Campo: Nombre */}
               <div className="form-control w-full">
                 <label className="label">
-                  <span className="label-text text-gray-700">Nombre</span>
+                  <span className="label-text text-gray-700">Nombre Contrato</span>
                 </label>
                 <input
                   type="text"
@@ -257,6 +259,20 @@ const CrearProyecto = () => {
                   className="input input-bordered w-full bg-gray-100 text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
+                />
+              </div>
+              {/* Campo: Nombre Corto */}
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text text-gray-700">Nombre Corto</span>
+                </label>
+                <input
+                  type="text"
+                  name="nombreCorto"
+                  placeholder="Nombre Corto"
+                  className="input input-bordered w-full bg-gray-100 text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
+                  value={nombreCorto}
+                  onChange={(e) => setNombreCorto(e.target.value)}
                 />
               </div>
               <div className="form-control w-full">

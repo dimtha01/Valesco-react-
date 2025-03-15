@@ -4,6 +4,20 @@ import { useState, useEffect, useContext, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { UrlApi } from "../utils/utils"
 import { AuthContext } from "../components/AuthContext"
+import LoadingComponent from "../components/LoadingComponent" // Import LoadingComponent
+
+// Función local para formatear montos con separador de miles (formato: 1,234,567.89)
+const formatMontoConSeparador = (amount) => {
+  if (amount === null || amount === undefined) return "0.00"
+
+  // Formatea con el estilo en-US (comas para miles, punto para decimales) y sin símbolo de moneda
+  const numericValue = Number(amount)
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true, // Esto asegura que se use el separador de miles
+  }).format(numericValue)
+}
 
 const Proyecto = () => {
   const [proyectos, setProyectos] = useState([])
@@ -12,24 +26,46 @@ const Proyecto = () => {
   const { region } = useContext(AuthContext) // Get region from AuthContext
   const rowsPerPage = 7
   const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchText, setSearchText] = useState("")
+  const [selectedRegionFilter, setSelectedRegionFilter] = useState("all")
 
   const navigate = useNavigate()
 
   const filterProyectosByRegion = useCallback(
     (data) => {
-      if (!region || region === "all") {
-        setFilteredProyectos(data)
-      } else {
-        const filtered = data.filter((proyecto) => proyecto.nombre_region === region)
-        setFilteredProyectos(filtered)
+      // Primero filtrar para excluir proyectos de la región Centro
+      let filtered = data.filter((proyecto) => proyecto.nombre_region !== "Centro")
+
+      // Aplicar filtro de región
+      if (selectedRegionFilter && selectedRegionFilter !== "all") {
+        filtered = filtered.filter((proyecto) => proyecto.nombre_region === selectedRegionFilter)
+      } else if (region && region !== "all") {
+        filtered = filtered.filter((proyecto) => proyecto.nombre_region === region)
       }
+
+      // Aplicar filtro de búsqueda
+      if (searchText) {
+        const searchLower = searchText.toLowerCase()
+        filtered = filtered.filter(
+          (proyecto) =>
+            proyecto.nombre_proyecto?.toLowerCase().includes(searchLower) ||
+            proyecto.nombre_corto?.toLowerCase().includes(searchLower) ||
+            proyecto.numero?.toLowerCase().includes(searchLower) ||
+            // Buscar también en el nombre del cliente si está disponible
+            (proyecto.nombre_cliente && proyecto.nombre_cliente.toLowerCase().includes(searchLower)),
+        )
+      }
+
+      setFilteredProyectos(filtered)
       setCurrentPage(1)
     },
-    [region],
+    [region, selectedRegionFilter, searchText],
   )
 
   useEffect(() => {
     const fetchProyectos = async () => {
+      setIsLoading(true)
       try {
         const response = await fetch(`${UrlApi}/api/proyectos`)
         const data = await response.json()
@@ -43,6 +79,8 @@ const Proyecto = () => {
         filterProyectosByRegion(data)
       } catch (error) {
         console.error("Error al cargar los proyectos:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -52,7 +90,7 @@ const Proyecto = () => {
   // Update filter when projects or region changes
   useEffect(() => {
     filterProyectosByRegion(proyectos)
-  }, [region, proyectos, filterProyectosByRegion])
+  }, [region, proyectos, selectedRegionFilter, searchText, filterProyectosByRegion])
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= Math.ceil(filteredProyectos.length / rowsPerPage)) {
@@ -64,10 +102,17 @@ const Proyecto = () => {
     navigate(`/InicioPlanificador/Proyecto/ActualizarProyecto/${nombre}/${id}`)
   }
 
+  // Función para manejar el cambio de filtro de región
+  const handleRegionFilterChange = (e) => {
+    setSelectedRegionFilter(e.target.value)
+  }
+
   const paginatedData = filteredProyectos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+  const totalPages = Math.ceil(filteredProyectos.length / rowsPerPage)
 
   return (
     <>
+      {/* Mantener los breadcrumbs existentes */}
       <div className="breadcrumbs text-lg mx-2 mt-2 text-[#0f0f0f]">
         <ul>
           <li>
@@ -109,98 +154,206 @@ const Proyecto = () => {
         </ul>
       </div>
 
-      {/* Región actual */}
-      <div className="mb-4 mx-20 mt-4">
-        <span className="text-gray-700 font-medium">
-          Región actual: {region === "all" ? "Todas las Regiones" : region || "Todas las Regiones"}
-        </span>
-      </div>
+      {/* Aplicar los estilos de EditarProyectos */}
+      <div className="flex flex-col h-auto overflow-hidden p-4">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">Proyectos</h1>
 
-      {/* Tabla */}
-      <div className="text-[#141313] xl:mx-20 mt-4">
-        {/* Contenedor principal */}
-        <div className="min-h-[500px] flex flex-col justify-between border rounded-lg">
-          {/* Contenedor de la tabla */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              {/* Encabezado */}
-              <thead className="bg-gray-50 sticky top-0">
-                <tr>
+        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-80">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar por nombre, número o cliente..."
+                value={searchText}
+                onChange={(e) => {
+                  setSearchText(e.target.value)
+                  setCurrentPage(1) // Resetear a la primera página al buscar
+                }}
+                className="bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {searchText && (
+                <button onClick={() => setSearchText("")} className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg
+                    className="w-4 h-4 text-gray-500 hover:text-gray-700"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="m1 1 12 12M1 13 13 1"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
 
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    Número
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    Nombre Proyecto
-                  </th>
-                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    Región
-                  </th>
-                 
-                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-300">
-                    Avance Real
-                  </th>
-
-                </tr>
-              </thead>
-              {/* Cuerpo */}
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-500">
-                      {proyectos === null ? "Cargando datos..." : "No hay proyectos disponibles"}
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedData.map((proyecto) => (
-                    <tr
-                      key={proyecto.id}
-                      onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
-                      className="cursor-pointer hover:bg-gray-100 transition duration-200"
-                    >
-
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
-                        {proyecto.numero}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
-                        {proyecto.nombre_proyecto}
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-300">
-                        {proyecto.nombre_region}
-                      </td>
-                     
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-300">
-                        {proyecto.avance_real_maximo || 0}%
-                      </td>
-
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <select
+              value={selectedRegionFilter}
+              onChange={handleRegionFilterChange}
+              className="bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Todas las regiones</option>
+              <option value="Occidente">Occidente</option>
+              <option value="Oriente">Oriente</option>
+            </select>
           </div>
 
-          {/* Paginador al final del contenedor padre */}
-          <div className="flex justify-center mt-4 pb-4">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-l-md hover:bg-gray-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              Anterior
-            </button>
-            <span className="px-4 py-2 bg-gray-200 text-gray-700">
-              {currentPage} / {Math.ceil(filteredProyectos.length / rowsPerPage)}
-            </span>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === Math.ceil(filteredProyectos.length / rowsPerPage)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-r-md hover:bg-gray-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              Siguiente
-            </button>
+          <div className="text-sm text-gray-500 flex items-center">
+            {searchText && (
+              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full mr-2">Búsqueda: "{searchText}"</span>
+            )}
+            {selectedRegionFilter !== "all" ? (
+              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Región: {selectedRegionFilter}</span>
+            ) : (
+              <span>Mostrando todas las regiones</span>
+            )}
           </div>
         </div>
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <LoadingComponent />
+          </div>
+        ) : (
+          <div className="flex flex-col">
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-800">Listado de Proyectos</h2>
+                <p className="text-sm text-gray-500">Gestión y edición de proyectos</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <div className="h-[500px] overflow-y-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50 sticky top-0 z-10">
+                      <tr className="border-b border-gray-200">
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Número
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Nombre Proyecto
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Nombre Corto
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Región
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Avance Real(%)
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Monto Ofertado(USD)
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Costo Estimado(USD)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {paginatedData.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                            No hay proyectos disponibles.
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedData.map((proyecto) => (
+                          <tr
+                            key={proyecto.id}
+                            onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
+                            className="hover:bg-gray-50 cursor-pointer"
+                          >
+                            <td className="py-4 px-4 text-sm text-gray-900">{proyecto.numero}</td>
+                            <td className="py-4 px-4 text-sm text-gray-900">
+                              <div className="truncate max-w-[200px]" title={proyecto.nombre_proyecto}>
+                                {proyecto.nombre_proyecto}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900">
+                              <div className="truncate max-w-[150px]" title={proyecto.nombre_corto || "N/A"}>
+                                {proyecto.nombre_corto || "N/A"}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                              <span
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${proyecto.nombre_region === "Centro"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : proyecto.nombre_region === "Occidente"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                              >
+                                {proyecto.nombre_region}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                              {proyecto.avance_real_maximo || 0}%
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                              {formatMontoConSeparador(proyecto.monto_ofertado)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                              {formatMontoConSeparador(proyecto.costo_estimado)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Paginador */}
+              <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Mostrando {filteredProyectos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
+                  {Math.min(currentPage * rowsPerPage, filteredProyectos.length)} de {filteredProyectos.length}{" "}
+                  resultados
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    &lt;
+                  </button>
+                  <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

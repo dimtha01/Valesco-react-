@@ -49,13 +49,6 @@ const Login = () => {
   // Simulación de usuarios en la base de datos
   const users = [
     {
-      email: "planificador-centro@example.com",
-      password: "plan123",
-      role: "planificador",
-      permissionEdit: false,
-      region: "Centro",
-    },
-    {
       email: "manuelviera-oriente@business.com",
       password: "manuel2025",
       role: "planificador",
@@ -73,13 +66,25 @@ const Login = () => {
     {
       email: "direccion@business.com",
       password: "direccion123",
-      role: "administrador",
+      role: "direccion",
       permissionEdit: false,
     },
     {
-      email: "gestion@example.com",
-      password: "gestion123",
+      email: "eauricioesteves-gestion@business.com",
+      password: "eauricio123",
       role: "gestion",
+      permissionEdit: false,
+    },
+    {
+      email: "israelnunez-gestion@business.com",
+      password: "israel123",
+      role: "gestion",
+      permissionEdit: false,
+    },
+    {
+      email: "jesusgarcia-administrador@business.com",
+      password: "jesus123",
+      role: "administrador",
       permissionEdit: true,
     },
   ]
@@ -109,10 +114,12 @@ const Login = () => {
         // Redirigir según el rol del usuario
         if (user.role === "planificador") {
           navigate(`/InicioPlanificador/`)
-        } else if (user.role === "administrador") {
+        } else if (user.role === "direccion") {
           navigate("/GestionGerencia")
         } else if (user.role === "gestion") {
           navigate("/InicioGestion")
+        } else if (user.role === "administrador") {
+          navigate("/InicioAdministrador")
         }
       } else {
         setError("Correo electrónico o contraseña incorrectos.")

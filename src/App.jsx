@@ -15,6 +15,10 @@ import DetallesProyecto from "./page/DetallesProyecto";
 import Gestion from "./page/Gestion";
 import GestionProyectos from "./page/GestionProyectos";
 import InicioGestion from "./page/InicioGestion";
+import InicioAdministrador from "./page/InicioAdministrador";
+import EditarCliente from "./page/EditarCliente";
+import EditarProyectos from "./page/EditarProyectos";
+import EditarAvanceProyectos from "./page/EditarAvanceProyectos";
 
 const App = () => {
   return (
@@ -39,6 +43,30 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Proyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioAdministrador"
+            element={
+              <ProtectedRoute>
+                <InicioAdministrador />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioAdministrador/EditarCliente"
+            element={
+              <ProtectedRoute>
+                <EditarCliente />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioAdministrador/EditarProyectos"
+            element={
+              <ProtectedRoute>
+                <EditarProyectos />
               </ProtectedRoute>
             }
           />
@@ -95,6 +123,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <ActualizarProyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioAdministrador/EditarProyectos/EditarAvanceProyectos/:Proyecto/:id"
+            element={
+              <ProtectedRoute>
+                <EditarAvanceProyectos />
               </ProtectedRoute>
             }
           />

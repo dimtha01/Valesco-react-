@@ -26,18 +26,8 @@ const ReginDetalles = () => {
         }
         const result = await response.json()
 
-        // Actualizar el costo real para el proyecto ATRACADEROS si existe
-        const updatedResult = result.map((project) => {
-          if (project.id_proyecto === 46 && project.nombre_proyecto.includes("ATRACADEROS")) {
-            return {
-              ...project,
-              costo_real: "185000.00", // Asignamos un costo real al proyecto ATRACADEROS
-            }
-          }
-          return project
-        })
-
-        setData(updatedResult)
+        // Cargar los datos directamente desde la API, incluyendo el costo_real
+        setData(result)
         setLoading(false)
       } catch (err) {
         setError(err.message)
@@ -90,7 +80,10 @@ const ReginDetalles = () => {
   // Calcular totales para las métricas
   const totalOfertado = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_ofertado || 0), 0)
   const totalCostoPlanificado = data.reduce((sum, item) => sum + Number.parseFloat(item.costo_planificado || 0), 0)
-  const totalCostoReal = data.reduce((sum, item) => sum + Number.parseFloat(item.costo_real || 0), 0)
+  const totalCostoReal = data.reduce((sum, item) => {
+    const costoReal = item.costo_real ? Number.parseFloat(item.costo_real) : 0
+    return sum + costoReal
+  }, 0)
   const totalFacturado = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_facturado || 0), 0)
   const totalPorFacturar = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_por_facturar || 0), 0)
   const totalPorValuar = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_por_valuar || 0), 0)
@@ -366,10 +359,11 @@ const ReginDetalles = () => {
                       <button
                         key={i}
                         onClick={() => handlePageChange(pageNumber)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNumber
-                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                          }`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === pageNumber
+                            ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
                       >
                         {pageNumber}
                       </button>

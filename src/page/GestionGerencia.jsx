@@ -15,7 +15,7 @@ import {
   FiTarget,
   FiInfo,
 } from "react-icons/fi"
-import { UrlApi } from "../utils/utils"
+import { formatCurrency, UrlApi } from "../utils/utils"
 import {
   BarChart,
   Bar,
@@ -30,6 +30,7 @@ import {
   Cell,
   LabelList,
 } from "recharts"
+import LoadingComponent from "../components/LoadingComponent"
 
 const GestionGerencia = () => {
   const [regiones, setRegiones] = useState([])
@@ -45,7 +46,7 @@ const GestionGerencia = () => {
   // Colores exactos de la imagen
   const COLORS = {
     ofertado: "#1e5a7b", // Azul oscuro para "Ofertado"
-    costoPlaneado: "#e67e22", // Naranja para "Costo Planificado"
+    costoPlaneado: "#e67e22", // Naranja para "Costo Planificado"\
     facturado: "#1e5a7b", // Azul oscuro para "Facturado"
     costoReal: "#e67e22", // Naranja para "Costo real"
     porValuar: "#4CAF50", // Verde para "Por valuar"
@@ -134,43 +135,7 @@ const GestionGerencia = () => {
   console.log(sumaTotal)
 
   // Función personalizada para formatear montos con unidades claras
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "$0"
 
-    // Convertir a número si es string
-    const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
-
-    // Para números muy grandes (mil millones o más)
-    if (Math.abs(numAmount) >= 1000000000) {
-      const billions = (numAmount / 1000000000).toFixed(1)
-      // Eliminar el .0 si es un número entero
-      const formatted = billions.endsWith(".0") ? billions.slice(0, -2) : billions
-      return `$${formatted} MM`
-    }
-    // Para millones
-    else if (Math.abs(numAmount) >= 1000000) {
-      const millions = (numAmount / 1000000).toFixed(1)
-      // Eliminar el .0 si es un número entero
-      const formatted = millions.endsWith(".0") ? millions.slice(0, -2) : millions
-      return `$${formatted} M`
-    }
-    // Para miles
-    else if (Math.abs(numAmount) >= 1000) {
-      const thousands = (numAmount / 1000).toFixed(1)
-      // Eliminar el .0 si es un número entero
-      const formatted = thousands.endsWith(".0") ? thousands.slice(0, -2) : thousands
-      return `$${formatted} K`
-    }
-    // Para números pequeños
-    else {
-      return new Intl.NumberFormat("es-MX", {
-        style: "currency",
-        currency: "USD",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(numAmount)
-    }
-  }
 
   // Función para obtener el valor completo formateado (para tooltips)
   const getFullFormattedValue = (amount) => {
@@ -399,7 +364,21 @@ const GestionGerencia = () => {
       </div>
       <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 30, right: 10, left: 10, bottom: 20 }}>
+          <BarChart
+            data={[
+              {
+                name: data[0].name,
+                value: data[0].value,
+                fill: data[0].fill,
+              },
+              {
+                name: data[1].name,
+                value: data[1].value,
+                fill: data[1].fill,
+              },
+            ]}
+            margin={{ top: 30, right: 10, left: 10, bottom: 20 }}
+          >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
@@ -412,31 +391,28 @@ const GestionGerencia = () => {
                 boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
               }}
             />
-            {data.map((entry, idx) => (
-              <Bar
-                key={`bar-${idx}`}
+            <Bar
+              dataKey="value"
+              radius={[6, 6, 0, 0]}
+              maxBarSize={60}
+              isAnimationActive={true}
+              animationDuration={1000}
+              animationEasing="ease-out"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+              <LabelList
                 dataKey="value"
-                fill={entry.fill}
-                name={entry.name}
-                radius={[6, 6, 0, 0]}
-                maxBarSize={60}
-                isAnimationActive={true}
-                animationBegin={idx * 200}
-                animationDuration={1000}
-                animationEasing="ease-out"
-              >
-                <LabelList
-                  dataKey="value"
-                  position="top"
-                  formatter={(value) => formatCurrency(value)}
-                  style={{
-                    fill: "#666",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                  }}
-                />
-              </Bar>
-            ))}
+                position="top"
+                formatter={(value) => formatCurrency(value)}
+                style={{
+                  fill: "#666",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                }}
+              />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -539,7 +515,7 @@ const GestionGerencia = () => {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 mb-24">
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Título del informe - Versión moderna y atractiva */}
         <div className="mb-8 relative overflow-hidden rounded-lg shadow-lg">
@@ -873,12 +849,12 @@ const GestionGerencia = () => {
                   </h2>
                   <div>
                     {loading ? (
-                      <div className="flex justify-center items-center p-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                        <p className="ml-3 text-gray-600 text-base">Cargando regiones...</p>
+                      <div className="flex justify-center items-center p-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                        <p className="ml-2 text-gray-600 text-sm">Cargando regiones...</p>
                       </div>
                     ) : regiones.regiones && regiones.regiones.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 justify-items-center mx-52 max-w-5xl">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 justify-items-center mx-auto px-2 md:px-4 lg:px-8">
                         {regiones.regiones
                           .filter((region) => region.nombre_region !== "Centro")
                           .map((region, index) => (
@@ -888,30 +864,31 @@ const GestionGerencia = () => {
                               className="w-full max-w-xs"
                             >
                               <div
-                                className={`bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 w-full border border-gray-100 transform ${getAnimationClass()}`}
+                                className={`bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 w-full border border-gray-100 transform ${getAnimationClass()}`}
                                 style={{
+                                  minHeight: "120px", // Altura mínima aún más reducida
                                   transitionDelay: getTransitionDelay(index + 5),
                                 }}
                               >
                                 <div className="flex items-start">
-                                  <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 mr-2">
-                                    <FiMapPin className="w-7 h-7 text-indigo-600" />
+                                  <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center mb-2 mr-2">
+                                    <FiMapPin className="w-4 h-4 text-indigo-600" />
                                   </div>
                                   <div className="flex-1">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-1">{region.nombre_region}</h3>
-                                    <div className="flex items-center mb-3">
-                                      <FiTarget className="text-gray-400 mr-1" />
-                                      <p className="text-sm text-gray-500">Ofertado</p>
+                                    <h3 className="text-base font-bold text-gray-900 mb-1">{region.nombre_region}</h3>
+                                    <div className="flex items-center mb-1">
+                                      <FiTarget className="text-gray-400 mr-1 w-3 h-3" />
+                                      <p className="text-[10px] text-gray-500">Ofertado</p>
                                     </div>
                                     <div className="flex items-center justify-between">
                                       <p
-                                        className="text-2xl font-bold text-indigo-600"
+                                        className="text-xl font-bold text-indigo-600"
                                         title={getFullFormattedValue(region.total_monto_ofertado)}
                                       >
                                         {formatCurrency(region.total_monto_ofertado)}
                                       </p>
-                                      <div className="bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full flex items-center">
-                                        <FiUsers className="mr-1" /> {region.total_proyectos} proyectos
+                                      <div className="bg-indigo-50 text-indigo-700 text-[10px] font-medium px-1 py-0.5 rounded-full flex items-center">
+                                        <FiUsers className="mr-1 w-7 h-7" /> {region.total_proyectos} proyectos
                                       </div>
                                     </div>
                                   </div>
@@ -921,10 +898,10 @@ const GestionGerencia = () => {
                           ))}
                       </div>
                     ) : (
-                      <div className="bg-white rounded-xl p-8 shadow-md text-center">
-                        <FiUsers className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600 text-lg">No hay regiones disponibles.</p>
-                        <p className="text-gray-500 text-sm mt-2">
+                      <div className="bg-white rounded-lg p-4 shadow-sm text-center">
+                        <FiUsers className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-600 text-sm">No hay regiones disponibles.</p>
+                        <p className="text-gray-500 text-[10px] mt-1">
                           Intente actualizar los datos o contacte al administrador.
                         </p>
                       </div>
@@ -966,8 +943,8 @@ const GestionGerencia = () => {
             </p>
           </div>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   )
 }
 
