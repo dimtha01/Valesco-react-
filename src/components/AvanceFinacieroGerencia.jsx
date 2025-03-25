@@ -214,19 +214,15 @@ const AvanceFinancieroGerencial = () => {
         </button>
 
         {showUnitsInfo && (
-          <div className="mt-2 p-2 bg-blue-50 rounded-md text-sm">
-            <div className="flex space-x-4">
+          <div className="mt-2 p-2 bg-blue-50 rounded-md text-sm border border-blue-100">
+            <div className="flex flex-wrap gap-4">
               <div className="flex items-center">
-                <span className="font-medium text-gray-900 mr-1">K</span>
+                <span className="font-medium text-gray-900 mr-1">M</span>
                 <span className="text-gray-600">= Miles</span>
               </div>
               <div className="flex items-center">
-                <span className="font-medium text-gray-900 mr-1">M</span>
-                <span className="text-gray-600">= Millones</span>
-              </div>
-              <div className="flex items-center">
                 <span className="font-medium text-gray-900 mr-1">MM</span>
-                <span className="text-gray-600">= Miles de millones</span>
+                <span className="text-gray-600">= Millones</span>
               </div>
             </div>
           </div>
@@ -313,7 +309,7 @@ const AvanceFinancieroGerencial = () => {
                         Número de Valuación
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Monto (USD)
+                        Monto
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                         Número de Factura
@@ -348,12 +344,13 @@ const AvanceFinancieroGerencial = () => {
                           </td>
                           <td className="py-4 px-4">
                             <span
-                              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
+                              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                avance.estatus_proceso_nombre.toLowerCase() === "facturado"
                                   ? "bg-green-100 text-green-800"
                                   : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
                                     ? "bg-yellow-100 text-yellow-800"
                                     : "bg-blue-100 text-blue-800"
-                                }`}
+                              }`}
                             >
                               {avance.estatus_proceso_nombre}
                             </span>
@@ -398,3 +395,4 @@ const AvanceFinancieroGerencial = () => {
 }
 
 export default AvanceFinancieroGerencial
+

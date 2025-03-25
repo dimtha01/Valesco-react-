@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { formatCurrency, UrlApi } from "../utils/utils"
+import { UrlApi, formatCurrency } from "../utils/utils"
 import { FiDollarSign, FiShoppingCart, FiCheckCircle, FiUsers, FiBarChart2, FiActivity, FiInfo } from "react-icons/fi"
 
 const ReginDetalles = () => {
@@ -27,7 +27,7 @@ const ReginDetalles = () => {
         const result = await response.json()
 
         // Cargar los datos directamente desde la API, incluyendo el costo_real
-        setData(result)
+        setData(result.proyectos)
         setLoading(false)
       } catch (err) {
         setError(err.message)
@@ -149,16 +149,12 @@ const ReginDetalles = () => {
           <div className="mt-2 p-3 bg-blue-50 rounded-md text-sm border border-blue-100">
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center">
-                <span className="font-medium text-gray-900 mr-1">K</span>
+                <span className="font-medium text-gray-900 mr-1">M</span>
                 <span className="text-gray-600">= Miles</span>
               </div>
               <div className="flex items-center">
-                <span className="font-medium text-gray-900 mr-1">M</span>
-                <span className="text-gray-600">= Millones</span>
-              </div>
-              <div className="flex items-center">
                 <span className="font-medium text-gray-900 mr-1">MM</span>
-                <span className="text-gray-600">= Miles de millones</span>
+                <span className="text-gray-600">= Millones</span>
               </div>
             </div>
           </div>

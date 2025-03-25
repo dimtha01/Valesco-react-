@@ -36,44 +36,24 @@ export default showNotification;
 
 
 export const formatCurrency = (amount) => {
-  if (amount === undefined || amount === null) return "USD 0";
+  if (amount === undefined || amount === null) return "0.00 M"
 
   // Convertir a número si es string
-  const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount;
+  const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
 
-  // Para números muy grandes (mil millones o más)
-  if (Math.abs(numAmount) >= 1000000000) {
-    const billions = (numAmount / 1000000000).toFixed(1);
-    // Eliminar el .0 si es un número entero
-    const formatted = billions.endsWith(".0") ? billions.slice(0, -2) : billions;
-    return `USD ${formatted} MM`;
+  // Si es mayor o igual a 1 millón, mostrar en millones (MM)
+  if (Math.abs(numAmount) >= 1000000) {
+    const inMillions = numAmount / 1000000
+    return `${inMillions.toFixed(2)} MM`
   }
-  // Para millones
-  else if (Math.abs(numAmount) >= 1000000) {
-    const millions = (numAmount / 1000000).toFixed(1);
-    // Eliminar el .0 si es un número entero
-    const formatted = millions.endsWith(".0") ? millions.slice(0, -2) : millions;
-    return `USD ${formatted} M`;
-  }
-  // Para miles
-  else if (Math.abs(numAmount) >= 1000) {
-    const thousands = (numAmount / 1000).toFixed(1);
-    // Eliminar el .0 si es un número entero
-    const formatted = thousands.endsWith(".0") ? thousands.slice(0, -2) : thousands;
-    return `USD ${formatted} K`;
-  }
-  // Para números pequeños
+  // Si es menor a 1 millón, mostrar en miles (M)
   else {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(numAmount);
+    const inThousands = numAmount / 1000
+    return `${inThousands.toFixed(2)} M`
   }
-};
+}
 
 
-export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app"
+export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app" 
 
 

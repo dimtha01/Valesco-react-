@@ -1,11 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Link } from "react-router-dom"
 import {
-  FiDollarSign,
-  FiShoppingCart,
-  FiCheckCircle,
   FiUsers,
   FiBarChart2,
   FiPieChart,
@@ -14,8 +11,11 @@ import {
   FiActivity,
   FiTarget,
   FiInfo,
+  FiDollarSign,
+  FiShoppingCart,
+  FiCheckCircle,
 } from "react-icons/fi"
-import { formatCurrency, UrlApi } from "../utils/utils"
+import { UrlApi } from "../utils/utils"
 import {
   BarChart,
   Bar,
@@ -30,18 +30,21 @@ import {
   Cell,
   LabelList,
 } from "recharts"
-import LoadingComponent from "../components/LoadingComponent"
 
 const GestionGerencia = () => {
-  const [regiones, setRegiones] = useState([])
+  // Modificar el estado inicial para eliminar la dependencia de la API de regiones
+  const [regiones, setRegiones] = useState({
+    Oriente: null,
+    Occidente: null,
+  })
   const [estatus, setEstatus] = useState([])
   const [loading, setLoading] = useState(true)
-  const [costoTotal, setCostoTotal] = useState(0)
-  const [rentabilidad, setRentabilidad] = useState(0)
-  const [viewMode, setViewMode] = useState("normal") // "normal" or "graph"
   const [animate, setAnimate] = useState(false)
-  const [previousViewMode, setPreviousViewMode] = useState(null)
-  const [showUnitsInfo, setShowUnitsInfo] = useState(false)
+  // Add state for region data
+  const [regionData, setRegionData] = useState({
+    Oriente: null,
+    Occidente: null,
+  })
 
   // Colores exactos de la imagen
   const COLORS = {
@@ -58,19 +61,42 @@ const GestionGerencia = () => {
   }
 
   // Actualizar la función fetchRegiones para manejar correctamente la estructura de datos
-  const fetchRegiones = async () => {
+  // Eliminar la función fetchRegiones y reemplazarla por una función que obtenga los datos de las regiones desde la API de dashboard
+  const fetchAllRegionData = async () => {
+    setLoading(true)
     try {
-      const response = await fetch(`${UrlApi}/api/regiones`)
-      if (!response.ok) {
-        throw new Error(`Error al cargar las regiones: ${response.statusText}`)
-      }
-      const data = await response.json()
-      setRegiones(data)
-      console.log("Datos de regiones cargados:", data)
+      // Obtener datos de Oriente
+      await fetchRegionData("Oriente")
+
+      // Obtener datos de Occidente
+      await fetchRegionData("Occidente")
+
+      console.log("Datos de todas las regiones cargados")
     } catch (error) {
-      console.error(error)
+      console.error("Error al cargar datos de regiones:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Actualizar la función fetchRegionData para manejar correctamente la estructura de datos
+  const fetchRegionData = async (region) => {
+    try {
+      const response = await fetch(`${UrlApi}/api/dashdoard/${region.toLowerCase()}`)
+      if (!response.ok) {
+        throw new Error(`Error al cargar datos de ${region}: ${response.statusText}`)
+      }
+      const data = await response.json()
+
+      // Actualizar el estado de regiones con los datos obtenidos
+      setRegiones((prevRegiones) => ({
+        ...prevRegiones,
+        [region]: data,
+      }))
+
+      console.log(`Datos de ${region} cargados:`, data)
+    } catch (error) {
+      console.error(`Error al cargar datos de ${region}:`, error)
     }
   }
 
@@ -87,367 +113,473 @@ const GestionGerencia = () => {
     }
   }
 
+  // Add function to fetch region data
+  // Modificar la función fetchRegionData para usar la URL correcta
+
+  // Configuración para la animación de scroll
+  const sectionRefs = {
+    header: useRef(null),
+    estatus: useRef(null),
+    planificacion: useRef(null),
+    realEjecutado: useRef(null),
+    administracion: useRef(null),
+    regiones: useRef(null),
+  }
+
+  // Update useEffect to only fetch Oriente and Occidente data
   useEffect(() => {
-    fetchRegiones()
+    fetchAllRegionData()
     fetchEstatus()
-    fetchCostoYRentabilidad()
+
+    // Iniciar animación al cargar
+    setAnimate(true)
+    const timer = setTimeout(() => {
+      setAnimate(false)
+    }, 600)
+
+    return () => {
+      clearTimeout(timer)
+    }
   }, [])
 
-  // Efecto para animar cuando cambia el modo de vista
-  useEffect(() => {
-    if (previousViewMode !== null) {
-      // Iniciar animación de salida
-      setAnimate(true)
-
-      // Dar tiempo para que la animación de salida se complete
-      const timer = setTimeout(() => {
-        setAnimate(false)
-      }, 600) // Duración de la transición
-
-      return () => clearTimeout(timer)
-    } else {
-      // Primera carga, no animar
-      setPreviousViewMode(viewMode)
-    }
-  }, [viewMode])
-
-  // Actualizar el modo de vista anterior cuando cambia el modo actual
-  useEffect(() => {
-    if (previousViewMode !== viewMode) {
-      setPreviousViewMode(viewMode)
-    }
-  }, [viewMode, previousViewMode])
-
-  const fetchCostoYRentabilidad = async () => {
-    try {
-      const response = await fetch(`${UrlApi}/api/costo-rentabilidad`)
-      if (!response.ok) {
-        throw new Error(`Error al cargar costo y rentabilidad: ${response.statusText}`)
-      }
-      const data = await response.json()
-      setCostoTotal(data.costo_total)
-      setRentabilidad(data.rentabilidad)
-    } catch (error) {
-      console.error(error)
-    }
-  }
   const sumaTotal = estatus.reduce((acc, curr) => acc + Number.parseFloat(curr.suma_montos), 0)
   console.log(sumaTotal)
 
-  // Función personalizada para formatear montos con unidades claras
+  // Modificar la función formatCurrency para mostrar en millones (MM) o miles (M) según el tamaño del número
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "0.00 M"
 
+    // Convertir a número si es string
+    const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
 
-  // Función para obtener el valor completo formateado (para tooltips)
-  const getFullFormattedValue = (amount) => {
-    if (amount === undefined || amount === null) return "$0"
-
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
+    // Si es mayor o igual a 1 millón, mostrar en millones (MM)
+    if (Math.abs(numAmount) >= 1000000) {
+      const inMillions = numAmount / 1000000
+      return `${inMillions.toFixed(2)} MM`
+    }
+    // Si es menor a 1 millón, mostrar en miles (M)
+    else {
+      const inThousands = numAmount / 1000
+      return `${inThousands.toFixed(2)} M`
+    }
   }
 
-  const Card = ({ title, amount, icon: Icon, color, percentage, link, total_proyectos }) => (
-    <Link to={link} className="group">
-      <div className="bg-gray-50 rounded-lg p-5 shadow-sm hover:shadow-md hover:bg-gray-100 transition-all duration-300 w-full max-w-sm border border-gray-200">
-        <div
-          className={`w-10 h-10 ${color} rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
-        >
-          <Icon className="w-5 h-5 text-gray-800" />
+  // Modificar la función getFullFormattedValue para mostrar en millones (MM) o miles (M) según el tamaño del número
+  const getFullFormattedValue = (amount) => {
+    if (amount === undefined || amount === null) return "0.00 M"
+
+    // Si es mayor o igual a 1 millón, mostrar en millones (MM)
+    if (Math.abs(amount) >= 1000000) {
+      const inMillions = amount / 1000000
+      return `${inMillions.toFixed(2)} MM`
+    }
+    // Si es menor a 1 millón, mostrar en miles (M)
+    else {
+      const inThousands = amount / 1000
+      return `${inThousands.toFixed(2)} M`
+    }
+  }
+
+  // Función para calcular totales a partir de los datos de las regiones
+  // Actualizar la función calculateTotals para usar los datos de la API de dashboard
+  const calculateTotals = () => {
+    if (!regiones.Oriente || !regiones.Occidente) {
+      return {
+        total_ofertado: 0,
+        total_costo_planificado: 0,
+        total_costo_real: 0,
+        total_facturado: 0,
+        total_por_facturar: 0,
+        total_por_valuar: 0,
+        total_proyectos: 0,
+      }
+    }
+
+    return {
+      total_ofertado:
+        Number.parseFloat(regiones.Oriente.totales.total_ofertado || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_ofertado || 0),
+      total_costo_planificado:
+        Number.parseFloat(regiones.Oriente.totales.total_costo_planificado || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_costo_planificado || 0),
+      total_costo_real:
+        Number.parseFloat(regiones.Oriente.totales.total_costo_real || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_costo_real || 0),
+      total_facturado:
+        Number.parseFloat(regiones.Oriente.totales.total_facturado || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_facturado || 0),
+      total_por_facturar:
+        Number.parseFloat(regiones.Oriente.totales.total_por_facturar || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_por_facturar || 0),
+      total_por_valuar:
+        Number.parseFloat(regiones.Oriente.totales.total_por_valuar || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_por_valuar || 0),
+      total_proyectos: (regiones.Oriente.proyectos?.length || 0) + (regiones.Occidente.proyectos?.length || 0),
+    }
+  }
+
+  // Obtener los totales calculados
+  const totales = calculateTotals()
+
+  // Update the prepareFinancialPlanData function to use API data
+  // Actualizar la función prepareFinancialPlanData para usar los datos de la API de dashboard
+  const prepareFinancialPlanData = (title, regionName) => {
+    // Si es el total, calcular la suma de todas las regiones
+    if (regionName === "Total") {
+      const totales = calculateTotals()
+      const planValue = totales.total_costo_planificado
+      const obtainedValue = totales.total_ofertado
+      const percentage = obtainedValue > 0 ? ((planValue / obtainedValue) * 100).toFixed(2) : 0
+      const difference = obtainedValue - planValue
+
+      return {
+        name: title,
+        data: [
+          { name: "Ofertado", value: obtainedValue, fill: COLORS.ofertado },
+          { name: "Costo Planificado", value: planValue, fill: COLORS.costoPlaneado },
+        ],
+        percentage,
+        difference,
+      }
+    }
+
+    // Si es una región específica, usar los datos de esa región
+    if (regiones[regionName]) {
+      const planValue = Number.parseFloat(regiones[regionName].totales.total_costo_planificado || 0)
+      const obtainedValue = Number.parseFloat(regiones[regionName].totales.total_ofertado || 0)
+      const percentage = obtainedValue > 0 ? ((planValue / obtainedValue) * 100).toFixed(2) : 0
+      const difference = obtainedValue - planValue
+
+      return {
+        name: title,
+        data: [
+          { name: "Ofertado", value: obtainedValue, fill: COLORS.ofertado },
+          { name: "Costo Planificado", value: planValue, fill: COLORS.costoPlaneado },
+        ],
+        percentage,
+        difference,
+      }
+    }
+
+    // Default empty data
+    return {
+      name: title,
+      data: [
+        { name: "Ofertado", value: 0, fill: COLORS.ofertado },
+        { name: "Costo Planificado", value: 0, fill: COLORS.costoPlaneado },
+      ],
+      percentage: "0.00",
+      difference: 0,
+    }
+  }
+
+  // Update the prepareFinancialResultData function to use API data
+  // Actualizar la función prepareFinancialResultData para usar los datos de la API de dashboard
+  const prepareFinancialResultData = (title, regionName) => {
+    // Si es el total, calcular la suma de todas las regiones
+    if (regionName === "Total") {
+      const totales = calculateTotals()
+      const facturadoValue = totales.total_facturado
+      const realValue = totales.total_costo_real
+
+      // Calculate percentage safely (avoid division by zero)
+      const percentage = facturadoValue > 0 ? ((realValue / facturadoValue) * 100).toFixed(2) : "0.00"
+
+      // Calculate difference (Facturado - Costo Real)
+      const difference = facturadoValue - realValue
+
+      return {
+        name: title,
+        data: [
+          { name: "Facturado", value: facturadoValue, fill: COLORS.facturado },
+          { name: "Costo real", value: realValue, fill: COLORS.costoReal },
+        ],
+        percentage,
+        difference,
+      }
+    }
+
+    // Si es una región específica, usar los datos de esa región
+    if (regiones[regionName]) {
+      const facturadoValue = Number.parseFloat(regiones[regionName].totales.total_facturado || 0)
+      const realValue = Number.parseFloat(regiones[regionName].totales.total_costo_real || 0)
+
+      // Calculate percentage safely (avoid division by zero)
+      const percentage = facturadoValue > 0 ? ((realValue / facturadoValue) * 100).toFixed(2) : "0.00"
+
+      // Calculate difference (Facturado - Costo Real)
+      const difference = facturadoValue - realValue
+
+      return {
+        name: title,
+        data: [
+          { name: "Facturado", value: facturadoValue, fill: COLORS.facturado },
+          { name: "Costo real", value: realValue, fill: COLORS.costoReal },
+        ],
+        percentage,
+        difference,
+      }
+    }
+
+    // Default empty data
+    return {
+      name: title,
+      data: [
+        { name: "Facturado", value: 0, fill: COLORS.facturado },
+        { name: "Costo real", value: 0, fill: COLORS.costoReal },
+      ],
+      percentage: "0.00",
+      difference: 0,
+    }
+  }
+
+  // Update the prepareRegionPieChartData function to use API data
+  // Actualizar la función prepareRegionPieChartData para usar los datos de la API de dashboard
+  const prepareRegionPieChartData = (regionName) => {
+    // Si es el total, calcular la suma de todas las regiones
+    if (regionName === "Total") {
+      const totales = calculateTotals()
+      const facturadoValue = totales.total_facturado
+      const porFacturarValue = totales.total_por_facturar
+      const porValuarValue = totales.total_por_valuar
+
+      const total = facturadoValue + porFacturarValue + porValuarValue
+
+      // If total is zero, set default percentages to avoid NaN
+      const facturadoPercentage = total > 0 ? ((facturadoValue / total) * 100).toFixed(2) : "0.00"
+      const porFacturarPercentage = total > 0 ? ((porFacturarValue / total) * 100).toFixed(2) : "0.00"
+      const porValuarPercentage = total > 0 ? ((porValuarValue / total) * 100).toFixed(2) : "0.00"
+
+      return [
+        {
+          name: "Facturado",
+          value: facturadoValue,
+          color: "#1e5a7b", // Azul oscuro
+          percentage: facturadoPercentage,
+        },
+        {
+          name: "Por facturar",
+          value: porFacturarValue,
+          color: "#4CAF50", // Verde
+          percentage: porFacturarPercentage,
+        },
+        {
+          name: "Por valuar",
+          value: porValuarValue,
+          color: "#e67e22", // Naranja
+          percentage: porValuarPercentage,
+        },
+      ]
+    }
+
+    // Si es una región específica, usar los datos de esa región
+    if (regiones[regionName]) {
+      const facturadoValue = Number.parseFloat(regiones[regionName].totales.total_facturado || 0)
+      const porFacturarValue = Number.parseFloat(regiones[regionName].totales.total_por_facturar || 0)
+      const porValuarValue = Number.parseFloat(regiones[regionName].totales.total_por_valuar || 0)
+
+      const total = facturadoValue + porFacturarValue + porValuarValue
+
+      // If total is zero, set default percentages to avoid NaN
+      const facturadoPercentage = total > 0 ? ((facturadoValue / total) * 100).toFixed(2) : "0.00"
+      const porFacturarPercentage = total > 0 ? ((porFacturarValue / total) * 100).toFixed(2) : "0.00"
+      const porValuarPercentage = total > 0 ? ((porValuarValue / total) * 100).toFixed(2) : "0.00"
+
+      return [
+        {
+          name: "Facturado",
+          value: facturadoValue,
+          color: "#1e5a7b", // Azul oscuro
+          percentage: facturadoPercentage,
+        },
+        {
+          name: "Por facturar",
+          value: porFacturarValue,
+          color: "#4CAF50", // Verde
+          percentage: porFacturarPercentage,
+        },
+        {
+          name: "Por valuar",
+          value: porValuarValue,
+          color: "#e67e22", // Naranja
+          percentage: porValuarPercentage,
+        },
+      ]
+    }
+
+    // Default empty data
+    return [
+      {
+        name: "Facturado",
+        value: 0,
+        color: "#1e5a7b",
+        percentage: "0.00",
+      },
+      {
+        name: "Por facturar",
+        value: 0,
+        color: "#4CAF50",
+        percentage: "0.00",
+      },
+      {
+        name: "Por valuar",
+        value: 0,
+        color: "#e67e22",
+        percentage: "0.00",
+      },
+    ]
+  }
+
+  // Preparar datos para los gráficos usando los nuevos métodos
+  const financialPlanTotal = prepareFinancialPlanData("Planificación financiera total", "Total")
+  const financialPlanOriente = prepareFinancialPlanData("Planificación financiera Oriente", "Oriente")
+  const financialPlanOccidente = prepareFinancialPlanData("Planificación financiera Occidente", "Occidente")
+
+  const financialResultTotal = prepareFinancialResultData("Resultado financiero total", "Total")
+  const financialResultOriente = prepareFinancialResultData("Resultado financiero Oriente", "Oriente")
+  const financialResultOccidente = prepareFinancialResultData("Resultado financiero Occidente", "Occidente")
+
+  const pieChartData = prepareRegionPieChartData("Total")
+  const pieChartDataOriente = prepareRegionPieChartData("Oriente")
+  const pieChartDataOccidente = prepareRegionPieChartData("Occidente")
+
+  // Componente de gráfico de barras
+  const BarChartComponent = ({ title, data, percentage, index = 0, difference }) => {
+    // For financial plan charts, we need to handle differently
+    const isFinancialPlan = data[0].name === "Ofertado" || data[1].name === "Ofertado"
+
+    // Identificar correctamente los valores
+    const ofertadoValue = data.find((d) => d.name === "Ofertado")?.value || 0
+    const costoPlaneadoValue = data.find((d) => d.name === "Costo Planificado")?.value || 0
+    const facturadoValue = data.find((d) => d.name === "Facturado")?.value || 0
+    const costoRealValue = data.find((d) => d.name === "Costo real")?.value || 0
+
+    // Calcular la diferencia correctamente según el tipo de gráfico
+    let calculatedDifference = 0
+    if (isFinancialPlan) {
+      calculatedDifference = ofertadoValue - costoPlaneadoValue
+    } else {
+      calculatedDifference = facturadoValue - costoRealValue
+    }
+
+    // Usar la diferencia proporcionada o la calculada
+    const finalDifference = difference !== undefined ? difference : calculatedDifference
+
+    const label1 = isFinancialPlan ? "% Costo Planificado / Ofertado = " : "% Costo Real / Facturado = "
+    const label2 = isFinancialPlan
+      ? "Diferencia (Ofertado - Costo Planificado) = "
+      : "Diferencia (Facturado - Costo Real) = "
+
+    // Handle case where both values are zero
+    const displayPercentage =
+      percentage === "0.00" &&
+      ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
+        (!isFinancialPlan && facturadoValue === 0 && costoRealValue === 0))
+        ? "0.00"
+        : percentage
+
+    // Formatear la diferencia para mostrar solo el número sin unidades en el caso de MM
+    const formattedDifference =
+      Math.abs(finalDifference) >= 1000000
+        ? (finalDifference / 1000000).toFixed(2)
+        : (finalDifference / 1000).toFixed(2)
+
+    const differenceUnit = Math.abs(finalDifference) >= 1000000 ? "MM" : "M"
+
+    return (
+      <div className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
         </div>
-        <div className="space-y-1">
-          <h3 className="text-2xl font-bold tracking-tight text-gray-900">{formatCurrency(amount)}</h3>
-          <p className="text-base font-medium text-gray-600">{title}</p>
-          {percentage && (
-            <p className={`text-sm font-medium ${percentage >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {percentage >= 0 ? "↑" : "↓"} {Math.abs(percentage)}% desde ayer
-            </p>
-          )}
-          {total_proyectos && <p className="text-sm font-medium text-gray-600">{total_proyectos} proyectos</p>}
+
+        <div className="mb-4">
+          <div className="flex items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">{label1}</span>
+            <span className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-1 rounded-full ml-2">
+              {displayPercentage}%
+            </span>
+          </div>
+          <div className="flex items-center whitespace-nowrap">
+            <span className="text-sm font-medium text-gray-700 mr-2">{label2}</span>
+            <span className="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-1 rounded-full">
+              {formattedDifference} {differenceUnit}
+            </span>
+          </div>
+        </div>
+
+        <div className="h-[220px] sm:h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={[
+                {
+                  name: data[0].name,
+                  value: data[0].value,
+                  fill: data[0].fill,
+                },
+                {
+                  name: data[1].name,
+                  value: data[1].value,
+                  fill: data[1].fill,
+                },
+              ]}
+              margin={{ top: 30, right: 10, left: 10, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
+              <Tooltip
+                formatter={(value) => getFullFormattedValue(value)}
+                contentStyle={{
+                  backgroundColor: "white",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                }}
+              />
+              <Bar
+                dataKey="value"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={60}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+                <LabelList
+                  dataKey="value"
+                  position="top"
+                  formatter={(value) => formatCurrency(value)}
+                  style={{
+                    fill: "#666",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                  }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
-    </Link>
-  )
-
-  // Preparar datos para gráficos
-  // Actualizar la función getRegionData para usar correctamente los datos de la API
-  const getRegionData = (regionName) => {
-    if (!regiones.regiones)
-      return {
-        total_monto_ofertado: 0,
-        total_costo_planificado: 0,
-        total_costo_real: 0,
-        total_proyectos: 0,
-      }
-    const region = regiones.regiones.find((r) => r.nombre_region === regionName)
-    return (
-      region || {
-        total_monto_ofertado: 0,
-        total_costo_planificado: 0,
-        total_costo_real: 0,
-        total_proyectos: 0,
-      }
     )
   }
 
-  // Actualizar la preparación de datos para los gráficos financieros
-  const prepareFinancialPlanData = (title, region) => {
-    const planValue = Number.parseFloat(region.total_costo_planificado || 0)
-    const obtainedValue = Number.parseFloat(region.total_monto_ofertado || 0)
-    const percentage = planValue > 0 ? ((obtainedValue / planValue) * 100).toFixed(2) : 0
-
-    return {
-      name: title,
-      data: [
-        { name: "Ofertado", value: obtainedValue, fill: COLORS.ofertado },
-        { name: "Costo Planificado", value: planValue, fill: COLORS.costoPlaneado },
-      ],
-      percentage,
-    }
-  }
-
-  // Update the prepareFinancialResultData function
-  const prepareFinancialResultData = (title, region) => {
-    const facturadoValue = estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0
-    const realValue = Number.parseFloat(region.total_costo_real || 0)
-    const percentage = realValue > 0 ? ((facturadoValue / realValue) * 100).toFixed(2) : 0
-
-    return {
-      name: title,
-      data: [
-        { name: "Facturado", value: facturadoValue, fill: COLORS.facturado },
-        { name: "Costo real", value: realValue, fill: COLORS.costoReal },
-      ],
-      percentage,
-    }
-  }
-
-  // Actualizar la función preparePieChartData para usar correctamente los datos de la API
-  const preparePieChartData = () => {
-    if (!estatus || estatus.length === 0) return []
-
-    return estatus.map((item) => ({
-      name:
-        item.nombre_estatus === "Por Valuar"
-          ? "Por valuar"
-          : item.nombre_estatus === "Por Facturar"
-            ? "Por facturar"
-            : "Facturado",
-      value: Number.parseFloat(item.suma_montos || 0),
-      color:
-        item.nombre_estatus === "Por Valuar"
-          ? "#e67e22" // Naranja
-          : item.nombre_estatus === "Por Facturar"
-            ? "#4CAF50" // Verde
-            : "#1e5a7b", // Azul oscuro
-    }))
-  }
-
-  // Datos para gráficos financieros
-  // Actualizar las variables que usan estos datos
-  const orienteData = getRegionData("Oriente")
-  const occidenteData = getRegionData("Occidente")
-  const centroData = getRegionData("Centro")
-
-  // Actualizar la preparación de datos para los gráficos
-  const financialPlanTotal = {
-    name: "Planificación financiera total",
-    data: [
-      {
-        name: "Ofertado",
-        value: regiones.regiones
-          ? regiones.regiones.reduce((sum, region) => sum + Number.parseFloat(region.total_monto_ofertado || 0), 0)
-          : 0,
-        fill: COLORS.ofertado,
-      },
-      {
-        name: "Costo Planificado",
-        value: regiones.costo_planificado_total || 0,
-        fill: COLORS.costoPlaneado,
-      },
-    ],
-    percentage:
-      regiones.costo_planificado_total > 0
-        ? (
-          ((regiones.regiones
-            ? regiones.regiones.reduce((sum, region) => sum + Number.parseFloat(region.total_monto_ofertado || 0), 0)
-            : 0) /
-            regiones.costo_planificado_total) *
-          100
-        ).toFixed(2)
-        : 0,
-  }
-
-  const financialPlanOriente = prepareFinancialPlanData("Planificación financiera Oriente", orienteData)
-  const financialPlanOccidente = prepareFinancialPlanData("Planificación financiera Occidente", occidenteData)
-  const financialPlanCentro = prepareFinancialPlanData("Planificación financiera Centro", centroData)
-
-  // Update the financialResultTotal object to use estatus data for facturado
-  const financialResultTotal = {
-    name: "Resultado financiero total",
-    data: [
-      {
-        name: "Facturado",
-        value: estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0,
-        fill: COLORS.facturado,
-      },
-      {
-        name: "Costo real",
-        value: regiones.costo_real_total || 0,
-        fill: COLORS.costoReal,
-      },
-    ],
-    percentage:
-      regiones.costo_real_total > 0
-        ? (
-          ((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) / regiones.costo_real_total) *
-          100
-        ).toFixed(2)
-        : 0,
-  }
-
-  const financialResultOriente = prepareFinancialResultData("Resultado financiero Oriente", orienteData)
-  const financialResultOccidente = prepareFinancialResultData("Resultado financiero Occidente", occidenteData)
-  const financialResultCentro = prepareFinancialResultData("Resultado financiero Centro", centroData)
-
-  const pieChartData = preparePieChartData()
-
-  // Toggle Switch Component
-  const ToggleSwitch = ({ label, checked, onChange }) => (
-    <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input type="checkbox" className="sr-only peer" checked={checked} onChange={onChange} />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-      </label>
-    </div>
-  )
-
-  // Función para obtener la clase de animación consistente para ambas transiciones
-  const getAnimationClass = () => {
-    if (animate) {
-      return "scale-95 opacity-0 translate-y-4"
-    }
-    return "scale-100 opacity-100 translate-y-0"
-  }
-
-  // Función para obtener el retraso de transición consistente
-  const getTransitionDelay = (index) => {
-    // Usamos el mismo retraso base para ambas transiciones
-    const baseDelay = 100
-    const delay = baseDelay + index * 50
-    return `${delay}ms`
-  }
-
-  // Componente de gráfico de barras
-  const BarChartComponent = ({ title, data, percentage, index = 0 }) => (
-    <div
-      className={`bg-white rounded-xl p-6 shadow-md transition-all duration-700 transform ${getAnimationClass()} hover:shadow-lg`}
-      style={{
-        transitionDelay: getTransitionDelay(index),
-      }}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-        <div
-          className={`px-3 py-1 rounded-full text-sm font-medium ${Number.parseFloat(percentage) >= 100
-            ? "bg-green-100 text-green-800"
-            : Number.parseFloat(percentage) >= 75
-              ? "bg-blue-100 text-blue-800"
-              : "bg-amber-100 text-amber-800"
-            }`}
-        >
-          {percentage}%
-        </div>
-      </div>
-      <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={[
-              {
-                name: data[0].name,
-                value: data[0].value,
-                fill: data[0].fill,
-              },
-              {
-                name: data[1].name,
-                value: data[1].value,
-                fill: data[1].fill,
-              },
-            ]}
-            margin={{ top: 30, right: 10, left: 10, bottom: 20 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
-            <Tooltip
-              formatter={(value) => getFullFormattedValue(value)}
-              contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e0e0e0",
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-              }}
-            />
-            <Bar
-              dataKey="value"
-              radius={[6, 6, 0, 0]}
-              maxBarSize={60}
-              isAnimationActive={true}
-              animationDuration={1000}
-              animationEasing="ease-out"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-              <LabelList
-                dataKey="value"
-                position="top"
-                formatter={(value) => formatCurrency(value)}
-                style={{
-                  fill: "#666",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                }}
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center">
-          <FiActivity className="text-blue-600 mr-2" />
-          <p className="text-sm text-gray-600">Costo Plan. vs Ofertado</p>
-        </div>
-      </div>
-    </div>
-  )
-
   // Modificar el componente PieChartComponent para aumentar la altura y mostrar la cantidad de proyectos
-  const PieChartComponent = ({ data, index = 0 }) => (
-    <div
-      className={`bg-white rounded-xl p-6 shadow-md transition-all duration-700 transform ${getAnimationClass()} hover:shadow-lg`}
-      style={{
-        transitionDelay: getTransitionDelay(index + 3),
-      }}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">Distribución de Montos por Estado</h3>
-        <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-          {data.length} estados
-        </div>
+  const PieChartComponent = ({ data, title, index = 0 }) => (
+    <div className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+      <div className="mb-2">
+        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
       </div>
-      <div className="h-[300px]">
+      <div className="h-[220px] sm:h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
-              cx="40%"
+              cx="50%"
               cy="50%"
               innerRadius={60}
-              outerRadius={100}
+              outerRadius={90}
               paddingAngle={2}
               dataKey="value"
               isAnimationActive={true}
@@ -462,7 +594,10 @@ const GestionGerencia = () => {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) => getFullFormattedValue(value)}
+              formatter={(value, name, props) => {
+                const item = data.find((d) => d.value === value)
+                return [`${getFullFormattedValue(value)} (${item?.percentage || "0.00"}%)`, name]
+              }}
               contentStyle={{
                 backgroundColor: "white",
                 border: "1px solid #e0e0e0",
@@ -471,15 +606,7 @@ const GestionGerencia = () => {
                 padding: "8px",
               }}
             />
-            <Legend
-              align="right"
-              verticalAlign="middle"
-              layout="vertical"
-              iconType="circle"
-              wrapperStyle={{
-                paddingLeft: "32px",
-              }}
-            />
+            <Legend align="center" verticalAlign="bottom" layout="horizontal" iconType="circle" />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -488,34 +615,67 @@ const GestionGerencia = () => {
 
   // Componente de tarjeta de región
   const RegionCard = ({ region, amount, count, index = 0 }) => (
-    <div
-      className={`bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 w-full border border-gray-100 transform ${getAnimationClass()}`}
-      style={{
-        transitionDelay: getTransitionDelay(index + 5),
-      }}
-    >
+    <Link to={`/GestionGerencia/${region}`} className="w-full">
+      <div className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 w-full border border-gray-100 hover:bg-gray-50">
+        <div className="flex items-start">
+          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 mr-4">
+            <FiMapPin className="w-6 h-6 text-indigo-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{region}</h3>
+            <p className="text-sm text-gray-500 mb-3">Ofertado</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold text-indigo-600" title={getFullFormattedValue(amount)}>
+                {formatCurrency(amount)}
+              </p>
+              <div className="bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full flex items-center">
+                <FiUsers className="mr-1" /> {count} proyectos
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+
+  // Componente de tarjeta de estado
+  const StatusCard = ({ title, amount, icon: Icon, color, percentage, index = 0 }) => (
+    <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 w-full border border-gray-100">
       <div className="flex items-start">
-        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 mr-4">
-          <FiMapPin className="w-6 h-6 text-indigo-600" />
+        <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4 mr-4`}>
+          <Icon className="w-6 h-6 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{region}</h3>
-          <p className="text-sm text-gray-500 mb-3">Ofertado</p>
-          <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-indigo-600" title={getFullFormattedValue(amount)}>
-              {formatCurrency(amount)}
-            </p>
-            <div className="bg-indigo-50 text-indigo-700 text-sm font-medium px-3 py-1 rounded-full flex items-center">
-              <FiUsers className="mr-1" /> {count} proyectos
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+            <div
+              className={`${color.replace("bg-", "bg-").replace("-600", "-100")} ${color.replace("bg-", "text-")} text-xs font-medium px-2 py-0.5 rounded-full`}
+            >
+              {percentage}%
             </div>
+          </div>
+          <p
+            className={`text-2xl font-bold ${color.replace("bg-", "text-")} mb-2`}
+            title={getFullFormattedValue(amount)}
+          >
+            {formatCurrency(amount)}
+          </p>
+          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${color} rounded-full`}
+              style={{
+                width: `${percentage}%`,
+              }}
+            ></div>
           </div>
         </div>
       </div>
     </div>
   )
 
+  // Update the JSX structure to remove refs and data-section attributes
   return (
-    <div className="min-h-screen bg-gray-50 mb-24">
+    <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Título del informe - Versión moderna y atractiva */}
         <div className="mb-8 relative overflow-hidden rounded-lg shadow-lg">
@@ -565,386 +725,225 @@ const GestionGerencia = () => {
 
         {/* Leyenda de unidades */}
         <div className="mb-6 bg-white rounded-lg p-3 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center mb-2 sm:mb-0">
               <FiInfo className="text-blue-500 mr-2" />
               <h3 className="text-sm font-medium text-gray-700">Leyenda de unidades:</h3>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-2 sm:gap-4">
               <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-900 mr-1">K</span>
+                <span className="text-sm font-medium text-gray-900 mr-1">M</span>
                 <span className="text-xs text-gray-500">= Miles</span>
               </div>
               <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-900 mr-1">M</span>
+                <span className="text-sm font-medium text-gray-900 mr-1">MM</span>
                 <span className="text-xs text-gray-500">= Millones</span>
               </div>
-              <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-900 mr-1">MM</span>
-                <span className="text-xs text-gray-500">= Miles de millones</span>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Toggle Switch */}
-        <div className="flex justify-end mb-6">
-          <label className="inline-flex items-center cursor-pointer bg-white px-4 py-2 rounded-full shadow-sm">
-            <span className="mr-3 text-sm font-medium text-gray-900">
-              {viewMode === "normal" ? "Vista Normal" : "Vista Gráficos"}
-            </span>
-            <div className="relative">
-              <input
-                type="checkbox"
-                value=""
-                className="sr-only peer"
-                checked={viewMode === "graph"}
-                onChange={(e) => setViewMode(e.target.checked ? "graph" : "normal")}
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        <div className="space-y-8">
+          {/* 1. RESUMEN DE ESTATUS */}
+          <div>
+            <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
+              <h2 className="text-xl font-bold text-white">RESUMEN DE ESTATUS</h2>
             </div>
-          </label>
-        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 justify-center">
+              <StatusCard
+                title="Facturado"
+                amount={estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0}
+                icon={FiDollarSign}
+                color="bg-green-600"
+                percentage={
+                  (
+                    ((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) / sumaTotal) *
+                    100
+                  ).toFixed(2) || 0
+                }
+                index={0}
+              />
 
-        <div className="relative">
-          {/* Vista de gráficos */}
-          {viewMode === "graph" ? (
-            <div
-              className={`transition-all duration-700 ease-in-out transform ${animate ? "scale-95 opacity-0 translate-y-4" : "scale-100 opacity-100 translate-y-0"
-                }`}
-            >
-              <div className="space-y-6">
-                {/* Primera fila - Planificación financiera */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <BarChartComponent
-                    title="Planificación financiera total"
-                    data={financialPlanTotal.data}
-                    percentage={financialPlanTotal.percentage}
+              <StatusCard
+                title="Por Facturar"
+                amount={estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0}
+                icon={FiShoppingCart}
+                color="bg-blue-600"
+                percentage={
+                  (
+                    ((estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0) / sumaTotal) *
+                    100
+                  ).toFixed(2) || 0
+                }
+                index={1}
+              />
+
+              <StatusCard
+                title="Por Valuar"
+                amount={estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0}
+                icon={FiCheckCircle}
+                color="bg-amber-600"
+                percentage={
+                  (
+                    ((estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0) / sumaTotal) *
+                    100
+                  ).toFixed(2) || 0
+                }
+                index={2}
+              />
+            </div>
+          </div>
+
+          {/* 2. GRÁFICAS */}
+          <div>
+            {/* Planificación Financiera */}
+            <div>
+              <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
+                <h2 className="text-lg font-bold text-white">PLANIFICACIÓN FINANCIERA</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                <BarChartComponent
+                  title="Planificación financiera total"
+                  data={financialPlanTotal.data}
+                  percentage={financialPlanTotal.percentage}
+                  index={0}
+                />
+                <BarChartComponent
+                  title="Planificación financiera Oriente"
+                  data={financialPlanOriente.data}
+                  percentage={financialPlanOriente.percentage}
+                  index={1}
+                />
+                <BarChartComponent
+                  title="Planificación financiera Occidente"
+                  data={financialPlanOccidente.data}
+                  percentage={financialPlanOccidente.percentage}
+                  index={2}
+                />
+              </div>
+            </div>
+
+            {/* Real Ejecutado */}
+            <div>
+              <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
+                <h2 className="text-lg font-bold text-white">REAL EJECUTADO</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                <BarChartComponent
+                  title="Resultado financiero total"
+                  data={financialResultTotal.data}
+                  percentage={financialResultTotal.percentage}
+                  difference={financialResultTotal.difference}
+                  index={0}
+                />
+                <BarChartComponent
+                  title="Resultado financiero Oriente"
+                  data={financialResultOriente.data}
+                  percentage={financialResultOriente.percentage}
+                  difference={financialResultOriente.difference}
+                  index={1}
+                />
+                <BarChartComponent
+                  title="Resultado financiero Occidente"
+                  data={financialResultOccidente.data}
+                  percentage={financialResultOccidente.percentage}
+                  difference={financialResultOccidente.difference}
+                  index={2}
+                />
+              </div>
+            </div>
+
+            {/* Administración de Contratos */}
+            <div>
+              <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
+                <h2 className="text-lg font-bold text-white">ADMINISTRACIÓN DE CONTRATOS</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                <PieChartComponent data={pieChartData} title="Estatus General de Valuaciones" index={0} />
+                <PieChartComponent data={pieChartDataOriente} title="Estatus de Valuaciones Oriente" index={1} />
+                <PieChartComponent data={pieChartDataOccidente} title="Estatus de Valuaciones Occidente" index={2} />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. REGIONES */}
+          {/* Actualizar la sección de regiones en el JSX para usar los datos de la API de dashboard */}
+          <div>
+            <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
+              <h2 className="text-xl font-bold text-white">REGIONES</h2>
+            </div>
+            <div>
+              {loading ? (
+                <div className="flex justify-center items-center p-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                  <p className="ml-3 text-gray-600 text-base">Cargando regiones...</p>
+                </div>
+              ) : regiones.Oriente && regiones.Occidente ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 justify-items-center mx-auto">
+                  <RegionCard
+                    key="Oriente"
+                    region="Oriente"
+                    amount={Number.parseFloat(regiones.Oriente.totales.total_ofertado || 0)}
+                    count={regiones.Oriente.proyectos?.length.toString() || "0"}
                     index={0}
                   />
-                  <BarChartComponent
-                    title="Planificación financiera Oriente"
-                    data={financialPlanOriente.data}
-                    percentage={financialPlanOriente.percentage}
+                  <RegionCard
+                    key="Occidente"
+                    region="Occidente"
+                    amount={Number.parseFloat(regiones.Occidente.totales.total_ofertado || 0)}
+                    count={regiones.Occidente.proyectos?.length.toString() || "0"}
                     index={1}
                   />
-                  <BarChartComponent
-                    title="Planificación financiera Occidente"
-                    data={financialPlanOccidente.data}
-                    percentage={financialPlanOccidente.percentage}
-                    index={2}
-                  />
                 </div>
-
-                {/* Segunda fila - Resultados financieros */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <BarChartComponent
-                    title="Resultado financiero total"
-                    data={financialResultTotal.data}
-                    percentage={financialResultTotal.percentage}
-                    index={3}
-                  />
-                  <PieChartComponent data={pieChartData} index={0} />
+              ) : (
+                <div className="bg-white rounded-xl p-8 shadow-md text-center">
+                  <FiUsers className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 text-lg">No hay regiones disponibles.</p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Intente actualizar los datos o contacte al administrador.
+                  </p>
                 </div>
-
-                {/* Tercera fila - Resultados por región */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <BarChartComponent
-                    title="Resultado financiero Oriente"
-                    data={financialResultOriente.data}
-                    percentage={financialResultOriente.percentage}
-                    index={4}
-                  />
-                  <BarChartComponent
-                    title="Resultado financiero Occidente"
-                    data={financialResultOccidente.data}
-                    percentage={financialResultOccidente.percentage}
-                    index={5}
-                  />
-                </div>
-
-                {/* Cuarta fila - Tarjetas de región */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mx-52">
-                  {regiones.regiones &&
-                    regiones.regiones
-                      .filter((region) => region.nombre_region !== "Centro")
-                      .map((region, idx) => (
-                        <RegionCard
-                          key={region.nombre_region}
-                          region={region.nombre_region}
-                          amount={Number.parseFloat(region.total_monto_ofertado)}
-                          count={region.total_proyectos.toString()}
-                          index={idx}
-                        />
-                      ))}
-                </div>
-              </div>
+              )}
             </div>
-          ) : (
-            <div
-              className={`transition-all duration-700 ease-in-out transform ${animate ? "scale-95 opacity-0 translate-y-4" : "scale-100 opacity-100 translate-y-0"
-                }`}
-            >
-              <div className="space-y-8">
-                {/* Resumen de Estados */}
-                <div>
-                  <h2
-                    className={`text-xl font-bold text-white mb-4 text-center bg-[#015999] rounded-xl p-3 transition-all duration-700 transform
-                  ${getAnimationClass()}`}
-                    style={{
-                      transitionDelay: getTransitionDelay(0),
-                      opacity: animate ? 0 : 0.9,
-                    }}
-                  >
-                    RESUMEN DE ESTADOS
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
-                    <Link to="" className="flex justify-center">
-                      <div
-                        className={`bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 w-full max-w-sm border border-gray-100 transform ${getAnimationClass()}`}
-                        style={{
-                          transitionDelay: getTransitionDelay(1),
-                        }}
-                      >
-                        <div className="flex items-start">
-                          <div className="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center mb-4 mr-4">
-                            <FiDollarSign className="w-7 h-7 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-base font-medium text-gray-600">Facturado</p>
-                              <div className="bg-green-50 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {(
-                                  ((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) /
-                                    sumaTotal) *
-                                  100
-                                ).toFixed(2) || 0}
-                                %
-                              </div>
-                            </div>
-                            <h3
-                              className="text-2xl font-bold tracking-tight text-gray-900 mb-2"
-                              title={getFullFormattedValue(
-                                estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0,
-                              )}
-                            >
-                              {formatCurrency(estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0)}
-                            </h3>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-green-500 rounded-full"
-                                style={{
-                                  width: `${((estatus.find((e) => e.nombre_estatus === "Facturado")?.suma_montos || 0) / sumaTotal) * 100}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-
-                    <Link to="" className="flex justify-center">
-                      <div
-                        className={`bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 w-full max-w-sm border border-gray-100 transform ${getAnimationClass()}`}
-                        style={{
-                          transitionDelay: getTransitionDelay(2),
-                        }}
-                      >
-                        <div className="flex items-start">
-                          <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-4 mr-4">
-                            <FiShoppingCart className="w-7 h-7 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-base font-medium text-gray-600">Por Facturar</p>
-                              <div className="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {(
-                                  ((estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0) /
-                                    sumaTotal) *
-                                  100
-                                ).toFixed(2) || 0}
-                                %
-                              </div>
-                            </div>
-                            <h3
-                              className="text-2xl font-bold tracking-tight text-gray-900 mb-2"
-                              title={getFullFormattedValue(
-                                estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0,
-                              )}
-                            >
-                              {formatCurrency(
-                                estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0,
-                              )}
-                            </h3>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-blue-500 rounded-full"
-                                style={{
-                                  width: `${((estatus.find((e) => e.nombre_estatus === "Por Facturar")?.suma_montos || 0) / sumaTotal) * 100}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-
-                    <Link to="" className="flex justify-center">
-                      <div
-                        className={`bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 w-full max-w-sm border border-gray-100 transform ${getAnimationClass()}`}
-                        style={{
-                          transitionDelay: getTransitionDelay(3),
-                        }}
-                      >
-                        <div className="flex items-start">
-                          <div className="w-14 h-14 bg-amber-50 rounded-xl flex items-center justify-center mb-4 mr-4">
-                            <FiCheckCircle className="w-7 h-7 text-amber-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-base font-medium text-gray-600">Por Valuar</p>
-                              <div className="bg-amber-50 text-amber-700 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {(
-                                  ((estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0) /
-                                    sumaTotal) *
-                                  100
-                                ).toFixed(2) || 0}
-                                %
-                              </div>
-                            </div>
-                            <h3
-                              className="text-2xl font-bold tracking-tight text-gray-900 mb-2"
-                              title={getFullFormattedValue(
-                                estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0,
-                              )}
-                            >
-                              {formatCurrency(estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0)}
-                            </h3>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-amber-500 rounded-full"
-                                style={{
-                                  width: `${((estatus.find((e) => e.nombre_estatus === "Por Valuar")?.suma_montos || 0) / sumaTotal) * 100}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Regiones */}
-                <div>
-                  <h2
-                    className={`text-xl font-bold text-white mb-4 text-center bg-[#015999] rounded-xl p-3 transition-all duration-700 transform
-                  ${getAnimationClass()}`}
-                    style={{
-                      transitionDelay: getTransitionDelay(4),
-                      opacity: animate ? 0 : 0.9,
-                    }}
-                  >
-                    REGIONES
-                  </h2>
-                  <div>
-                    {loading ? (
-                      <div className="flex justify-center items-center p-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                        <p className="ml-2 text-gray-600 text-sm">Cargando regiones...</p>
-                      </div>
-                    ) : regiones.regiones && regiones.regiones.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 justify-items-center mx-auto px-2 md:px-4 lg:px-8">
-                        {regiones.regiones
-                          .filter((region) => region.nombre_region !== "Centro")
-                          .map((region, index) => (
-                            <Link
-                              key={region.id}
-                              to={`/GestionGerencia/${region.nombre_region}`}
-                              className="w-full max-w-xs"
-                            >
-                              <div
-                                className={`bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 w-full border border-gray-100 transform ${getAnimationClass()}`}
-                                style={{
-                                  minHeight: "120px", // Altura mínima aún más reducida
-                                  transitionDelay: getTransitionDelay(index + 5),
-                                }}
-                              >
-                                <div className="flex items-start">
-                                  <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center mb-2 mr-2">
-                                    <FiMapPin className="w-4 h-4 text-indigo-600" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <h3 className="text-base font-bold text-gray-900 mb-1">{region.nombre_region}</h3>
-                                    <div className="flex items-center mb-1">
-                                      <FiTarget className="text-gray-400 mr-1 w-3 h-3" />
-                                      <p className="text-[10px] text-gray-500">Ofertado</p>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                      <p
-                                        className="text-xl font-bold text-indigo-600"
-                                        title={getFullFormattedValue(region.total_monto_ofertado)}
-                                      >
-                                        {formatCurrency(region.total_monto_ofertado)}
-                                      </p>
-                                      <div className="bg-indigo-50 text-indigo-700 text-[10px] font-medium px-1 py-0.5 rounded-full flex items-center">
-                                        <FiUsers className="mr-1 w-7 h-7" /> {region.total_proyectos} proyectos
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                      </div>
-                    ) : (
-                      <div className="bg-white rounded-lg p-4 shadow-sm text-center">
-                        <FiUsers className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-600 text-sm">No hay regiones disponibles.</p>
-                        <p className="text-gray-500 text-[10px] mt-1">
-                          Intente actualizar los datos o contacte al administrador.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
+
         {/* Panel fijo de costos en esquina inferior izquierda */}
-        <div className="fixed bottom-4 left-4 flex gap-4 z-20">
-          <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mr-2">
-                <FiTarget className="w-4 h-4 text-blue-600" />
+        <div className="fixed bottom-4 left-4 flex flex-col sm:flex-row gap-2 sm:gap-4 z-20">
+          <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
+            <div className="flex items-center mb-1">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-50 rounded-lg flex items-center justify-center mr-2">
+                <FiTarget className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-700">Costo Plan</h3>
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Costo Plan</h3>
             </div>
             <p
-              className="text-lg font-bold text-gray-900"
-              title={getFullFormattedValue(regiones.costo_planificado_total || 0)}
+              className="text-sm sm:text-lg font-bold text-gray-900"
+              title={getFullFormattedValue(totales.total_costo_planificado || 0)}
             >
-              {formatCurrency(regiones.costo_planificado_total || 0)}
+              {formatCurrency(totales.total_costo_planificado || 0)}
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center mr-2">
-                <FiActivity className="w-4 h-4 text-green-600" />
+          <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
+            <div className="flex items-center mb-1">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-50 rounded-lg flex items-center justify-center mr-2">
+                <FiActivity className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-700">Costo Real</h3>
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Costo Real</h3>
             </div>
             <p
-              className="text-lg font-bold text-green-600"
-              title={getFullFormattedValue(regiones.costo_real_total || 0)}
+              className="text-sm sm:text-lg font-bold text-green-600"
+              title={getFullFormattedValue(totales.total_costo_real || 0)}
             >
-              {formatCurrency(regiones.costo_real_total || 0)}
+              {formatCurrency(totales.total_costo_real || 0)}
             </p>
           </div>
         </div>
-      </main >
-    </div >
+      </main>
+    </div>
   )
 }
 
