@@ -384,8 +384,12 @@ const RegionDetalles = () => {
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Facturado
                   </th>
+                 
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Por facturar
+                  </th>
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Por Valuar
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Avance
@@ -425,6 +429,11 @@ const RegionDetalles = () => {
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span title={getFullFormattedValue(project.monto_por_facturar)}>
                           {formatCurrency(project.monto_por_facturar)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={getFullFormattedValue(project.monto_por_valuar)}>
+                          {formatCurrency(project.monto_por_valuar)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm md:text-base">
