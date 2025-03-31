@@ -139,7 +139,7 @@ const Login = () => {
           <img className="w-full h-full object-cover" src={img || "/placeholder.svg"} alt="Login" />
           <div className="absolute inset-0 bg-blue-900/20 flex items-center justify-center">
             <div className="text-white text-center p-6 bg-blue-900/60 backdrop-blur-sm rounded-lg">
-              <h1 className="text-3xl font-bold mb-2">Bienvenido a Valescos</h1>
+              <h1 className="text-3xl font-bold mb-2">Bienvenido a Valesco</h1>
               <p className="text-lg">Sistema de gestión de proyectos</p>
             </div>
           </div>
