@@ -2,10 +2,104 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { UrlApi, formatCurrency } from "../utils/utils"
 import { FiDollarSign, FiShoppingCart, FiCheckCircle, FiUsers, FiBarChart2, FiActivity, FiInfo } from "react-icons/fi"
+import { UrlApi } from "../utils/utils"
 
-const ReginDetalles = () => {
+// Utilidades para formateo de moneda
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return "$0.00 MM"
+
+  // Convertir a número si es string
+  const numValue = typeof value === "string" ? Number.parseFloat(value) : value
+
+  // Siempre mostrar en millones (MM)
+  const inMillions = numValue / 1000000
+  return `$${inMillions.toFixed(2)} MM`
+}
+
+// Función para mostrar el valor completo con formato al pasar el cursor
+const getFullFormattedValue = (amount) => {
+  if (amount === undefined || amount === null) return "$0,00"
+
+  // Formatear el número con separadores de miles (puntos) y decimales (coma)
+  return `$${amount.toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
+}
+
+// Componente de indicador de progreso
+function ProgressIndicator({ progress }) {
+  // Asegurarse de que los valores sean números válidos o 0 si son null/undefined
+  const real = progress.real || 0
+  const planned = progress.planned || 0
+  const completed = progress.completed || 0
+
+  // Determinar si el avance real supera el planificado
+  const isRealOverPlanned = real > planned
+
+  return (
+    <div className="space-y-1">
+      {/* Barra de progreso */}
+      <div className="h-2 bg-blue-100 rounded-full relative">
+        {/* Barra de progreso completado */}
+        <div
+          className="absolute h-full bg-blue-200 rounded-full"
+          style={{
+            left: `${planned}%`,
+            width: `${completed - planned}%`,
+            display: completed > planned ? "block" : "none", // Ocultar si no hay diferencia entre completado y planificado
+          }}
+        />
+
+        {/* Barra de progreso planificado */}
+        <div
+          className="absolute h-full bg-blue-400 rounded-full"
+          style={{
+            left: `${real}%`,
+            width: `${planned - real}%`,
+            display: planned > real ? "block" : "none", // Ocultar si no hay diferencia entre planificado y real
+            zIndex: isRealOverPlanned ? 1 : 3, // Ajustar z-index según la condición
+          }}
+        />
+
+        {/* Barra de progreso real */}
+        <div
+          className={`absolute h-full rounded-full ${isRealOverPlanned ? "bg-red-600" : "bg-blue-700"}`}
+          style={{
+            width: `${real}%`,
+            zIndex: isRealOverPlanned ? 3 : 1, // Ajustar z-index según la condición
+          }}
+        />
+      </div>
+
+      {/* Etiquetas de porcentaje */}
+      <div className="flex justify-between text-xs md:text-sm text-gray-500">
+        <span>{real}%</span>
+        <span>{planned}%</span>
+        <span>{completed}%</span>
+      </div>
+
+      {/* Bloque de etiquetas adicionales */}
+      <div className="flex justify-between text-xs">
+        <div className="flex items-center gap-1">
+          <div className={`w-3 h-1 ${isRealOverPlanned ? "bg-red-600" : "bg-blue-700"}`} />
+          <span>Real</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-1 bg-blue-400" />
+          <span>Plan</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-1 bg-blue-200" />
+          <span>Total</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const RegionDetalles = () => {
   const { region } = useParams() // Obtiene la región desde los parámetros de la URL
   const [data, setData] = useState([]) // Estado para almacenar los datos de la API
   const [loading, setLoading] = useState(true) // Estado para manejar la carga
@@ -13,9 +107,35 @@ const ReginDetalles = () => {
   const navigate = useNavigate() // Hook para navegar programáticamente
   const rowsPerPage = 5 // Máximo de filas por página
   const [currentPage, setCurrentPage] = useState(1) // Estado para la página actual
-  const [costoTotal, setCostoTotal] = useState(0)
-  const [rentabilidad, setRentabilidad] = useState(0)
   const [showUnitsInfo, setShowUnitsInfo] = useState(false)
+  const [hoveredMetric, setHoveredMetric] = useState(null) // Estado para controlar qué métrica tiene el cursor encima
+
+  useEffect(() => {
+    // Asegurarse de que el scroll esté siempre al inicio
+    window.scrollTo(0, 0)
+
+    // También podemos usar esta alternativa para navegadores más modernos
+    // que proporciona un comportamiento de scroll más suave
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto", // 'auto' es instantáneo, 'smooth' sería con animación
+    })
+
+    // Función para asegurar que el scroll esté al inicio incluso después de que
+    // el contenido se haya cargado completamente (imágenes, etc.)
+    const ensureTopScroll = () => {
+      setTimeout(() => {
+        window.scrollTo(0, 0)
+      }, 100)
+    }
+
+    // Ejecutar después de un breve retraso para asegurar que funcione
+    ensureTopScroll()
+
+    // Limpiar el timeout si el componente se desmonta
+    return () => clearTimeout(ensureTopScroll)
+  }, [region]) // Se ejecuta cuando cambia la región
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,6 +156,13 @@ const ReginDetalles = () => {
     }
     fetchData()
   }, [region]) // Se ejecuta cuando cambia la región
+
+  useEffect(() => {
+    if (!loading && data.length > 0) {
+      // Asegurarse de que el scroll esté al inicio cuando los datos se cargan
+      window.scrollTo(0, 0)
+    }
+  }, [loading, data]) // Se ejecuta cuando cambia el estado de carga o los datos
 
   if (loading) {
     return (
@@ -65,15 +192,12 @@ const ReginDetalles = () => {
   // Datos paginados
   const paginatedData = data.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
 
-  const formatPercentage = (value) => {
-    if (value === null || value === undefined) return "0.00%"
-    return `${(value * 100).toFixed(2)}%`
-  }
-
   // Función para cambiar de página
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= Math.ceil(data.length / rowsPerPage)) {
       setCurrentPage(newPage)
+      // Hacer scroll al inicio cuando se cambia de página
+      window.scrollTo(0, 0)
     }
   }
 
@@ -87,6 +211,52 @@ const ReginDetalles = () => {
   const totalFacturado = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_facturado || 0), 0)
   const totalPorFacturar = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_por_facturar || 0), 0)
   const totalPorValuar = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_por_valuar || 0), 0)
+
+  // Métricas para mostrar en las tarjetas
+  const metrics = [
+    {
+      id: "ofertado",
+      title: "Ofertado",
+      value: totalOfertado,
+      icon: FiDollarSign,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      id: "costoPlanificado",
+      title: "Costo Planificado",
+      value: totalCostoPlanificado,
+      icon: FiBarChart2,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      id: "costoReal",
+      title: "Costo Real",
+      value: totalCostoReal,
+      icon: FiActivity,
+      color: "bg-indigo-100 text-indigo-600",
+    },
+    {
+      id: "facturado",
+      title: "Facturado",
+      value: totalFacturado,
+      icon: FiCheckCircle,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      id: "porFacturar",
+      title: "Por Facturar",
+      value: totalPorFacturar,
+      icon: FiShoppingCart,
+      color: "bg-yellow-100 text-yellow-600",
+    },
+    {
+      id: "porValuar",
+      title: "Por Valuar",
+      value: totalPorValuar,
+      icon: FiUsers,
+      color: "bg-pink-100 text-pink-600",
+    },
+  ]
 
   return (
     <div className="flex flex-col h-auto overflow-hidden bg-gray-50 min-h-screen mb-24">
@@ -149,10 +319,6 @@ const ReginDetalles = () => {
           <div className="mt-2 p-3 bg-blue-50 rounded-md text-sm border border-blue-100">
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center">
-                <span className="font-medium text-gray-900 mr-1">M</span>
-                <span className="text-gray-600">= Miles</span>
-              </div>
-              <div className="flex items-center">
                 <span className="font-medium text-gray-900 mr-1">MM</span>
                 <span className="text-gray-600">= Millones</span>
               </div>
@@ -171,49 +337,19 @@ const ReginDetalles = () => {
       <div className="flex-1 overflow-y-hidden p-4 space-y-6">
         {/* Métricas */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {[
-            {
-              title: "Ofertado",
-              value: totalOfertado,
-              icon: FiDollarSign,
-              color: "bg-green-100 text-green-600",
-            },
-            {
-              title: "Costo Planificado",
-              value: totalCostoPlanificado,
-              icon: FiBarChart2,
-              color: "bg-blue-100 text-blue-600",
-            },
-            {
-              title: "Costo Real",
-              value: totalCostoReal,
-              icon: FiActivity,
-              color: "bg-indigo-100 text-indigo-600",
-            },
-            {
-              title: "Facturado",
-              value: totalFacturado,
-              icon: FiCheckCircle,
-              color: "bg-purple-100 text-purple-600",
-            },
-            {
-              title: "Por Facturar",
-              value: totalPorFacturar,
-              icon: FiShoppingCart,
-              color: "bg-yellow-100 text-yellow-600",
-            },
-            {
-              title: "Por Valuar",
-              value: totalPorValuar,
-              icon: FiUsers,
-              color: "bg-pink-100 text-pink-600",
-            },
-          ].map((metric, index) => (
-            <div key={index} className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300">
+          {metrics.map((metric) => (
+            <div
+              key={metric.id}
+              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
+              onMouseEnter={() => setHoveredMetric(metric.id)}
+              onMouseLeave={() => setHoveredMetric(null)}
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                  <p className="text-xl font-bold text-gray-900">{formatCurrency(metric.value)}</p>
+                  <p className="text-xl font-bold text-gray-900" title={getFullFormattedValue(metric.value)}>
+                    {hoveredMetric === metric.id ? getFullFormattedValue(metric.value) : formatCurrency(metric.value)}
+                  </p>
                 </div>
                 <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
                   <metric.icon className="h-5 w-5" />
@@ -274,16 +410,22 @@ const ReginDetalles = () => {
                         {project.id_proyecto}
                       </td>
                       <td className="px-6 py-4 text-sm md:text-base text-gray-900">
-                        <div className="max-w-md truncate">{project.nombre_proyecto}</div>
+                        <div className="max-w-md truncate uppercase">{project.nombre_proyecto}</div>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(project.costo_real)}
+                        <span title={getFullFormattedValue(project.costo_real)}>
+                          {formatCurrency(project.costo_real)}
+                        </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(project.monto_facturado)}
+                        <span title={getFullFormattedValue(project.monto_facturado)}>
+                          {formatCurrency(project.monto_facturado)}
+                        </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(project.monto_por_facturar)}
+                        <span title={getFullFormattedValue(project.monto_por_facturar)}>
+                          {formatCurrency(project.monto_por_facturar)}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm md:text-base">
                         <ProgressIndicator
@@ -391,101 +533,9 @@ const ReginDetalles = () => {
           </div>
         </div>
       </div>
-
-      {/* Panel fijo de costos en esquina inferior derecha */}
-      <div className="fixed bottom-4 right-4 flex gap-4 z-20">
-        <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
-          <div className="flex items-center mb-2">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mr-2">
-              <FiBarChart2 className="w-4 h-4 text-blue-600" />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-700">Costo Plan</h3>
-          </div>
-          <p className="text-lg font-bold text-gray-900">{formatCurrency(totalCostoPlanificado)}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
-          <div className="flex items-center mb-2">
-            <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center mr-2">
-              <FiActivity className="w-4 h-4 text-green-600" />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-700">Costo Real</h3>
-          </div>
-          <p className="text-lg font-bold text-green-600">{formatCurrency(totalCostoReal)}</p>
-        </div>
-      </div>
     </div>
   )
 }
 
-function ProgressIndicator({ progress }) {
-  // Asegurarse de que los valores sean números válidos o 0 si son null/undefined
-  const real = progress.real || 0
-  const planned = progress.planned || 0
-  const completed = progress.completed || 0
-
-  // Determinar si el avance real supera el planificado
-  const isRealOverPlanned = real > planned
-
-  return (
-    <div className="space-y-1">
-      {/* Barra de progreso */}
-      <div className="h-2 bg-blue-100 rounded-full relative">
-        {/* Barra de progreso completado */}
-        <div
-          className="absolute h-full bg-blue-200 rounded-full"
-          style={{
-            left: `${planned}%`,
-            width: `${completed - planned}%`,
-            display: completed > planned ? "block" : "none", // Ocultar si no hay diferencia entre completado y planificado
-          }}
-        />
-
-        {/* Barra de progreso planificado */}
-        <div
-          className="absolute h-full bg-blue-400 rounded-full"
-          style={{
-            left: `${real}%`,
-            width: `${planned - real}%`,
-            display: planned > real ? "block" : "none", // Ocultar si no hay diferencia entre planificado y real
-            zIndex: isRealOverPlanned ? 1 : 3, // Ajustar z-index según la condición
-          }}
-        />
-
-        {/* Barra de progreso real */}
-        <div
-          className={`absolute h-full rounded-full ${isRealOverPlanned ? "bg-red-600" : "bg-blue-700"}`}
-          style={{
-            width: `${real}%`,
-            zIndex: isRealOverPlanned ? 3 : 1, // Ajustar z-index según la condición
-          }}
-        />
-      </div>
-
-      {/* Etiquetas de porcentaje */}
-      <div className="flex justify-between text-xs md:text-sm text-gray-500">
-        <span>{real}%</span>
-        <span>{planned}%</span>
-        <span>{completed}%</span>
-      </div>
-
-      {/* Bloque de etiquetas adicionales */}
-      <div className="flex justify-between text-xs">
-        <div className="flex items-center gap-1">
-          <div className={`w-3 h-1 ${isRealOverPlanned ? "bg-red-600" : "bg-blue-700"}`} />
-          <span>Real</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-1 bg-blue-400" />
-          <span>Plan</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-1 bg-blue-200" />
-          <span>Total</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default ReginDetalles
+export default RegionDetalles
 

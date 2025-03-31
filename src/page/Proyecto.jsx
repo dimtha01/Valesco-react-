@@ -37,10 +37,8 @@ const Proyecto = () => {
       // Primero filtrar para excluir proyectos de la región Centro
       let filtered = data.filter((proyecto) => proyecto.nombre_region !== "Centro")
 
-      // Aplicar filtro de región
-      if (selectedRegionFilter && selectedRegionFilter !== "all") {
-        filtered = filtered.filter((proyecto) => proyecto.nombre_region === selectedRegionFilter)
-      } else if (region && region !== "all") {
+      // Aplicar filtro de región basado en el contexto del usuario
+      if (region && region !== "all") {
         filtered = filtered.filter((proyecto) => proyecto.nombre_region === region)
       }
 
@@ -60,7 +58,7 @@ const Proyecto = () => {
       setFilteredProyectos(filtered)
       setCurrentPage(1)
     },
-    [region, selectedRegionFilter, searchText],
+    [region, searchText],
   )
 
   useEffect(() => {
@@ -90,7 +88,7 @@ const Proyecto = () => {
   // Update filter when projects or region changes
   useEffect(() => {
     filterProyectosByRegion(proyectos)
-  }, [region, proyectos, selectedRegionFilter, searchText, filterProyectosByRegion])
+  }, [region, proyectos, searchText, filterProyectosByRegion])
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= Math.ceil(filteredProyectos.length / rowsPerPage)) {
@@ -208,27 +206,13 @@ const Proyecto = () => {
                 </button>
               )}
             </div>
-
-            <select
-              value={selectedRegionFilter}
-              onChange={handleRegionFilterChange}
-              className="bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">Todas las regiones</option>
-              <option value="Occidente">Occidente</option>
-              <option value="Oriente">Oriente</option>
-            </select>
           </div>
 
           <div className="text-sm text-gray-500 flex items-center">
             {searchText && (
               <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full mr-2">Búsqueda: "{searchText}"</span>
             )}
-            {selectedRegionFilter !== "all" ? (
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Región: {selectedRegionFilter}</span>
-            ) : (
-              <span>Mostrando todas las regiones</span>
-            )}
+            {region && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Región: {region}</span>}
           </div>
         </div>
 
@@ -265,10 +249,10 @@ const Proyecto = () => {
                           Avance Real(%)
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Monto Ofertado(USD)
+                          Ofertado(USD)
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Costo Estimado(USD)
+                          Costo Planificado(USD)
                         </th>
                       </tr>
                     </thead>
@@ -300,10 +284,10 @@ const Proyecto = () => {
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
                               <span
                                 className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${proyecto.nombre_region === "Centro"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : proyecto.nombre_region === "Occidente"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : proyecto.nombre_region === "Occidente"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
                                   }`}
                               >
                                 {proyecto.nombre_region}

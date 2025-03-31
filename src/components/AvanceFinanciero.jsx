@@ -5,6 +5,19 @@ import { useParams } from "react-router-dom"
 import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
 
+// Función local para formatear montos con separador de miles (formato: 1,234,567.89)
+const formatMontoConSeparador = (amount) => {
+  if (amount === null || amount === undefined) return "0.00"
+
+  // Formatea con el estilo en-US (comas para miles, punto para decimales) y sin símbolo de moneda
+  const numericValue = Number(amount)
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true, // Esto asegura que se use el separador de miles
+  }).format(numericValue)
+}
+
 const AvanceFinanciero = () => {
   const params = useParams()
   const [avancesFinancieros, setAvancesFinancieros] = useState([])
@@ -247,7 +260,7 @@ const AvanceFinanciero = () => {
       showNotification(
         "error",
         "Monto excedido",
-        `El monto total (${nuevoMontoTotal.toFixed(2)}) superaría el monto ofertado del proyecto (${proyecto.monto_ofertado}).`,
+        `El monto total (${formatMontoConSeparador(nuevoMontoTotal)}) superaría el monto ofertado del proyecto (${formatMontoConSeparador(proyecto.monto_ofertado)}).`,
       )
       return
     }
@@ -357,13 +370,12 @@ const AvanceFinanciero = () => {
         {proyecto && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-1 gap-4">
             <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Monto Ofertado</h3>
-              <p className="text-lg font-bold text-gray-900">${proyecto.monto_ofertado || 0}</p>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Monto Ofertado (USD)</h3>
+              <p className="text-lg font-bold text-gray-900">{formatMontoConSeparador(proyecto.monto_ofertado || 0)}</p>
             </div>
           </div>
         )}
         <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-
           <div className="px-0 py-2 border-b border-gray-200 mb-4">
             <h2 className="text-xl font-semibold text-gray-800">Registrar Nuevo Administración de Contratos</h2>
             <p className="text-sm text-gray-500">Ingrese los detalles del nuevo Administración de Contratos</p>
@@ -373,7 +385,7 @@ const AvanceFinanciero = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Número de Valuación */}
               <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">N° Valuación</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1"> N° de Valuación del Cliente</label>
                 <input
                   type="text"
                   name="numero_valuacion"
@@ -387,7 +399,7 @@ const AvanceFinanciero = () => {
 
               {/* Monto (USD) */}
               <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto (USD)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Monto USD</label>
                 <input
                   type="number"
                   step="0.01"
@@ -477,10 +489,10 @@ const AvanceFinanciero = () => {
                         Fecha
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Número de Valuación
+                        Número de Valuación del Cliente
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Monto (USD)
+                        Monto USD
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Fecha Inicio
@@ -516,7 +528,9 @@ const AvanceFinanciero = () => {
                           <td className="py-4 px-4 text-sm text-gray-500 hidden md:table-cell">{avance.id}</td>
                           <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha)}</td>
                           <td className="py-4 px-4 text-sm text-gray-900">{avance.numero_valuacion || "-"}</td>
-                          <td className="py-4 px-4 text-sm font-medium text-gray-900">${avance.monto_usd}</td>
+                          <td className="py-4 px-4 text-sm font-medium text-gray-900">
+                            {formatMontoConSeparador(avance.monto_usd)}
+                          </td>
                           <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_inicio)}</td>
                           <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_fin)}</td>
                           <td className="py-4 px-4 text-sm text-gray-500 hidden md:table-cell">
@@ -525,10 +539,10 @@ const AvanceFinanciero = () => {
                           <td className="py-4 px-4">
                             <span
                               className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
-                                ? "bg-green-100 text-green-800"
-                                : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-blue-100 text-blue-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-blue-100 text-blue-800"
                                 }`}
                             >
                               {avance.estatus_proceso_nombre}
@@ -580,7 +594,6 @@ const AvanceFinanciero = () => {
         )}
 
         {/* Información del proyecto */}
-
       </div>
 
       {/* Modal para cambiar estado */}
@@ -670,7 +683,7 @@ const AvanceFinanciero = () => {
       {mostrarModalEdicion && valuacionSeleccionada && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Editar Monto</h2>
+            <h2 className="text-xl font-bold mb-4">Editar Monto USD</h2>
             <p>
               <strong>Número de Valuación:</strong> {valuacionSeleccionada.numero_valuacion}
             </p>
@@ -679,7 +692,7 @@ const AvanceFinanciero = () => {
             </p>
             <div className="mt-4">
               <label className="block">
-                <span className="font-semibold">Monto (USD):</span>
+                <span className="font-semibold">Monto USD:</span>
                 <input
                   type="number"
                   step="0.01"

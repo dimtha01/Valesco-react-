@@ -3,12 +3,10 @@
 import { useEffect, useState, useContext, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { UrlApi } from "../utils/utils"
-import LoadingBar from "../components/LoadingBar"
 import { AuthContext } from "../components/AuthContext"
 import ExcelExport from "../components/ExcelExport"
 
 // Configuración para la exportación a Excel con múltiples hojas
-
 
 const Gestion = () => {
   const [proyectos, setProyectos] = useState([])
@@ -82,7 +80,7 @@ const Gestion = () => {
     return date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
   }
 
-  // Configuración para la exportación a Excel
+  // Modificar la función formatProyectosData para incluir el nombre_corto en la exportación
   const formatProyectosData = (data) => {
     return data.map((proyecto) => [
       {
@@ -98,7 +96,19 @@ const Gestion = () => {
         },
       },
       {
-        v: proyecto.nombre_proyecto,
+        v: proyecto.nombre_proyecto ? proyecto.nombre_proyecto.toUpperCase() : "",
+        s: {
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+        },
+      },
+      {
+        v: proyecto.nombre_corto || "",
         s: {
           alignment: { horizontal: "center", vertical: "center" },
           border: {
@@ -312,6 +322,7 @@ const Gestion = () => {
 
     return resumenData
   }
+  // Actualizar la configuración de exportación para incluir el nombre_corto en los encabezados
   const exportToXLSX = ExcelExport({
     data: proyectos,
     fileName: "proyectos",
@@ -320,13 +331,14 @@ const Gestion = () => {
     headers: [
       "N°",
       "Nombre del Contrato",
+      "Nombre Corto",
       "Cliente",
       "Costo Estimado (Planificado)",
       "Monto Ofertado (Cliente)",
       "Fecha Inicio",
       "Fecha Fin",
     ],
-    columnWidths: [8, 40, 20, 25, 25, 15, 15],
+    columnWidths: [8, 40, 20, 20, 25, 25, 15, 15],
     formatData: formatProyectosData,
     additionalSheets: [
       {
@@ -391,30 +403,33 @@ const Gestion = () => {
           </li>
         </ul>
       </div>
-      <div className="mt-8 bg-white rounded-lg shadow overflow-hidden mx-4">
-        {/* Botones de exportar */}
-        <div className="p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-gray-50 border-b">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-700">Registro de Proyectos</h2>
-            <div className="flex items-center">
-              <label htmlFor="region-filter" className="mr-2 text-gray-700">
-                Filtrar por región:
-              </label>
-              <select
-                id="region-filter"
-                value={selectedRegion}
-                onChange={handleRegionChange}
-                className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Todas las regiones</option>
-                {regions.map((region) => (
-                  <option key={region} value={region}>
-                    {region}
-                  </option>
-                ))}
-              </select>
+      <div className="flex flex-col h-auto overflow-hidden p-4">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">Proyectos</h1>
+
+        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-80">
+              <div className="flex items-center">
+                <label htmlFor="region-filter" className="mr-2 text-gray-700">
+                  Filtrar por región:
+                </label>
+                <select
+                  id="region-filter"
+                  value={selectedRegion}
+                  onChange={handleRegionChange}
+                  className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Todas las regiones</option>
+                  {regions.map((region) => (
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
+
           <div className="flex gap-4">
             <button
               onClick={exportToXLSX}
@@ -424,183 +439,139 @@ const Gestion = () => {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Tabla */}
-        <div className="overflow-x-auto min-h-[465px]">
-          {isLoading ? (
-            <LoadingBar />
-          ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              {/* Encabezado */}
-              <thead className="bg-gray-50 sticky top-0">
-                <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Número
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nombre Proyecto
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Cliente
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Región
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Monto Ofertado
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Fecha Inicio
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                    Fecha Fin
-                  </th>
-                </tr>
-              </thead>
-              {/* Cuerpo */}
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="text-center py-4 text-gray-500">
-                      {proyectos === null ? "Cargando datos..." : "No hay proyectos disponibles"}
-                    </td>
+      {/* Tabla */}
+      <div className="flex flex-col">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-800">Listado de Proyectos</h2>
+            <p className="text-sm text-gray-500">Gestión y edición de proyectos</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="h-[500px] overflow-y-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr className="border-b border-gray-200">
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Número
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre Proyecto
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre Corto
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Región
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Monto Ofertado(USD)
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Costo Estimado(USD)
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Fecha Inicio
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Fecha Fin
+                    </th>
                   </tr>
-                ) : (
-                  paginatedData.map((proyecto) => (
-                    <tr
-                      key={proyecto.id}
-                      onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
-                      className="cursor-pointer hover:bg-gray-200 transition duration-200"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                        {proyecto.numero}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                        {proyecto.nombre_proyecto}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {proyecto.nombre_cliente || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {proyecto.nombre_region || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        ${proyecto.monto_ofertado || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {formatDate(proyecto.fecha_inicio) || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell text-center">
-                        {formatDate(proyecto.fecha_final) || "-"}
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {paginatedData.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No hay proyectos disponibles.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Paginador */}
-        {!isLoading && proyectos.length > 0 && (
-          <div className="px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Mostrando <span className="font-medium">{(currentPage - 1) * rowsPerPage + 1}</span> a{" "}
-                  <span className="font-medium">{Math.min(currentPage * rowsPerPage, proyectos.length)}</span> de{" "}
-                  <span className="font-medium">{proyectos.length}</span> resultados
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  >
-                    <span className="sr-only">Anterior</span>
-                    <svg
-                      className="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-
-                  {/* Números de página */}
-                  {Array.from({ length: Math.min(5, Math.ceil(proyectos.length / rowsPerPage)) }, (_, i) => {
-                    // Mostrar 5 páginas como máximo
-                    let pageNum
-                    const totalPages = Math.ceil(proyectos.length / rowsPerPage)
-
-                    if (totalPages <= 5) {
-                      // Si hay 5 o menos páginas, mostrar todas
-                      pageNum = i + 1
-                    } else if (currentPage <= 3) {
-                      // Si estamos en las primeras páginas
-                      pageNum = i + 1
-                    } else if (currentPage >= totalPages - 2) {
-                      // Si estamos en las últimas páginas
-                      pageNum = totalPages - 4 + i
-                    } else {
-                      // Si estamos en el medio
-                      pageNum = currentPage - 2 + i
-                    }
-
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === pageNum
-                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
+                  ) : (
+                    paginatedData.map((proyecto) => (
+                      <tr
+                        key={proyecto.id}
+                        onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
+                        className="hover:bg-gray-50 cursor-pointer"
                       >
-                        {pageNum}
-                      </button>
-                    )
-                  })}
-
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === Math.ceil(proyectos.length / rowsPerPage)}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  >
-                    <span className="sr-only">Siguiente</span>
-                    <svg
-                      className="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </nav>
-              </div>
+                        <td className="py-4 px-4 text-sm text-gray-900">{proyecto.numero}</td>
+                        {/* Modificar la celda donde se muestra el nombre del proyecto para que aparezca en mayúsculas */}
+                        <td className="py-4 px-4 text-sm text-gray-900">
+                          <div className="truncate max-w-[200px]" title={proyecto.nombre_proyecto}>
+                            {proyecto.nombre_proyecto ? proyecto.nombre_proyecto.toUpperCase() : ""}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-900">
+                          <div className="truncate max-w-[150px]" title={proyecto.nombre_corto || "N/A"}>
+                            {proyecto.nombre_corto || "N/A"}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                          <span
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              proyecto.nombre_region === "Centro"
+                                ? "bg-blue-100 text-blue-800"
+                                : proyecto.nombre_region === "Occidente"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {proyecto.nombre_region || "-"}
+                          </span>
+                        </td>
+                        {/* Quitar el símbolo $ de los valores monetarios */}
+                        <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                          {proyecto.monto_ofertado || "-"}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                          {proyecto.costo_estimado || "-"}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                          {formatDate(proyecto.fecha_inicio) || "-"}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                          {formatDate(proyecto.fecha_final) || "-"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-        )}
+
+          {/* Paginador */}
+          <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
+            <div className="text-sm text-gray-500">
+              Mostrando {proyectos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
+              {Math.min(currentPage * rowsPerPage, proyectos.length)} de {proyectos.length} resultados
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                &lt;
+              </button>
+              <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={
+                  currentPage === Math.ceil(proyectos.length / rowsPerPage) ||
+                  Math.ceil(proyectos.length / rowsPerPage) === 0
+                }
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   )
-  
 }
-
 
 export default Gestion
 

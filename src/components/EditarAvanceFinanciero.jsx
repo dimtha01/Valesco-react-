@@ -321,7 +321,7 @@ const EditarAvanceFinanciero = () => {
             <form onSubmit={handleActualizarAvance} className="space-y-4">
               {/* Número de Valuación */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Número de Valuación</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Número de Valuación del Cliente</label>
                 <input
                   type="text"
                   name="numero_valuacion"

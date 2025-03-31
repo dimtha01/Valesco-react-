@@ -147,37 +147,25 @@ const GestionGerencia = () => {
 
   // Modificar la función formatCurrency para mostrar en millones (MM) o miles (M) según el tamaño del número
   const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "0.00 M"
+    if (amount === undefined || amount === null) return "$0.00 MM"
 
     // Convertir a número si es string
     const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
 
-    // Si es mayor o igual a 1 millón, mostrar en millones (MM)
-    if (Math.abs(numAmount) >= 1000000) {
-      const inMillions = numAmount / 1000000
-      return `${inMillions.toFixed(2)} MM`
-    }
-    // Si es menor a 1 millón, mostrar en miles (M)
-    else {
-      const inThousands = numAmount / 1000
-      return `${inThousands.toFixed(2)} M`
-    }
+    // Siempre mostrar en millones (MM)
+    const inMillions = numAmount / 1000000
+    return `$${inMillions.toFixed(2)} MM`
   }
 
   // Modificar la función getFullFormattedValue para mostrar en millones (MM) o miles (M) según el tamaño del número
   const getFullFormattedValue = (amount) => {
-    if (amount === undefined || amount === null) return "0.00 M"
+    if (amount === undefined || amount === null) return "$0,00"
 
-    // Si es mayor o igual a 1 millón, mostrar en millones (MM)
-    if (Math.abs(amount) >= 1000000) {
-      const inMillions = amount / 1000000
-      return `${inMillions.toFixed(2)} MM`
-    }
-    // Si es menor a 1 millón, mostrar en miles (M)
-    else {
-      const inThousands = amount / 1000
-      return `${inThousands.toFixed(2)} M`
-    }
+    // Formatear el número con separadores de miles (puntos) y decimales (coma)
+    return `$${amount.toLocaleString("es-ES", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`
   }
 
   // Función para calcular totales a partir de los datos de las regiones
@@ -473,18 +461,14 @@ const GestionGerencia = () => {
     // Handle case where both values are zero
     const displayPercentage =
       percentage === "0.00" &&
-      ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
-        (!isFinancialPlan && facturadoValue === 0 && costoRealValue === 0))
+        ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
+          (!isFinancialPlan && facturadoValue === 0 && costoRealValue === 0))
         ? "0.00"
         : percentage
 
     // Formatear la diferencia para mostrar solo el número sin unidades en el caso de MM
-    const formattedDifference =
-      Math.abs(finalDifference) >= 1000000
-        ? (finalDifference / 1000000).toFixed(2)
-        : (finalDifference / 1000).toFixed(2)
-
-    const differenceUnit = Math.abs(finalDifference) >= 1000000 ? "MM" : "M"
+    const formattedDifference = `$${(finalDifference / 1000000).toFixed(2).replace(".", ",")}`
+    const differenceUnit = "MM"
 
     return (
       <div className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
@@ -675,7 +659,7 @@ const GestionGerencia = () => {
 
   // Update the JSX structure to remove refs and data-section attributes
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-36">
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Título del informe - Versión moderna y atractiva */}
         <div className="mb-8 relative overflow-hidden rounded-lg shadow-lg">
@@ -725,21 +709,9 @@ const GestionGerencia = () => {
 
         {/* Leyenda de unidades */}
         <div className="mb-6 bg-white rounded-lg p-3 shadow-sm border border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center mb-2 sm:mb-0">
-              <FiInfo className="text-blue-500 mr-2" />
-              <h3 className="text-sm font-medium text-gray-700">Leyenda de unidades:</h3>
-            </div>
-            <div className="flex flex-wrap gap-2 sm:gap-4">
-              <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-900 mr-1">M</span>
-                <span className="text-xs text-gray-500">= Miles</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-900 mr-1">MM</span>
-                <span className="text-xs text-gray-500">= Millones</span>
-              </div>
-            </div>
+          <div className="flex items-center">
+            <FiInfo className="text-blue-500 mr-2" />
+            <h3 className="text-sm font-medium text-gray-700">Valores expresados en millones (MM)</h3>
           </div>
         </div>
 

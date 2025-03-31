@@ -161,11 +161,11 @@ const Costos = () => {
         {costoOfertado > 0 && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 my-3">
             <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Planificado</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Planificado (USD)</h3>
               <p className="text-lg font-bold text-gray-900">{formatMontoConSeparador(costoOfertado)}</p>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real (USD)</h3>
               <p className="text-lg font-bold text-green-600">{formatMontoConSeparador(costoTotal)}</p>
             </div>
           </div>
@@ -261,10 +261,10 @@ const Costos = () => {
                           Fecha
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Costo (USD)
+                          Costo USD
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Monto Sobrepasado
+                          Monto Sobrepasado USD
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha Inicio
