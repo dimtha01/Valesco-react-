@@ -194,7 +194,7 @@ const EditarProyectos = () => {
     setFormData({
       numero: proyecto.numero || "",
       nombre: proyecto.nombre_proyecto || "",
-      nombreCorto: proyecto.nombre_corto || "",
+      nombreCorto: proyecto.nombre_corto ,
       idCliente: clienteId,
       idResponsable: "2", // Fijo como 2
       idRegion: getRegionIdByName(proyecto.nombre_region) || "",
@@ -499,7 +499,7 @@ const EditarProyectos = () => {
                               </div>
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900">
-                              <div className="truncate max-w-[150px]" title={proyecto.nombre_corto || "N/A"}>
+                              <div className="truncate max-w-[150px]" title={proyecto.nombre_cortos || "N/A"}>
                                 {proyecto.nombre_corto || "N/A"}
                               </div>
                             </td>
