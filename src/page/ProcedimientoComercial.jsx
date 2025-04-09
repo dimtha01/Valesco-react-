@@ -98,7 +98,7 @@ const ProcedimientoComercial = () => {
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 9
+  const rowsPerPage = 10
   const [filteredDatos, setFilteredDatos] = useState([])
   const [totalPages, setTotalPages] = useState(1)
   const [paginatedData, setPaginatedData] = useState([])
@@ -112,6 +112,17 @@ const ProcedimientoComercial = () => {
       if (estatusResponse.ok) {
         const estatusData = await estatusResponse.json()
         setEstatusOptions(estatusData)
+
+        // Mostrar alerta de información si no hay estatus
+        if (estatusData.length === 0) {
+          Swal.fire({
+            icon: "info",
+            title: "Sin estatus",
+            text: "No hay estatus comerciales disponibles en este momento.",
+            timer: 3000,
+            timerProgressBar: true,
+          })
+        }
       } else {
         console.error("Error al cargar estatus comerciales")
       }
@@ -126,6 +137,19 @@ const ProcedimientoComercial = () => {
       if (procedimientosResponse.ok) {
         const procedimientosData = await procedimientosResponse.json()
         setDatos(procedimientosData)
+
+        // Mostrar alerta de información si no hay procedimientos
+        if (procedimientosData.length === 0) {
+          Swal.fire({
+            icon: "info",
+            title: "Sin procedimientos",
+            text: region
+              ? `No hay procedimientos comerciales disponibles para la región ${region}.`
+              : "No hay procedimientos comerciales disponibles en este momento.",
+            timer: 3000,
+            timerProgressBar: true,
+          })
+        }
       } else {
         console.error("Error al cargar procedimientos comerciales")
       }
@@ -293,6 +317,19 @@ const ProcedimientoComercial = () => {
       if (procedimientosResponse.ok) {
         const procedimientosData = await procedimientosResponse.json()
         setDatos(procedimientosData)
+
+        // Mostrar alerta de información si no hay procedimientos al recargar
+        if (procedimientosData.length === 0) {
+          Swal.fire({
+            icon: "info",
+            title: "Sin procedimientos",
+            text: region
+              ? `No hay procedimientos comerciales disponibles para la región ${region}.`
+              : "No hay procedimientos comerciales disponibles en este momento.",
+            timer: 3000,
+            timerProgressBar: true,
+          })
+        }
       } else {
         throw new Error("Error al cargar procedimientos comerciales")
       }
@@ -439,6 +476,27 @@ const ProcedimientoComercial = () => {
             </Link>
           </li>
           <li>
+            <Link
+              to="/InicioPlanificador/Comercial"
+              className="flex items-center hover:text-blue-500 transition-colors duration-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-5 w-5 stroke-current mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              Comercial
+            </Link>
+          </li>
+          <li>
             <span className="flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -551,7 +609,9 @@ const ProcedimientoComercial = () => {
                           ))
                         ) : (
                           <>
-                            <option value="">No Hay Estatus</option>
+                            <option value="1">En proceso</option>
+                            <option value="2">Pendiente</option>
+                            <option value="3">Completado</option>
                           </>
                         )}
                       </select>
@@ -685,7 +745,7 @@ const ProcedimientoComercial = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <div className="h-[600px] overflow-hidden">
+              <div className="h-[600px] overflow-y-auto">
                 {loading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
@@ -731,12 +791,13 @@ const ProcedimientoComercial = () => {
                             <td className="py-4 px-4 text-base text-gray-900">{item.id}</td>
                             <td className="py-4 px-4 text-base text-gray-900">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${!item.nombreRegion
-                                  ? "bg-gray-100 text-gray-800"
-                                  : item.nombreRegion === "Occidente"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                  }`}
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  !item.nombreRegion
+                                    ? "bg-gray-100 text-gray-800"
+                                    : item.nombreRegion === "Occidente"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                }`}
                               >
                                 {item.nombreRegion || "-"}
                               </span>

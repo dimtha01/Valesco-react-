@@ -32,7 +32,7 @@ const GestionProcura = () => {
 
   // Estados para paginación de requisiciones
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 9
+  const rowsPerPage = 5
   const [totalPages, setTotalPages] = useState(1)
 
   // Set the region when component mounts
@@ -54,31 +54,55 @@ const GestionProcura = () => {
     }
   }, [region])
 
+  // Modificar la función fetchProyectos para mostrar una alerta de información en lugar de error cuando no hay datos
   const fetchProyectos = async (regionName) => {
     try {
       const response = await fetch(`${UrlApi}/api/proyectos?region=${regionName}`)
       if (response.ok) {
         const data = await response.json()
         setProyectos(data)
+
+        // Mostrar alerta de información si no hay datos
+        if (data.length === 0) {
+          Swal.fire({
+            icon: "info",
+            title: "Sin proyectos",
+            text: `No hay proyectos disponibles para la región ${regionName}.`,
+            timer: 3000,
+            timerProgressBar: true,
+          })
+        }
       }
     } catch (error) {
       console.error("Error al cargar proyectos:", error)
     }
   }
 
+  // Modificar la función fetchProveedores para mostrar una alerta de información en lugar de error cuando no hay datos
   const fetchProveedores = async () => {
     try {
       const response = await fetch(`${UrlApi}/api/proveedores`)
       if (response.ok) {
         const data = await response.json()
         setProveedores(data)
+
+        // Mostrar alerta de información si no hay datos
+        if (data.length === 0) {
+          Swal.fire({
+            icon: "info",
+            title: "Sin proveedores",
+            text: "No hay proveedores disponibles en este momento.",
+            timer: 3000,
+            timerProgressBar: true,
+          })
+        }
       }
     } catch (error) {
       console.error("Error al cargar proveedores:", error)
     }
   }
 
-  // Función para obtener las requisiciones
+  // Modificar la función fetchRequisiciones para mostrar una alerta de información en lugar de error cuando no hay datos
   const fetchRequisiciones = async () => {
     setLoadingRequisiciones(true)
     try {
@@ -87,6 +111,17 @@ const GestionProcura = () => {
         const data = await response.json()
         setRequisiciones(data)
         setTotalPages(Math.ceil(data.length / rowsPerPage))
+
+        // Mostrar alerta de información si no hay datos
+        if (data.length === 0) {
+          Swal.fire({
+            icon: "info",
+            title: "Sin datos",
+            text: "No hay requisiciones disponibles en este momento.",
+            timer: 3000,
+            timerProgressBar: true,
+          })
+        }
       } else {
         throw new Error("Error al cargar requisiciones")
       }
@@ -499,7 +534,7 @@ const GestionProcura = () => {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <div className="h-[600px] overflow-hidden">
+                  <div className="h-[500px] overflow-y-auto">
                     <table className="min-w-full bg-white">
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
@@ -539,10 +574,11 @@ const GestionProcura = () => {
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.id}</td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 <span
-                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
+                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    requisicion.tipo_requisition === "producto"
                                       ? "bg-blue-100 text-blue-800"
                                       : "bg-green-100 text-green-800"
-                                    }`}
+                                  }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                                 </span>
