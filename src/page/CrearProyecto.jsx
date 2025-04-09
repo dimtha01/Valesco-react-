@@ -250,12 +250,12 @@ const CrearProyecto = () => {
               {/* Campo: Nombre */}
               <div className="form-control w-full">
                 <label className="label">
-                  <span className="label-text text-gray-700">Nombre Contrato</span>
+                  <span className="label-text text-gray-700">Nombre de Contrato</span>
                 </label>
                 <input
                   type="text"
                   name="nombre"
-                  placeholder="Nombre"
+                  placeholder="Nombre de Contrato"
                   className="input input-bordered w-full bg-gray-100 text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
@@ -264,12 +264,12 @@ const CrearProyecto = () => {
               {/* Campo: Nombre Corto */}
               <div className="form-control w-full">
                 <label className="label">
-                  <span className="label-text text-gray-700">Nombre Corto</span>
+                  <span className="label-text text-gray-700">Nombre de Contrato Corto</span>
                 </label>
                 <input
                   type="text"
                   name="nombreCorto"
-                  placeholder="Nombre Corto"
+                  placeholder="Nombre de Contrato Corto"
                   className="input input-bordered w-full bg-gray-100 text-gray-800 focus:bg-white focus:border-blue-500 transition-colors"
                   value={nombreCorto}
                   onChange={(e) => setNombreCorto(e.target.value)}

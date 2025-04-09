@@ -29,6 +29,16 @@ const Costos = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5)
   const [error, setError] = useState(null)
 
+  // Estados para el modal de cambio de estatus
+  const [mostrarModalEstatus, setMostrarModalEstatus] = useState(false)
+  const [costoSeleccionado, setCostoSeleccionado] = useState(null)
+  // Actualizar el estado estatusOptions para que coincida con los estatus de AvanceFinanciero
+  const [estatusOptions, setEstatusOptions] = useState([
+    { id: 4, nombre: "Por Valuar" },
+    { id: 5, nombre: "Por Facturar" },
+    { id: 6, nombre: "Facturado" },
+  ])
+
   // Estado para el formulario
   const [nuevoCosto, setNuevoCosto] = useState({
     costo: "",
@@ -46,6 +56,33 @@ const Costos = () => {
   // Datos paginados
   const paginatedData = costos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
   const totalPages = Math.ceil(costos.length / rowsPerPage)
+
+  // Actualizar la función getEstatusColor para que coincida con los colores de AvanceFinanciero
+  const getEstatusColor = (estatusNombre) => {
+    if (!estatusNombre) return "bg-gray-100 text-gray-800"
+
+    const nombreLower = estatusNombre.toLowerCase()
+    if (nombreLower.includes("por valuar")) return "bg-blue-100 text-blue-800"
+    if (nombreLower.includes("por facturar")) return "bg-yellow-100 text-yellow-800"
+    if (nombreLower.includes("facturado")) return "bg-green-100 text-green-800"
+
+    // Color por defecto
+    return "bg-gray-100 text-gray-800"
+  }
+
+  // Actualizar la función getValidOptions para que coincida con las transiciones de AvanceFinanciero
+  const getValidOptions = (estatusActual) => {
+    switch (estatusActual) {
+      case "Por Valuar":
+        return estatusOptions.filter((e) => e.nombre === "Por Facturar")
+      case "Por Facturar":
+        return estatusOptions.filter((e) => e.nombre === "Facturado")
+      case "Facturado":
+        return []
+      default:
+        return estatusOptions
+    }
+  }
 
   // Función para cargar los costos
   const fetchCostos = async () => {
@@ -150,12 +187,66 @@ const Costos = () => {
     } catch (error) {
       console.error("Error al agregar el costo:", error)
       showNotification("error", "Error", "Ocurrió un problema al agregar el costo. Por favor, inténtalo de nuevo.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Función para manejar el clic en una fila y abrir el modal de cambio de estatus
+  const handleRowClick = (costo) => {
+    setCostoSeleccionado(costo)
+    setMostrarModalEstatus(true)
+  }
+
+  // Función para cambiar el estatus de un costo
+  const handleChangeEstado = async () => {
+    if (!costoSeleccionado) return
+
+    const nuevoEstatusId = document.getElementById("nuevoEstatus").value
+
+    if (!nuevoEstatusId) {
+      Swal.fire({
+        icon: "warning",
+        title: "Selección requerida",
+        text: "Por favor, seleccione un nuevo estatus.",
+      })
+      return
+    }
+
+    try {
+      const response = await fetch(`${UrlApi}/api/costos/estatus/${costoSeleccionado.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_estatus: Number(nuevoEstatusId) }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar el estatus del costo")
+      }
+
+      // Actualizar la lista de costos
+      fetchCostos()
+      setMostrarModalEstatus(false) // Cerrar el modal
+
+      Swal.fire({
+        icon: "success",
+        title: "Estatus actualizado",
+        text: "El estatus del costo ha sido actualizado exitosamente.",
+        showConfirmButton: false,
+        timer: 1500,
+      })
+    } catch (error) {
+      console.error("Error al actualizar el estatus del costo:", error)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un problema al actualizar el estatus del costo. Por favor, inténtalo de nuevo.",
+      })
     }
   }
 
   return (
     <>
-
       <div className="flex flex-col h-auto overflow-hidden p-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Gestión de Costos</h1>
         {costoOfertado > 0 && (
@@ -272,18 +363,25 @@ const Costos = () => {
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha Fin
                         </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Estatus
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {paginatedData.length === 0 ? (
                         <tr>
-                          <td colSpan="5" className="text-center py-4 text-gray-500">
+                          <td colSpan="6" className="text-center py-4 text-gray-500">
                             No hay datos disponibles.
                           </td>
                         </tr>
                       ) : (
                         paginatedData.map((costo) => (
-                          <tr key={costo.id} className="hover:bg-gray-50">
+                          <tr
+                            key={costo.id}
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleRowClick(costo)}
+                          >
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha)}</td>
                             <td className="py-4 px-4 text-sm font-medium text-gray-900">
                               {formatMontoConSeparador(costo.costo)}
@@ -293,6 +391,13 @@ const Costos = () => {
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha_inicio)}</td>
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha_fin)}</td>
+                            <td className="py-4 px-4">
+                              <span
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstatusColor(costo.nombre_estatus)}`}
+                              >
+                                {costo.nombre_estatus || "-"}
+                              </span>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -327,11 +432,89 @@ const Costos = () => {
               </div>
             </div>
           )}
-
-          {/* Información de costos totales */}
-
         </div>
       </div>
+
+      {/* Modal para cambiar estatus */}
+      {mostrarModalEstatus && costoSeleccionado && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Cambiar estatus del costo</h2>
+            <p>
+              <strong>Fecha:</strong> {formatearFechaUTC(costoSeleccionado.fecha)}
+            </p>
+            <p>
+              <strong>Costo:</strong> {formatMontoConSeparador(costoSeleccionado.costo)} USD
+            </p>
+            <p>
+              <strong>Estado actual:</strong>{" "}
+              <span
+                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstatusColor(
+                  costoSeleccionado.nombre_estatus,
+                )}`}
+              >
+                {costoSeleccionado.nombre_estatus || "No definido"}
+              </span>
+            </p>
+
+            {costoSeleccionado.nombre_estatus !== "Facturado" && (
+              <>
+                <label className="block mt-4">
+                  <span className="font-semibold">Nuevo estatus:</span>
+                  <select
+                    id="nuevoEstatus"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>
+                      Seleccione un nuevo estatus
+                    </option>
+                    {getValidOptions(costoSeleccionado.nombre_estatus).map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="flex justify-end mt-6 space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarModalEstatus(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                    onClick={handleChangeEstado}
+                  >
+                    Guardar Cambios
+                  </button>
+                </div>
+              </>
+            )}
+
+            {costoSeleccionado.nombre_estatus === "Facturado" && (
+              <>
+                <p className="mt-4">
+                  El estado de este costo ya es <strong>Facturado</strong>. No se permite realizar cambios adicionales.
+                </p>
+                <div className="flex justify-end mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarModalEstatus(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   )
 }

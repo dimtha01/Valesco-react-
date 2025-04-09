@@ -191,25 +191,36 @@ const EditarProyectos = () => {
     const clienteId = proyecto.id_cliente?.toString() || ""
     console.log("ID del cliente del proyecto:", clienteId)
 
-    setFormData({
-      numero: proyecto.numero || "",
-      nombre: proyecto.nombre_proyecto || "",
-      nombreCorto: proyecto.nombre_corto,
-      idCliente: clienteId,
-      idResponsable: "2", // Fijo como 2
-      idRegion: getRegionIdByName(proyecto.nombre_region) || "",
-      costoEstimado: proyecto.costo_estimado?.toString() || "",
-      montoOfertado: proyecto.monto_ofertado?.toString() || "",
-      fechaInicio: formatDate(proyecto.fecha_inicio) || "",
-      fechaFinal: formatDate(proyecto.fecha_final) || "",
-    })
-
-    // Asegurarse de que los clientes estén cargados antes de abrir el modal
+    // Primero asegurarse de que los clientes estén cargados
     if (clientes.length === 0) {
       fetchClientes().then(() => {
+        setFormData({
+          numero: proyecto.numero || "",
+          nombre: proyecto.nombre_proyecto || "",
+          nombreCorto: proyecto.nombre_cortos,
+          idCliente: clienteId,
+          idResponsable: "2", // Fijo como 2
+          idRegion: getRegionIdByName(proyecto.nombre_region) || "",
+          costoEstimado: proyecto.costo_estimado?.toString() || "",
+          montoOfertado: proyecto.monto_ofertado?.toString() || "",
+          fechaInicio: formatDate(proyecto.fecha_inicio) || "",
+          fechaFinal: formatDate(proyecto.fecha_final) || "",
+        })
         setMostrarModal(true)
       })
     } else {
+      setFormData({
+        numero: proyecto.numero || "",
+        nombre: proyecto.nombre_proyecto || "",
+        nombreCorto: proyecto.nombre_cortos,
+        idCliente: clienteId,
+        idResponsable: "2", // Fijo como 2
+        idRegion: getRegionIdByName(proyecto.nombre_region) || "",
+        costoEstimado: proyecto.costo_estimado?.toString() || "",
+        montoOfertado: proyecto.monto_ofertado?.toString() || "",
+        fechaInicio: formatDate(proyecto.fecha_inicio) || "",
+        fechaFinal: formatDate(proyecto.fecha_final) || "",
+      })
       setMostrarModal(true)
     }
   }
@@ -306,6 +317,34 @@ const EditarProyectos = () => {
       )
     }
   }
+
+  // Asegurar que el cliente se seleccione correctamente cuando cambian los clientes
+  useEffect(() => {
+    if (proyectoSeleccionado && clientes.length > 0 && mostrarModal) {
+      console.log("Proyecto seleccionado:", proyectoSeleccionado)
+      console.log("ID del cliente del proyecto:", proyectoSeleccionado.id_cliente)
+      console.log("Clientes disponibles:", clientes)
+      console.log("Valor actual de formData.idCliente:", formData.idCliente)
+
+      // Verificar si el cliente del proyecto existe en la lista de clientes
+      const clienteExiste = clientes.some(
+        (cliente) => cliente.id.toString() === proyectoSeleccionado.id_cliente?.toString(),
+      )
+
+      console.log("¿Cliente existe en la lista?", clienteExiste)
+
+      if (clienteExiste) {
+        // Actualizar el formData con el cliente correcto
+        setFormData((prevFormData) => {
+          console.log("Actualizando formData con cliente:", proyectoSeleccionado.id_cliente?.toString())
+          return {
+            ...prevFormData,
+            idCliente: proyectoSeleccionado.id_cliente?.toString() || "",
+          }
+        })
+      }
+    }
+  }, [clientes, proyectoSeleccionado, mostrarModal])
 
   return (
     <>
@@ -555,7 +594,8 @@ const EditarProyectos = () => {
               <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
                 <div className="text-sm text-gray-500">
                   Mostrando {filteredProyectos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
-                  {Math.min(currentPage * rowsPerPage, filteredProyectos.length)} de {filteredProyectos.length} resultados
+                  {Math.min(currentPage * rowsPerPage, filteredProyectos.length)} de {filteredProyectos.length}{" "}
+                  resultados
                 </div>
                 <div className="flex gap-2">
                   <button

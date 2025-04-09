@@ -19,6 +19,8 @@ import InicioAdministrador from "./page/InicioAdministrador";
 import EditarCliente from "./page/EditarCliente";
 import EditarProyectos from "./page/EditarProyectos";
 import EditarAvanceProyectos from "./page/EditarAvanceProyectos";
+import GestionProcura from "./page/GestionProcura";
+import ProcedimientoComercial from "./page/ProcedimientoComercial";
 
 const App = () => {
   return (
@@ -43,6 +45,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Proyecto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/GestionProcura"
+            element={
+              <ProtectedRoute>
+                <GestionProcura />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioPlanificador/ProcedimientoComercial"
+            element={
+              <ProtectedRoute>
+                <ProcedimientoComercial />
               </ProtectedRoute>
             }
           />
