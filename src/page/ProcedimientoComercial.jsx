@@ -558,7 +558,7 @@ const ProcedimientoComercial = () => {
 
                     {/* Nombre Corto */}
                     <div className="form-control w-full">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Corto</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Contrato Corto</label>
                       <input
                         type="text"
                         name="nombre_corto"
