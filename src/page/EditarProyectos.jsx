@@ -638,11 +638,7 @@ const EditarProyectos = () => {
                     >
                       <option value="">Seleccionar Cliente</option>
                       {clientes.map((cliente) => (
-                        <option
-                          key={cliente.id}
-                          value={cliente.id.toString()}
-                          selected={cliente.id.toString() === formData.idCliente}
-                        >
+                        <option key={cliente.id} value={cliente.id.toString()}>
                           {cliente.nombre}
                         </option>
                       ))}
