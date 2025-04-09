@@ -87,15 +87,7 @@ const GestionProcura = () => {
         setProveedores(data)
 
         // Mostrar alerta de información si no hay datos
-        if (data.length === 0) {
-          Swal.fire({
-            icon: "info",
-            title: "Sin proveedores",
-            text: "No hay proveedores disponibles en este momento.",
-            timer: 3000,
-            timerProgressBar: true,
-          })
-        }
+        
       }
     } catch (error) {
       console.error("Error al cargar proveedores:", error)
@@ -116,7 +108,7 @@ const GestionProcura = () => {
         if (data.length === 0) {
           Swal.fire({
             icon: "info",
-            title: "Sin datos",
+            title: "Sin requisiciones",
             text: "No hay requisiciones disponibles en este momento.",
             timer: 3000,
             timerProgressBar: true,
