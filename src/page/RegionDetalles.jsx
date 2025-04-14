@@ -102,6 +102,7 @@ function ProgressIndicator({ progress }) {
 const RegionDetalles = () => {
   const { region } = useParams() // Obtiene la región desde los parámetros de la URL
   const [data, setData] = useState([]) // Estado para almacenar los datos de la API
+  const [dataTotales, setDataTotales] = useState([]) // Estado para almacenar los datos de la API
   const [loading, setLoading] = useState(true) // Estado para manejar la carga
   const [error, setError] = useState(null) // Estado para manejar errores
   const navigate = useNavigate() // Hook para navegar programáticamente
@@ -148,6 +149,7 @@ const RegionDetalles = () => {
 
         // Cargar los datos directamente desde la API, incluyendo el costo_real
         setData(result.proyectos)
+        setDataTotales(result.totales)
         setLoading(false)
       } catch (err) {
         setError(err.message)
@@ -202,15 +204,12 @@ const RegionDetalles = () => {
   }
 
   // Calcular totales para las métricas
-  const totalOfertado = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_ofertado || 0), 0)
-  const totalCostoPlanificado = data.reduce((sum, item) => sum + Number.parseFloat(item.costo_planificado || 0), 0)
-  const totalCostoReal = data.reduce((sum, item) => {
-    const costoReal = item.costo_real ? Number.parseFloat(item.costo_real) : 0
-    return sum + costoReal
-  }, 0)
-  const totalFacturado = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_facturado || 0), 0)
-  const totalPorFacturar = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_por_facturar || 0), 0)
-  const totalPorValuar = data.reduce((sum, item) => sum + Number.parseFloat(item.monto_por_valuar || 0), 0)
+  const totalOfertado = dataTotales.total_ofertado
+  const totalCostoPlanificado = dataTotales.total_costo_planificado
+  const totalCostoReal = dataTotales.total_costo_real
+  const totalFacturado = dataTotales.total_facturado;
+  const totalPorFacturar = dataTotales.total_por_facturar;
+  const totalPorValuar = dataTotales.total_por_valuar;
 
   // Métricas para mostrar en las tarjetas
   const metrics = [
@@ -384,7 +383,7 @@ const RegionDetalles = () => {
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Facturado
                   </th>
-                 
+
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Por facturar
                   </th>
@@ -506,11 +505,10 @@ const RegionDetalles = () => {
                       <button
                         key={i}
                         onClick={() => handlePageChange(pageNumber)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === pageNumber
-                            ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNumber
+                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                          }`}
                       >
                         {pageNumber}
                       </button>
