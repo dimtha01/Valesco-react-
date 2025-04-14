@@ -15,7 +15,7 @@ import {
   FiShoppingCart,
   FiCheckCircle,
 } from "react-icons/fi"
-import { UrlApi } from "../utils/utils"
+import { decimalAEntero, UrlApi } from "../utils/utils"
 import {
   BarChart,
   Bar,
@@ -217,7 +217,7 @@ const GestionGerencia = () => {
       const totales = calculateTotals()
       const planValue = totales.total_costo_planificado
       const obtainedValue = totales.total_ofertado
-      const percentage = obtainedValue > 0 ? ((planValue / obtainedValue) * 100).toFixed(2) : 0
+      const percentage = decimalAEntero(obtainedValue > 0 ? ((planValue / obtainedValue) * 100).toFixed(2) : 0)
       const difference = obtainedValue - planValue
 
       return {
@@ -235,7 +235,7 @@ const GestionGerencia = () => {
     if (regiones[regionName]) {
       const planValue = Number.parseFloat(regiones[regionName].totales.total_costo_planificado || 0)
       const obtainedValue = Number.parseFloat(regiones[regionName].totales.total_ofertado || 0)
-      const percentage = obtainedValue > 0 ? ((planValue / obtainedValue) * 100).toFixed(2) : 0
+      const percentage = decimalAEntero(obtainedValue > 0 ? ((planValue / obtainedValue) * 100).toFixed(2) : 0)
       const difference = obtainedValue - planValue
 
       return {
@@ -271,7 +271,7 @@ const GestionGerencia = () => {
       const realValue = totales.total_costo_real
 
       // Calculate percentage safely (avoid division by zero)
-      const percentage = facturadoValue > 0 ? ((realValue / facturadoValue) * 100).toFixed(2) : "0.00"
+      const percentage = decimalAEntero(facturadoValue > 0 ? ((realValue / facturadoValue) * 100).toFixed(2) : 0)
 
       // Calculate difference (Facturado - Costo Real)
       const difference = facturadoValue - realValue
@@ -293,7 +293,7 @@ const GestionGerencia = () => {
       const realValue = Number.parseFloat(regiones[regionName].totales.total_costo_real || 0)
 
       // Calculate percentage safely (avoid division by zero)
-      const percentage = facturadoValue > 0 ? ((realValue / facturadoValue) * 100).toFixed(2) : "0.00"
+      const percentage = decimalAEntero(facturadoValue > 0 ? ((realValue / facturadoValue) * 100).toFixed(2) : 0)
 
       // Calculate difference (Facturado - Costo Real)
       const difference = facturadoValue - realValue
@@ -334,9 +334,9 @@ const GestionGerencia = () => {
       const total = facturadoValue + porFacturarValue + porValuarValue
 
       // If total is zero, set default percentages to avoid NaN
-      const facturadoPercentage = total > 0 ? ((facturadoValue / total) * 100).toFixed(2) : "0.00"
-      const porFacturarPercentage = total > 0 ? ((porFacturarValue / total) * 100).toFixed(2) : "0.00"
-      const porValuarPercentage = total > 0 ? ((porValuarValue / total) * 100).toFixed(2) : "0.00"
+      const facturadoPercentage = decimalAEntero(total > 0 ? ((facturadoValue / total) * 100).toFixed(2) : 0)
+      const porFacturarPercentage = decimalAEntero(total > 0 ? ((porFacturarValue / total) * 100).toFixed(2) : 0)
+      const porValuarPercentage = decimalAEntero(total > 0 ? ((porValuarValue / total) * 100).toFixed(2) : 0)
 
       return [
         {
@@ -369,9 +369,9 @@ const GestionGerencia = () => {
       const total = facturadoValue + porFacturarValue + porValuarValue
 
       // If total is zero, set default percentages to avoid NaN
-      const facturadoPercentage = total > 0 ? ((facturadoValue / total) * 100).toFixed(2) : "0.00"
-      const porFacturarPercentage = total > 0 ? ((porFacturarValue / total) * 100).toFixed(2) : "0.00"
-      const porValuarPercentage = total > 0 ? ((porValuarValue / total) * 100).toFixed(2) : "0.00"
+      const facturadoPercentage = decimalAEntero(total > 0 ? ((facturadoValue / total) * 100).toFixed(2) : 0)
+      const porFacturarPercentage = decimalAEntero(total > 0 ? ((porFacturarValue / total) * 100).toFixed(2) : 0)
+      const porValuarPercentage = decimalAEntero(total > 0 ? ((porValuarValue / total) * 100).toFixed(2) : 0)
 
       return [
         {

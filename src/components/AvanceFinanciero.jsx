@@ -2,21 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
+import showNotification, { formatearFechaUTC, formatMontoConSeparador, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
-
-// Función local para formatear montos con separador de miles (formato: 1,234,567.89)
-const formatMontoConSeparador = (amount) => {
-  if (amount === null || amount === undefined) return "0.00"
-
-  // Formatea con el estilo en-US (comas para miles, punto para decimales) y sin símbolo de moneda
-  const numericValue = Number(amount)
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true, // Esto asegura que se use el separador de miles
-  }).format(numericValue)
-}
 
 const AvanceFinanciero = () => {
   const params = useParams()
@@ -229,13 +216,14 @@ const AvanceFinanciero = () => {
   // Función para abrir el modal de edición de monto
   const handleEditarMonto = (avance, e) => {
     e.stopPropagation() // Evitar que se propague al handleRowClick
-    if (avance.estatus_proceso_nombre === "Por Valuar") {
-      setValuacionSeleccionada(avance)
-      setMontoEditado(avance.monto_usd)
-      setMostrarModalEdicion(true)
-    } else {
-      showNotification("warning", "No permitido", "Solo se puede editar el monto cuando el estado es 'Por Valuar'.")
-    }
+    setValuacionSeleccionada(avance)
+    setMontoEditado(avance.monto_usd)
+    setMostrarModalEdicion(true)
+    // if (avance.estatus_proceso_nombre === "Por Valuar") {
+
+    // } else {
+    //   showNotification("warning", "No permitido", "Solo se puede editar el monto cuando el estado es 'Por Valuar'.")
+    // }
   }
 
   // Función para actualizar el monto
@@ -539,10 +527,10 @@ const AvanceFinanciero = () => {
                           <td className="py-4 px-4">
                             <span
                               className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
-                                  ? "bg-green-100 text-green-800"
-                                  : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-blue-100 text-blue-800"
+                                ? "bg-green-100 text-green-800"
+                                : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-blue-100 text-blue-800"
                                 }`}
                             >
                               {avance.estatus_proceso_nombre}
@@ -551,9 +539,8 @@ const AvanceFinanciero = () => {
                           <td className="py-4 px-4 text-sm" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={(e) => handleEditarMonto(avance, e)}
-                              className={`bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded transition-colors ${avance.estatus_proceso_nombre !== "Por Valuar" ? "opacity-50 cursor-not-allowed" : ""
-                                }`}
-                              disabled={avance.estatus_proceso_nombre !== "Por Valuar"}
+                              className={`bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded transition-colors `}
+
                             >
                               Editar Monto
                             </button>

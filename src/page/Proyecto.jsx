@@ -2,22 +2,12 @@
 
 import { useState, useEffect, useContext, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { UrlApi } from "../utils/utils"
+import { decimalAEntero, formatMontoConSeparador, UrlApi } from "../utils/utils"
 import { AuthContext } from "../components/AuthContext"
 import LoadingComponent from "../components/LoadingComponent" // Import LoadingComponent
 
 // Función local para formatear montos con separador de miles (formato: 1,234,567.89)
-const formatMontoConSeparador = (amount) => {
-  if (amount === null || amount === undefined) return "0.00"
 
-  // Formatea con el estilo en-US (comas para miles, punto para decimales) y sin símbolo de moneda
-  const numericValue = Number(amount)
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true, // Esto asegura que se use el separador de miles
-  }).format(numericValue)
-}
 
 const Proyecto = () => {
   const [proyectos, setProyectos] = useState([])
@@ -233,26 +223,32 @@ const Proyecto = () => {
                   <table className="min-w-full">
                     <thead className="bg-gray-50 sticky top-0 z-10">
                       <tr className="border-b border-gray-200">
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Número
-                        </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nombre Proyecto
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Nombre Corto
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                           Región
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Avance Real(%)
+                        <th className="py-3 px-4  text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell text-center">
+                          Avance Real(%) / Plan(%)
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                           Ofertado(USD)
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                           Costo Planificado(USD)
+                        </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Por Valuar
+                        </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Por Facturar
+                        </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Facturado
                         </th>
                       </tr>
                     </thead>
@@ -270,20 +266,16 @@ const Proyecto = () => {
                             onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
                             className="hover:bg-gray-50 cursor-pointer"
                           >
-                            <td className="py-4 px-4 text-sm text-gray-900">{proyecto.numero}</td>
-                            <td className="py-4 px-4 text-sm text-gray-900">
-                              <div className="truncate max-w-[200px]" title={proyecto.nombre_proyecto}>
-                                {proyecto.nombre_proyecto}
+                            <td className="py-4 px-4 text-sm text-gray-900 text-center">{proyecto.numero}</td>
+
+                            <td className="py-4 px-4 text-sm text-gray-900 text-left">
+                              <div className="truncate max-w-[150px]" title={proyecto.nombre_proyecto || "N/A"}>
+                                {proyecto.nombre_cortos || "N/A"}
                               </div>
                             </td>
-                            <td className="py-4 px-4 text-sm text-gray-900">
-                              <div className="truncate max-w-[150px]" title={proyecto.nombre_corto || "N/A"}>
-                                {proyecto.nombre_corto || "N/A"}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center   ">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${proyecto.nombre_region === "Centro"
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full  ${proyecto.nombre_region === "Centro"
                                   ? "bg-blue-100 text-blue-800"
                                   : proyecto.nombre_region === "Occidente"
                                     ? "bg-green-100 text-green-800"
@@ -293,14 +285,23 @@ const Proyecto = () => {
                                 {proyecto.nombre_region}
                               </span>
                             </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
-                              {proyecto.avance_real_maximo || 0}%
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {proyecto.avance_real_maximo || 0}% / {proyecto.avance_planificado_maximo || 0}%
                             </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               {formatMontoConSeparador(proyecto.monto_ofertado)}
                             </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell">
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               {formatMontoConSeparador(proyecto.costo_estimado)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.por_valuar || 0)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.por_factura || 0)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.facturado || 0)}
                             </td>
                           </tr>
                         ))

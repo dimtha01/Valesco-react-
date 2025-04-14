@@ -2,22 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
-import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
+import showNotification, { formatearFechaUTC, formatMontoConSeparador, UrlApi } from "../utils/utils"
 import Swal from "sweetalert2"
 import LoadingBar from "./LoadingBar"
 
 // Función local para formatear montos con separador de miles (formato: 1,234,567.89)
-const formatMontoConSeparador = (amount) => {
-  if (amount === null || amount === undefined) return "0.00"
-
-  // Formatea con el estilo en-US (comas para miles, punto para decimales) y sin símbolo de moneda
-  const numericValue = Number(amount)
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true, // Esto asegura que se use el separador de miles
-  }).format(numericValue)
-}
 
 const Costos = () => {
   const params = useParams()
@@ -210,13 +199,14 @@ const Costos = () => {
   // Función para abrir el modal de edición de monto
   const handleEditarMonto = (costo, e) => {
     e.stopPropagation() // Evitar que se propague al handleRowClick
-    if (costo.nombre_estatus === "Por Valuar") {
-      setCostoSeleccionado(costo)
-      setMontoEditado(costo.costo)
-      setMostrarModalEdicion(true)
-    } else {
-      showNotification("warning", "No permitido", "Solo se puede editar el monto cuando el estado es 'Por Valuar'.")
-    }
+    setCostoSeleccionado(costo)
+    setMontoEditado(costo.costo)
+    setMostrarModalEdicion(true)
+    // if (costo.nombre_estatus === "Por Valuar") {
+
+    // } else {
+    //   showNotification("warning", "No permitido", "Solo se puede editar el monto cuando el estado es 'Por Valuar'.")
+    // }
   }
 
   // Función para actualizar el monto
@@ -470,14 +460,15 @@ const Costos = () => {
                             {/* Nueva columna de acciones */}
                             <td className="py-4 px-4 text-sm" onClick={(e) => e.stopPropagation()}>
                               <div className="flex space-x-2">
-                                {costo.nombre_estatus === "Por Valuar" && (
-                                  <button
-                                    onClick={(e) => handleEditarMonto(costo, e)}
-                                    className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded transition-colors"
-                                  >
-                                    Editar Monto
-                                  </button>
-                                )}
+                                <button
+                                  onClick={(e) => handleEditarMonto(costo, e)}
+                                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded transition-colors"
+                                >
+                                  Editar Monto
+                                </button>
+                                {/* {costo.nombre_estatus === "Por Valuar" && (
+                                  
+                                )} */}
                               </div>
                             </td>
                           </tr>

@@ -52,8 +52,27 @@ export const formatCurrency = (amount) => {
     return `${inThousands.toFixed(2)} M`
   }
 }
+export const decimalAEntero = (numeroDecimal) => {
+  return Math.round(numeroDecimal);
+}
+export const formatMontoConSeparador = (amount) => {
+  if (amount === null || amount === undefined) return "0,00";
+
+  // Convierte el valor a número
+  const numericValue = Number(amount);
+
+  // Verifica si el valor es un número válido
+  if (isNaN(numericValue)) return "0,00";
+
+  // Formatea con el estilo es-ES (puntos para miles, coma para decimales)
+  return new Intl.NumberFormat("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true, // Esto asegura que se use el separador de miles
+  }).format(numericValue);
+};
 
 
-export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app" 
+export const UrlApi = "https://apiprueba-production-2ab7.up.railway.app"
 
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import { FiDollarSign, FiShoppingCart, FiCheckCircle, FiUsers, FiBarChart2, FiActivity, FiInfo } from "react-icons/fi"
-import { UrlApi } from "../utils/utils"
+import { decimalAEntero, UrlApi } from "../utils/utils"
 
 // Utilidades para formateo de moneda
 const formatCurrency = (value) => {
@@ -31,9 +31,9 @@ const getFullFormattedValue = (amount) => {
 // Componente de indicador de progreso
 function ProgressIndicator({ progress }) {
   // Asegurarse de que los valores sean números válidos o 0 si son null/undefined
-  const real = progress.real || 0
-  const planned = progress.planned || 0
-  const completed = progress.completed || 0
+  const real = decimalAEntero(progress.real || 0)
+  const planned = decimalAEntero(progress.planned || 0)
+  const completed = decimalAEntero(progress.completed || 0)
 
   // Determinar si el avance real supera el planificado
   const isRealOverPlanned = real > planned
@@ -77,7 +77,7 @@ function ProgressIndicator({ progress }) {
       <div className="flex justify-between text-xs md:text-sm text-gray-500">
         <span>{real}%</span>
         <span>{planned}%</span>
-        <span>{completed}%</span>
+        <span></span>
       </div>
 
       {/* Bloque de etiquetas adicionales */}
@@ -91,8 +91,8 @@ function ProgressIndicator({ progress }) {
           <span>Plan</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-1 bg-blue-200" />
-          <span>Total</span>
+          <div className="w-3 h-1" />
+          <span></span>
         </div>
       </div>
     </div>
