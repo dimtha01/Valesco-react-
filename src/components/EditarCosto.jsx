@@ -36,6 +36,7 @@ const EditarCosto = () => {
     costo: "",
     fecha_inicio: "",
     fecha_fin: "",
+    numero_valuacion: "", // Add numero_valuacion field
   })
 
   // Función para cambiar de página
@@ -96,6 +97,7 @@ const EditarCosto = () => {
       costo: costo.costo.toString(),
       fecha_inicio: formatDate(costo.fecha_inicio),
       fecha_fin: formatDate(costo.fecha_fin),
+      numero_valuacion: costo.numero_valuacion || "", // Add numero_valuacion
     })
 
     setMostrarModal(true)
@@ -157,6 +159,7 @@ const EditarCosto = () => {
           monto_sobrepasado: montoSobrepasado,
           fecha_inicio: formData.fecha_inicio,
           fecha_fin: formData.fecha_fin,
+          numero_valuacion: formData.numero_valuacion, // Add numero_valuacion
         }),
       })
 
@@ -215,6 +218,9 @@ const EditarCosto = () => {
                         Fecha
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        N° Valuación del Proveedor
+                      </th>
+                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Costo (USD)
                       </th>
                       <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -242,6 +248,7 @@ const EditarCosto = () => {
                       paginatedData.map((costo) => (
                         <tr key={costo.id} className="hover:bg-gray-50">
                           <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha)}</td>
+                          <td className="py-4 px-4 text-sm text-gray-900">{costo.numero_valuacion || "-"}</td>
                           <td className="py-4 px-4 text-sm font-medium text-gray-900">
                             {formatMontoConSeparador(costo.costo)}
                           </td>
@@ -296,7 +303,6 @@ const EditarCosto = () => {
 
       {/* Información de costos totales */}
 
-
       {/* Modal para editar costo */}
       {mostrarModal && costoSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -315,6 +321,19 @@ const EditarCosto = () => {
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   min="0"
+                  required
+                />
+              </div>
+
+              {/* N° Valuación del Proveedor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">N° Valuación del Proveedor</label>
+                <input
+                  type="text"
+                  name="numero_valuacion"
+                  value={formData.numero_valuacion}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -370,4 +389,3 @@ const EditarCosto = () => {
 }
 
 export default EditarCosto
-
