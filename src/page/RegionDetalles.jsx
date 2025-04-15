@@ -29,7 +29,7 @@ const getFullFormattedValue = (amount) => {
 }
 
 // Componente de indicador de progreso
-function ProgressIndicator({ progress }) {
+ export function ProgressIndicator({ progress }) {
   // Asegurarse de que los valores sean números válidos o 0 si son null/undefined
   const real = decimalAEntero(progress.real || 0)
   const planned = decimalAEntero(progress.planned || 0)

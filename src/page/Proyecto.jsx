@@ -5,12 +5,15 @@ import { Link, useNavigate } from "react-router-dom"
 import { decimalAEntero, formatMontoConSeparador, UrlApi } from "../utils/utils"
 import { AuthContext } from "../components/AuthContext"
 import LoadingComponent from "../components/LoadingComponent" // Import LoadingComponent
+import { FiActivity, FiBarChart2, FiCheckCircle, FiDollarSign, FiShoppingCart, FiUsers } from "react-icons/fi"
+import { ProgressIndicator } from "./RegionDetalles"
 
 // Función local para formatear montos con separador de miles (formato: 1,234,567.89)
 
 
 const Proyecto = () => {
   const [proyectos, setProyectos] = useState([])
+  const [totales, setTotales] = useState([])
   const [filteredProyectos, setFilteredProyectos] = useState([])
   const [regions, setRegions] = useState([])
   const { region } = useContext(AuthContext) // Get region from AuthContext
@@ -19,6 +22,8 @@ const Proyecto = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [searchText, setSearchText] = useState("")
   const [selectedRegionFilter, setSelectedRegionFilter] = useState("all")
+  const [hoveredMetric, setHoveredMetric] = useState(null) // Estado para controlar qué métrica tiene el cursor encima
+
 
   const navigate = useNavigate()
 
@@ -55,16 +60,17 @@ const Proyecto = () => {
     const fetchProyectos = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch(`${UrlApi}/api/proyectos`)
+        const response = await fetch(`${UrlApi}/api/proyectos/${region}`)
         const data = await response.json()
-        setProyectos(data)
+        setProyectos(data.proyectos)
+        setTotales(data.totales);
 
         // Extract unique regions
         const uniqueRegions = [...new Set(data.map((proyecto) => proyecto.nombre_region))]
         setRegions(uniqueRegions)
 
         // Filter projects based on user's region from context
-        filterProyectosByRegion(data)
+        filterProyectosByRegion(data.proyectos)
       } catch (error) {
         console.error("Error al cargar los proyectos:", error)
       } finally {
@@ -97,6 +103,59 @@ const Proyecto = () => {
 
   const paginatedData = filteredProyectos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
   const totalPages = Math.ceil(filteredProyectos.length / rowsPerPage)
+
+  const totalOfertado = totales.total_ofertado;
+  const totalCostoPlanificado = totales.total_costo_planificado;
+  const totalCostoReal = totales.total_costo_real;
+  const totalFacturado = totales.total_facturado;
+  const totalPorFacturar = totales.total_por_facturar;
+  const totalPorValuar = totales.total_por_valuar;
+
+  // Métricas para mostrar en las tarjetas
+  const metrics = [
+    {
+      id: "ofertado",
+      title: "Ofertado",
+      value: totalOfertado,
+      icon: FiDollarSign,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      id: "costoPlanificado",
+      title: "Costo Planificado",
+      value: totalCostoPlanificado,
+      icon: FiBarChart2,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      id: "costoReal",
+      title: "Costo Real",
+      value: totalCostoReal,
+      icon: FiActivity,
+      color: "bg-indigo-100 text-indigo-600",
+    },
+    {
+      id: "facturado",
+      title: "Facturado",
+      value: totalFacturado,
+      icon: FiCheckCircle,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      id: "porFacturar",
+      title: "Por Facturar",
+      value: totalPorFacturar,
+      icon: FiShoppingCart,
+      color: "bg-yellow-100 text-yellow-600",
+    },
+    {
+      id: "porValuar",
+      title: "Por Valuar",
+      value: totalPorValuar,
+      icon: FiUsers,
+      color: "bg-pink-100 text-pink-600",
+    },
+  ]
 
   return (
     <>
@@ -144,38 +203,37 @@ const Proyecto = () => {
 
       {/* Aplicar los estilos de EditarProyectos */}
       <div className="flex flex-col h-auto overflow-hidden p-4">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Proyectos</h1>
+        <div className="text-sm text-gray-500 flex items-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Proyectos</h1>
+
+
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+          {metrics.map((metric) => (
+            <div
+              key={metric.id}
+              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
+              onMouseEnter={() => setHoveredMetric(metric.id)}
+              onMouseLeave={() => setHoveredMetric(null)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
+                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
+                    {hoveredMetric === metric.id ? formatMontoConSeparador(metric.value) : formatMontoConSeparador(metric.value)}
+                  </p>
+                </div>
+                <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
+                  <metric.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
         <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-80">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                  />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar por nombre, número o cliente..."
-                value={searchText}
-                onChange={(e) => {
-                  setSearchText(e.target.value)
-                  setCurrentPage(1) // Resetear a la primera página al buscar
-                }}
-                className="bg-white border border-gray-300 rounded-md py-2 pl-10 pr-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
               {searchText && (
                 <button onClick={() => setSearchText("")} className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <svg
@@ -198,12 +256,7 @@ const Proyecto = () => {
             </div>
           </div>
 
-          <div className="text-sm text-gray-500 flex items-center">
-            {searchText && (
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full mr-2">Búsqueda: "{searchText}"</span>
-            )}
-            {region && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Región: {region}</span>}
-          </div>
+
         </div>
 
         {isLoading ? (
@@ -286,7 +339,14 @@ const Proyecto = () => {
                               </span>
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {proyecto.avance_real_maximo || 0}% / {proyecto.avance_planificado_maximo || 0}%
+                              <ProgressIndicator
+                                progress={{
+                                  real: Number.parseFloat(proyecto.avance_real_maximo) || 0,
+                                  planned: Number.parseFloat(proyecto.avance_planificado_maximo) || 0,
+                                  completed: 100, // Asumimos que el avance completado es siempre 100%
+                                }}
+
+                              />
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               {formatMontoConSeparador(proyecto.monto_ofertado)}
