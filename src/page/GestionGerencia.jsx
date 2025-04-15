@@ -771,7 +771,7 @@ const GestionGerencia = () => {
             {/* Planificación Financiera */}
             <div>
               <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
-                <h2 className="text-lg font-bold text-white">PLANIFICACIÓN FINANCIERA</h2>
+                <h2 className="text-lg font-bold text-white">PLANIFICACIÓN DE LA ADMINISTRACIÓN DE CONTRATOS</h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
