@@ -71,7 +71,7 @@ const Login = () => {
     },
     {
       email: "mauricioesteves-gestion@business.com",
-      password: "eauricio123",
+      password: "mauricio123",
       role: "gestion",
       permissionEdit: false,
     },
