@@ -26,6 +26,20 @@ const ExcelExport = ({
   formatData = null,
   additionalSheets = [],
 }) => {
+  // Función para sanitizar nombres de hojas para Excel (máximo 31 caracteres, sin caracteres especiales)
+  const safeSheetName = (name) => {
+    if (!name) return "Sheet1"
+
+    // Eliminar caracteres inválidos para nombres de hojas en Excel
+    let safeName = name.replace(/[/\\?*[\]]/g, "")
+
+    // Eliminar acentos y caracteres especiales
+    safeName = safeName.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
+    // Truncar a 31 caracteres (límite de Excel)
+    return safeName.substring(0, 31)
+  }
+
   // Función para exportar a Excel
   const exportToExcel = () => {
     if (data.length === 0) {
@@ -130,7 +144,12 @@ const ExcelExport = ({
 
       // Crear libro de trabajo y añadir la hoja principal
       const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
+
+      // Aplicar nombre seguro a la hoja principal
+      const safeMainSheetName = safeSheetName(sheetName)
+      console.log("Sheet name sanitized:", sheetName, "->", safeMainSheetName)
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, safeMainSheetName)
 
       // Añadir hojas adicionales si existen
       if (additionalSheets && additionalSheets.length > 0) {
@@ -151,7 +170,11 @@ const ExcelExport = ({
               additionalWorksheet["!rows"] = sheet.rows
             }
 
-            XLSX.utils.book_append_sheet(workbook, additionalWorksheet, sheet.name)
+            // Aplicar nombre seguro a la hoja adicional
+            const safeAdditionalSheetName = safeSheetName(sheet.name)
+            console.log("Additional sheet name sanitized:", sheet.name, "->", safeAdditionalSheetName)
+
+            XLSX.utils.book_append_sheet(workbook, additionalWorksheet, safeAdditionalSheetName)
           }
         })
       }
@@ -178,4 +201,3 @@ const ExcelExport = ({
 }
 
 export default ExcelExport
-

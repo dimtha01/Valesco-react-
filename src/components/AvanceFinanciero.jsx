@@ -80,7 +80,7 @@ const AvanceFinanciero = () => {
   // Función para cargar el proyecto por ID
   const fetchProyectoById = useCallback(async () => {
     try {
-      const response = await fetch(`${UrlApi}/api/proyectos/${params.id}`)
+      const response = await fetch(`${UrlApi}/api/proyectos/id/${params.id}`)
       if (!response.ok) {
         throw new Error("Error al cargar el proyecto")
       }

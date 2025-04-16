@@ -70,7 +70,7 @@ const Login = () => {
       permissionEdit: false,
     },
     {
-      email: "eauricioesteves-gestion@business.com",
+      email: "mauricioesteves-gestion@business.com",
       password: "eauricio123",
       role: "gestion",
       permissionEdit: false,

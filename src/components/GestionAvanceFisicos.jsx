@@ -2,16 +2,19 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useParams } from "react-router-dom"
-import showNotification, { formatearFechaUTC, UrlApi } from "../utils/utils"
+import { formatearFechaUTC, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
-import ExcelExport from "./ExcelExport"
+import ExcelExport from "../components/ExcelExport"
 
-const GestionAvanceFisicos = () => {
+const GestionAvanceFisico = () => {
   const params = useParams()
   const [avancesFisicos, setAvancesFisicos] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const rowsPerPage = 5
+  const [error, setError] = useState(null)
+  const [ultimoAvanceReal, setUltimoAvanceReal] = useState(0)
+  const [ultimoAvancePlanificado, setUltimoAvancePlanificado] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
+  const rowsPerPage = 7
 
   // Función para cambiar de página
   const handlePageChange = (newPage) => {
@@ -22,9 +25,11 @@ const GestionAvanceFisicos = () => {
 
   // Datos paginados
   const paginatedData = avancesFisicos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+  const totalPages = Math.ceil(avancesFisicos.length / rowsPerPage)
 
   // Función para cargar los avances físicos
   const fetchAvancesFisicos = useCallback(async () => {
+    setIsLoading(true)
     try {
       const response = await fetch(`${UrlApi}/api/avanceFisico/${params.id}`)
       if (!response.ok) {
@@ -32,9 +37,17 @@ const GestionAvanceFisicos = () => {
       }
       const data = await response.json()
       setAvancesFisicos(data)
+
+      // Encontrar el máximo avance real y planificado registrado
+      const maxAvanceReal = Math.max(...data.map((avance) => Number.parseFloat(avance.avance_real)), 0)
+      const maxAvancePlanificado = Math.max(...data.map((avance) => Number.parseFloat(avance.avance_planificado)), 0)
+      setUltimoAvanceReal(maxAvanceReal)
+      setUltimoAvancePlanificado(maxAvancePlanificado)
+
+      setError(null)
     } catch (error) {
       console.error("Error al cargar los avances físicos:", error)
-      showNotification("error", "Error", "Ocurrió un problema al cargar los avances físicos.")
+      setError("Ocurrió un problema al cargar los avances físicos. Por favor, inténtalo de nuevo.")
     } finally {
       setIsLoading(false)
     }
@@ -46,7 +59,7 @@ const GestionAvanceFisicos = () => {
   }, [fetchAvancesFisicos])
 
   // Función para formatear los datos para Excel
-  const formatAvancesData = (data) => {
+  const formatAvancesFisicosData = (data) => {
     return data.map((avance) => [
       {
         v: formatearFechaUTC(avance.fecha),
@@ -61,7 +74,7 @@ const GestionAvanceFisicos = () => {
         },
       },
       {
-        v: `${avance.avance_real}%`,
+        v: Number(avance.avance_real),
         s: {
           alignment: { horizontal: "center", vertical: "center" },
           border: {
@@ -70,10 +83,11 @@ const GestionAvanceFisicos = () => {
             left: { style: "thin" },
             right: { style: "thin" },
           },
+          numFmt: '0.00"%"',
         },
       },
       {
-        v: `${avance.avance_planificado}%`,
+        v: Number(avance.avance_planificado),
         s: {
           alignment: { horizontal: "center", vertical: "center" },
           border: {
@@ -82,12 +96,13 @@ const GestionAvanceFisicos = () => {
             left: { style: "thin" },
             right: { style: "thin" },
           },
+          numFmt: '0.00"%"',
         },
       },
       {
         v: avance.puntos_atencion || "",
         s: {
-          alignment: { horizontal: "center", vertical: "center" },
+          alignment: { horizontal: "left", vertical: "center" },
           border: {
             top: { style: "thin" },
             bottom: { style: "thin" },
@@ -123,175 +138,265 @@ const GestionAvanceFisicos = () => {
     ])
   }
 
+  // Crear una hoja con resumen
+  const createResumenSheet = () => {
+    // Crear datos para la hoja de resumen
+    const resumenData = [
+      // Título
+      [
+        {
+          v: "Resumen de Avance Fisico",
+          s: {
+            font: { bold: true, color: { rgb: "000000" }, sz: 14 },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+      ],
+      [""], // Fila vacía
+      // Datos de totales
+      [
+        {
+          v: "Metrica",
+          s: {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+        {
+          v: "Valor",
+          s: {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+          },
+        },
+      ],
+      // Filas de métricas
+      [
+        {
+          v: "Ultimo Avance Real",
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          },
+        },
+        {
+          v: ultimoAvanceReal,
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+            numFmt: '0.00"%"',
+          },
+        },
+      ],
+      [
+        {
+          v: "Ultimo Avance Planificado",
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          },
+        },
+        {
+          v: ultimoAvancePlanificado,
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+            numFmt: '0.00"%"',
+          },
+        },
+      ],
+      // Diferencia entre avance real y planificado
+      [
+        {
+          v: "Diferencia (Real - Planificado)",
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+          },
+        },
+        {
+          v: ultimoAvanceReal - ultimoAvancePlanificado,
+          s: {
+            alignment: { horizontal: "center" },
+            border: {
+              top: { style: "thin" },
+              bottom: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+            },
+            numFmt: '0.00"%"',
+          },
+        },
+      ],
+    ]
+
+    return resumenData
+  }
+
   // Configuración para la exportación a Excel
   const exportToXLSX = ExcelExport({
     data: avancesFisicos,
-    fileName: `avances_fisicos_${params.Proyecto}`,
-    sheetName: `Avances Físicos de ${params.Proyecto}`,
-    title: `Registro de Avances Físicos de ${params.Proyecto}`,
-    headers: [
-      "Registrado",
-      "Avance Real (%)",
-      "Avance Planificado (%)",
-      "Puntos de Atención",
-      "Fecha Inicio",
-      "Fecha Fin",
+    fileName: "AvanceFisico",
+    sheetName: "Avance",
+    title: "Registro de Avance Fisico",
+    headers: ["Fecha", "Avance Real (%)", "Avance Planificado (%)", "Puntos de Atencion", "Fecha Inicio", "Fecha Fin"],
+    columnWidths: [15, 15, 20, 40, 15, 15],
+    formatData: formatAvancesFisicosData,
+    additionalSheets: [
+      {
+        name: "Resumen",
+        data: createResumenSheet(),
+        cols: [
+          { wch: 25 }, // Primera columna
+          { wch: 25 }, // Segunda columna
+        ],
+        merges: [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Título
+        ],
+      },
     ],
-    columnWidths: [20, 15, 20, 30, 20, 20],
-    formatData: formatAvancesData,
   })
 
   return (
-    <div className="text-[#141313] xl:mx-20 mt-2">
-      <div className="mt-8 bg-white rounded-lg shadow overflow-hidden">
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="p-4 flex justify-between items-center bg-gray-50 border-b">
-            <h2 className="text-lg font-semibold text-gray-700">Registro de Avances Físicos</h2>
-            <button
-              onClick={exportToXLSX}
-              disabled={isLoading || avancesFisicos.length === 0}
-              className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              Exportar a XLSX
-            </button>
+    <div className="flex flex-col h-auto overflow-hidden p-4">
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">Informe de Avance Físico</h1>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Último Avance Real</h3>
+          <p className="text-lg font-bold text-blue-600">{ultimoAvanceReal}%</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Último Avance Planificado</h3>
+          <p className="text-lg font-bold text-green-600">{ultimoAvancePlanificado}%</p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+          <p>{error}</p>
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Registro de Avances Físicos</h2>
+            <p className="text-sm text-gray-500">Detalle de avances físicos del proyecto</p>
+          </div>
+          <button
+            onClick={exportToXLSX}
+            disabled={isLoading || avancesFisicos.length === 0}
+            className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Exportar a XLSX
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <div className="h-[500px] overflow-y-auto">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <LoadingBar />
+              </div>
+            ) : (
+              <table className="min-w-full">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr className="border-b border-gray-200">
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Registrado
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Avance Real (%)
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Avance Planificado (%)
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Puntos de Atención
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha Inicio
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha Fin
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {paginatedData.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-4 text-gray-500">
+                        No hay datos disponibles.
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedData.map((avance, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha)}</td>
+                        <td className="py-4 px-4 text-sm font-medium text-blue-600">{avance.avance_real}%</td>
+                        <td className="py-4 px-4 text-sm font-medium text-green-600">{avance.avance_planificado}%</td>
+                        <td className="py-4 px-4 text-sm text-gray-900">{avance.puntos_atencion}</td>
+                        <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_inicio)}</td>
+                        <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_fin)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
-        <div className="overflow-x-auto min-h-[310px]">
-          {isLoading ? (
-            <LoadingBar />
-          ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Registrado
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avance Real (%)
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avance Planificado (%)
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Puntos de Atención
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha Inicio
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha Fin
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                      No hay datos disponibles.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedData.map((avance, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {formatearFechaUTC(avance.fecha)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {avance.avance_real}%
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {avance.avance_planificado}%
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {avance.puntos_atencion}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {formatearFechaUTC(avance.fecha_inicio)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                        {formatearFechaUTC(avance.fecha_fin)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
+        {/* Paginador */}
+        <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
+          <div className="text-sm text-gray-500">
+            Mostrando {avancesFisicos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
+            {Math.min(currentPage * rowsPerPage, avancesFisicos.length)} de {avancesFisicos.length} resultados
+          </div>
+          <div className="flex gap-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
             >
-              Anterior
+              &lt;
             </button>
+            <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
             <button
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === Math.ceil(avancesFisicos.length / rowsPerPage)}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
             >
-              Siguiente
+              &gt;
             </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Mostrando{" "}
-                <span className="font-medium">
-                  {avancesFisicos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}
-                </span>{" "}
-                a <span className="font-medium">{Math.min(currentPage * rowsPerPage, avancesFisicos.length)}</span> de{" "}
-                <span className="font-medium">{avancesFisicos.length}</span> resultados
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span className="sr-only">Anterior</span>
-                  <svg
-                    className="h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === Math.ceil(avancesFisicos.length / rowsPerPage)}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span className="sr-only">Siguiente</span>
-                  <svg
-                    className="h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </nav>
-            </div>
           </div>
         </div>
       </div>
@@ -299,5 +404,4 @@ const GestionAvanceFisicos = () => {
   )
 }
 
-export default GestionAvanceFisicos
-
+export default GestionAvanceFisico
