@@ -29,7 +29,7 @@ const getFullFormattedValue = (amount) => {
 }
 
 // Componente de indicador de progreso
- export function ProgressIndicator({ progress }) {
+export function ProgressIndicator({ progress }) {
   // Asegurarse de que los valores sean números válidos o 0 si son null/undefined
   const real = decimalAEntero(progress.real || 0)
   const planned = decimalAEntero(progress.planned || 0)
@@ -44,7 +44,7 @@ const getFullFormattedValue = (amount) => {
       <div className="h-2 bg-blue-100 rounded-full relative">
         {/* Barra de progreso completado */}
         <div
-          className="absolute h-full bg-blue-200 rounded-full"
+          className="absolute h-full bg-green-100 rounded-full"
           style={{
             left: `${planned}%`,
             width: `${completed - planned}%`,
@@ -91,7 +91,7 @@ const getFullFormattedValue = (amount) => {
           <span>Plan</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-1" />
+          <div className="w-3 h-1 " />
           <span></span>
         </div>
       </div>

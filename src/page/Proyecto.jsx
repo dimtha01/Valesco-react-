@@ -61,12 +61,14 @@ const Proyecto = () => {
       setIsLoading(true)
       try {
         const response = await fetch(`${UrlApi}/api/proyectos/${region}`)
+        console.log(region);
+
         const data = await response.json()
         setProyectos(data.proyectos)
         setTotales(data.totales);
 
         // Extract unique regions
-        const uniqueRegions = [...new Set(data.map((proyecto) => proyecto.nombre_region))]
+        const uniqueRegions = [...new Set(data.proyectos.map((proyecto) => proyecto.nombre_region))]
         setRegions(uniqueRegions)
 
         // Filter projects based on user's region from context
