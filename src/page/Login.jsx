@@ -93,12 +93,7 @@ const Login = () => {
       role: "procura",
       permissionEdit: true,
     },
-    {
-      email: "procura@business.com",
-      password: "procura123",
-      role: "procura",
-      permissionEdit: true,
-    },
+    
   ]
 
   // Función para manejar el inicio de sesión
