@@ -40,7 +40,7 @@ const InicioPlanificador = () => {
       </div>
 
       {/* Contenedor principal */}
-      <div className="container mt-8 px-4">
+      <div className="container mt-8 px-4 min-h-screen">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           <div className="card bg-white shadow-md rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg">
             <figure className="h-48 overflow-hidden">

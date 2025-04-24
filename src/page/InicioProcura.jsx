@@ -10,7 +10,7 @@ const InicioProcura = () => {
         <ul className="flex items-center space-x-2">
           <li>
             <Link
-              to="/InicioGestion"
+              to=""
               className="flex items-center hover:text-blue-500 transition-colors duration-300"
             >
               <svg
@@ -31,7 +31,7 @@ const InicioProcura = () => {
           </li>
         </ul>
       </div>
-      <div className="container mx-3 mt-8 px-4">
+      <div className="container mx-3 mt-8 px-4 min-h-vh">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
 
           <div className="card bg-white shadow-md rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg">

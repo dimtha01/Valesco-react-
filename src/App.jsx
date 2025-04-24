@@ -1,3 +1,4 @@
+import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from "./page/Login";
 import Header from "./components/Header";
@@ -26,169 +27,179 @@ import Footer from "./components/Footer";
 
 const App = () => {
   return (
-    <AuthProvider> {/* Envolver la aplicación con el proveedor de autenticación */}
-      <BrowserRouter>
-        <Header />
-        <Routes>
-          {/* Ruta pública: Inicio de sesión */}
-          <Route path="/" element={<Login />} />
+    <AuthProvider>
+      {/* Contenedor principal con flexbox y eliminación del scroll horizontal */}
+      <div className="flex flex-col min-h-screen overflow-x-hidden">
+        <BrowserRouter>
+          {/* Header siempre visible */}
+          <Header />
 
-          {/* Rutas protegidas */}
-          <Route
-            path="/InicioPlanificador"
-            element={
-              <ProtectedRoute>
-                <InicioPlanificador />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/Proyecto"
-            element={
-              <ProtectedRoute>
-                <Proyecto />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/GestionProcura"
-            element={
-              <ProtectedRoute>
-                <GestionProcura />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/ProcedimientoComercial"
-            element={
-              <ProtectedRoute>
-                <ProcedimientoComercial />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioAdministrador"
-            element={
-              <ProtectedRoute>
-                <InicioAdministrador />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioAdministrador/EditarCliente"
-            element={
-              <ProtectedRoute>
-                <EditarCliente />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioAdministrador/EditarProyectos"
-            element={
-              <ProtectedRoute>
-                <EditarProyectos />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/GestionGerencia"
-            element={
-              <ProtectedRoute>
-                <GestionGerencia />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioProcura"
-            element={
-              <ProtectedRoute>
-                <InicioProcura />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/Cliente"
-            element={
-              <ProtectedRoute>
-                <Cliente />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/CrearProyecto"
-            element={
-              <ProtectedRoute>
-                <CrearProyecto />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/CrearProyecto/crearCliente"
-            element={
-              <ProtectedRoute>
-                <NuevoCliente />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioGestion"
-            element={
-              <ProtectedRoute>
-                <InicioGestion />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/Gestion"
-            element={
-              <ProtectedRoute>
-                <Gestion />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioPlanificador/Proyecto/ActualizarProyecto/:Proyecto/:id"
-            element={
-              <ProtectedRoute>
-                <ActualizarProyecto />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/InicioAdministrador/EditarProyectos/EditarAvanceProyectos/:Proyecto/:id"
-            element={
-              <ProtectedRoute>
-                <EditarAvanceProyectos />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/GestionProyectos/:Proyecto/:id"
-            element={
-              <ProtectedRoute>
-                <GestionProyectos />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/GestionGerencia/:region"
-            element={
-              <ProtectedRoute>
-                <ReginDetalles />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/proyecto/:id"
-            element={
-              <ProtectedRoute>
-                <DetallesProyecto />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-        <Footer />
-      </BrowserRouter>
+          {/* Contenido principal (crece para ocupar el espacio disponible) */}
+          <main className="flex-grow">
+            <Routes>
+              {/* Ruta pública: Inicio de sesión */}
+              <Route path="/" element={<Login />} />
+
+              {/* Rutas protegidas */}
+              <Route
+                path="/InicioPlanificador"
+                element={
+                  <ProtectedRoute>
+                    <InicioPlanificador />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/Proyecto"
+                element={
+                  <ProtectedRoute>
+                    <Proyecto />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/GestionProcura"
+                element={
+                  <ProtectedRoute>
+                    <GestionProcura />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/ProcedimientoComercial"
+                element={
+                  <ProtectedRoute>
+                    <ProcedimientoComercial />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministrador"
+                element={
+                  <ProtectedRoute>
+                    <InicioAdministrador />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministrador/EditarCliente"
+                element={
+                  <ProtectedRoute>
+                    <EditarCliente />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministrador/EditarProyectos"
+                element={
+                  <ProtectedRoute>
+                    <EditarProyectos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/GestionGerencia"
+                element={
+                  <ProtectedRoute>
+                    <GestionGerencia />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioProcura"
+                element={
+                  <ProtectedRoute>
+                    <InicioProcura />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/Cliente"
+                element={
+                  <ProtectedRoute>
+                    <Cliente />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/CrearProyecto"
+                element={
+                  <ProtectedRoute>
+                    <CrearProyecto />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/CrearProyecto/crearCliente"
+                element={
+                  <ProtectedRoute>
+                    <NuevoCliente />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioGestion"
+                element={
+                  <ProtectedRoute>
+                    <InicioGestion />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/Gestion"
+                element={
+                  <ProtectedRoute>
+                    <Gestion />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioPlanificador/Proyecto/ActualizarProyecto/:Proyecto/:id"
+                element={
+                  <ProtectedRoute>
+                    <ActualizarProyecto />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministrador/EditarProyectos/EditarAvanceProyectos/:Proyecto/:id"
+                element={
+                  <ProtectedRoute>
+                    <EditarAvanceProyectos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/GestionProyectos/:Proyecto/:id"
+                element={
+                  <ProtectedRoute>
+                    <GestionProyectos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/GestionGerencia/:region"
+                element={
+                  <ProtectedRoute>
+                    <ReginDetalles />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/proyecto/:id"
+                element={
+                  <ProtectedRoute>
+                    <DetallesProyecto />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
+
+          {/* Footer siempre al final */}
+          <Footer />
+        </BrowserRouter>
+      </div>
     </AuthProvider>
   );
 };
