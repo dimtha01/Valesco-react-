@@ -70,6 +70,18 @@ const Login = () => {
       permissionEdit: false,
     },
     {
+      email: "luis.lamas@business.com",
+      password: "luislamas123",
+      role: "direccion",
+      permissionEdit: false,
+    },
+    {
+      email: "orencio.marante@business.com",
+      password: "orenciomarante123",
+      role: "direccion",
+      permissionEdit: false,
+    },
+    {
       email: "mauricioesteves-gestion@business.com",
       password: "mauricio123",
       role: "gestion",

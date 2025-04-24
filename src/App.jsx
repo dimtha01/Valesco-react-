@@ -22,6 +22,7 @@ import EditarAvanceProyectos from "./page/EditarAvanceProyectos";
 import GestionProcura from "./page/GestionProcura";
 import ProcedimientoComercial from "./page/ProcedimientoComercial";
 import InicioProcura from "./page/InicioProcura";
+import Footer from "./components/Footer";
 
 const App = () => {
   return (
@@ -186,6 +187,7 @@ const App = () => {
             }
           />
         </Routes>
+        <Footer />
       </BrowserRouter>
     </AuthProvider>
   );
