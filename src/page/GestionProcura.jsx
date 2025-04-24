@@ -355,7 +355,7 @@ const GestionProcura = () => {
                       <option value="">Lista de los Proyectos</option>
                       {proyectos.map((proyecto) => (
                         <option key={proyecto.id} value={proyecto.id}>
-                          {proyecto.nombre_proyecto}
+                          {proyecto.nombre_cortos}
                         </option>
                       ))}
                     </select>
