@@ -1,14 +1,12 @@
 "use client"
 
-import { useContext, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Swal from "sweetalert2"
 import { UrlApi } from "../utils/utils"
-import { AuthContext } from "../components/AuthContext"
 import ModalNuevoProveedor from "../components/ModalNuevoProveedor"
 
 const GestionProcura = () => {
-  const { region } = useContext(AuthContext)
   const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
@@ -19,7 +17,7 @@ const GestionProcura = () => {
     fecha_elaboracion: new Date().toISOString().split("T")[0],
     monto_total: "",
     numero_renglones: "",
-    id_region: "",
+    monto_anticipo: "",
   })
 
   const [proyectos, setProyectos] = useState([])
@@ -32,42 +30,34 @@ const GestionProcura = () => {
 
   // Estados para paginación de requisiciones
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 5
+  const rowsPerPage = 10
   const [totalPages, setTotalPages] = useState(1)
 
-  // Set the region when component mounts
+  // Cargar datos iniciales cuando el componente se monta
   useEffect(() => {
-    if (region) {
-      setFormData((prevState) => ({
-        ...prevState,
-        id_region: region,
-      }))
+    // Fetch projects
+    fetchProyectos()
 
-      // Fetch projects for the region using region name
-      fetchProyectos(region)
+    // Fetch all providers
+    fetchProveedores()
 
-      // Fetch all providers
-      fetchProveedores()
+    // Fetch requisiciones
+    fetchRequisiciones()
+  }, [])
 
-      // Fetch requisiciones
-      fetchRequisiciones()
-    }
-  }, [region])
-
-  // Modificar la función fetchProyectos para mostrar una alerta de información en lugar de error cuando no hay datos
-  const fetchProyectos = async (regionName) => {
+  const fetchProyectos = async () => {
     try {
-      const response = await fetch(`${UrlApi}/api/proyectos?region=${regionName}`)
+      const response = await fetch(`${UrlApi}/api/proyectos/all`)
       if (response.ok) {
         const data = await response.json()
-        setProyectos(data)
+        setProyectos(data.proyectos)
 
         // Mostrar alerta de información si no hay datos
         if (data.length === 0) {
           Swal.fire({
             icon: "info",
             title: "Sin proyectos",
-            text: `No hay proyectos disponibles para la región ${regionName}.`,
+            text: "No hay proyectos disponibles en este momento.",
             timer: 3000,
             timerProgressBar: true,
           })
@@ -87,7 +77,6 @@ const GestionProcura = () => {
         setProveedores(data)
 
         // Mostrar alerta de información si no hay datos
-        
       }
     } catch (error) {
       console.error("Error al cargar proveedores:", error)
@@ -199,16 +188,6 @@ const GestionProcura = () => {
       return
     }
 
-    // Validate that we have a region
-    if (!region) {
-      Swal.fire({
-        icon: "error",
-        title: "Error de región",
-        text: "No se pudo determinar la región del usuario. Por favor, contacte al administrador.",
-      })
-      return
-    }
-
     try {
       // Convertir tipo a id_tipo (ejemplo: "producto" -> 1, "servicio" -> 2)
       const id_tipo = formData.tipo === "producto" ? 1 : 2
@@ -226,6 +205,7 @@ const GestionProcura = () => {
           fecha_elaboracion: formData.fecha_elaboracion,
           monto_total: Number.parseFloat(formData.monto_total),
           nro_renglones: Number.parseInt(formData.numero_renglones),
+          monto_anticipo: Number.parseFloat(formData.monto_anticipo || 0),
         }),
       })
 
@@ -244,7 +224,7 @@ const GestionProcura = () => {
         // Recargar las requisiciones para mostrar la nueva
         fetchRequisiciones()
 
-        // Limpiar el formulario pero mantener la región
+        // Limpiar el formulario
         setFormData({
           tipo: "",
           id_proyecto: "",
@@ -253,7 +233,7 @@ const GestionProcura = () => {
           fecha_elaboracion: new Date().toISOString().split("T")[0],
           monto_total: "",
           numero_renglones: "",
-          id_region: region,
+          monto_anticipo: "",
         })
       } else {
         throw new Error(data.message || "Error al crear la requisición")
@@ -285,10 +265,7 @@ const GestionProcura = () => {
       <div className="breadcrumbs text-sm md:text-lg mx-2 mt-2 text-[#0f0f0f]">
         <ul className="flex items-center space-x-2">
           <li>
-            <Link
-              to="/InicioPlanificador"
-              className="flex items-center hover:text-blue-500 transition-colors duration-300"
-            >
+            <Link to="/InicioProcura" className="flex items-center hover:text-blue-500 transition-colors duration-300">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -302,10 +279,10 @@ const GestionProcura = () => {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              Sistema Gerencial
+              Sistema Procura
             </Link>
           </li>
-          
+
           <li>
             <span className="flex items-center">
               <svg
@@ -331,20 +308,12 @@ const GestionProcura = () => {
         <div className="flex flex-col gap-8">
           {/* Formulario de Requisición */}
           <div className="bg-white rounded-lg shadow-xl p-6 w-full">
-            <h3 className="font-bold text-2xl mb-6">Formulario de Requisición</h3>
-
-            {/* Display current region */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-blue-700">
-                <span className="font-medium">Región actual:</span> {region || "No definida"}
-              </p>
-              <p className="text-sm text-blue-600 mt-1">Solo se muestran los proyectos de esta región.</p>
-            </div>
+            <h3 className="font-bold text-2xl mb-6">Base de Datos de Orden de Compra</h3>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tipo de Requisición */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                <h4 className="text-lg font-medium text-gray-700 mb-3">Tipo de Requisición</h4>
+                <h4 className="text-lg font-medium text-gray-700 mb-3">Tipo de Orden de Compra</h4>
                 <div className="flex space-x-6">
                   <label className="flex items-center cursor-pointer">
                     <input
@@ -371,7 +340,7 @@ const GestionProcura = () => {
 
               {/* Información de la Requisición */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                <h4 className="text-lg font-medium text-gray-700 mb-3">Información de la Requisición</h4>
+                <h4 className="text-lg font-medium text-gray-700 mb-3">Información de la Orden de Compra</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Selección Proyecto */}
                   <div className="form-control w-full">
@@ -436,7 +405,9 @@ const GestionProcura = () => {
 
                   {/* Fecha de Elaboración */}
                   <div className="form-control w-full">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Elaboración</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fecha de Elaboración de la Orden de Compra
+                    </label>
                     <input
                       type="date"
                       name="fecha_elaboracion"
@@ -471,6 +442,23 @@ const GestionProcura = () => {
                     </div>
                   </div>
 
+                  {/* Monto Anticipo USD */}
+                  <div className="form-control w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Monto Anticipo USD</label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        name="monto_anticipo"
+                        placeholder="0.00"
+                        className="input input-bordered w-full h-12 pl-8 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value={formData.monto_anticipo}
+                        onChange={handleChange}
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+
                   {/* N° Renglones */}
                   <div className="form-control w-full">
                     <label className="block text-sm font-medium text-gray-700 mb-1">N° Renglones</label>
@@ -497,7 +485,7 @@ const GestionProcura = () => {
 
           {/* Tabla de Requisiciones */}
           <div className="bg-white rounded-lg shadow-xl p-6 w-full">
-            <h3 className="font-bold text-2xl mb-6">Listado de Requisiciones</h3>
+            <h3 className="font-bold text-2xl mb-6">Listado de Orden de Compra</h3>
 
             {loadingRequisiciones ? (
               <div className="flex justify-center items-center h-64">
@@ -511,13 +499,16 @@ const GestionProcura = () => {
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ID
+                            N° O/C
                           </th>
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Tipo
                           </th>
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             N° Requisición
+                          </th>
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Proyecto
                           </th>
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Proveedor
@@ -529,6 +520,9 @@ const GestionProcura = () => {
                             Monto
                           </th>
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Anticipo
+                          </th>
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Renglones
                           </th>
                         </tr>
@@ -536,7 +530,7 @@ const GestionProcura = () => {
                       <tbody className="divide-y divide-gray-200">
                         {getPaginatedData().length === 0 ? (
                           <tr>
-                            <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
                               No hay requisiciones disponibles
                             </td>
                           </tr>
@@ -546,16 +540,18 @@ const GestionProcura = () => {
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.id}</td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 <span
-                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    requisicion.tipo_requisition === "producto"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-green-100 text-green-800"
-                                  }`}
+                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-green-100 text-green-800"
+                                    }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                                 </span>
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_requisicion}</td>
+                              <td className="py-4 px-4 text-sm text-gray-900">
+                                {requisicion.nombre_corto_proyecto || "-"}
+                              </td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 {requisicion.nombre_comercial_provedore}
                               </td>
@@ -564,6 +560,9 @@ const GestionProcura = () => {
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 {formatMonto(requisicion.monto_total)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900">
+                                {formatMonto(requisicion.monto_anticipo)}
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_renglones}</td>
                             </tr>

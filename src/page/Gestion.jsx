@@ -6,7 +6,15 @@ import { UrlApi, formatMontoConSeparador } from "../utils/utils"
 import { AuthContext } from "../components/AuthContext"
 import ExcelExport from "../components/ExcelExport"
 import LoadingComponent from "../components/LoadingComponent"
-import { FiActivity, FiBarChart2, FiCheckCircle, FiDollarSign, FiShoppingCart, FiUsers } from "react-icons/fi"
+import {
+  FiActivity,
+  FiBarChart2,
+  FiCheckCircle,
+  FiDollarSign,
+  FiShoppingCart,
+  FiUsers,
+  FiCreditCard,
+} from "react-icons/fi"
 import { ProgressIndicator } from "./RegionDetalles"
 
 const Gestion = () => {
@@ -18,6 +26,7 @@ const Gestion = () => {
     total_facturado: 0,
     total_por_facturar: 0,
     total_por_valuar: 0,
+    total_amortizacion: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
@@ -63,6 +72,7 @@ const Gestion = () => {
           total_facturado: 0,
           total_por_facturar: 0,
           total_por_valuar: 0,
+          total_amortizacion: 0,
         },
       )
     } catch (error) {
@@ -139,6 +149,20 @@ const Gestion = () => {
       value: totales.total_por_valuar || 0,
       icon: FiUsers,
       color: "bg-pink-100 text-pink-600",
+    },
+    {
+      id: "amortizacion",
+      title: "Total Amortización",
+      value: totales.total_amortizacion || 0,
+      icon: FiCreditCard,
+      color: "bg-orange-100 text-orange-600",
+    },
+    {
+      id: "anticipoTotal",
+      title: "Monto Anticipo Total",
+      value: totales.total_monto_anticipo || 0,
+      icon: FiCreditCard,
+      color: "bg-teal-100 text-teal-600",
     },
   ]
 
@@ -284,6 +308,32 @@ const Gestion = () => {
           numFmt: '"$"#,##0.00',
         },
       },
+      {
+        v: proyecto.total_amortizacion || 0,
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
+      {
+        v: proyecto.monto_anticipo_total || 0,
+        s: {
+          alignment: { horizontal: "right", vertical: "center" },
+          border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+          },
+          numFmt: '"$"#,##0.00',
+        },
+      },
     ])
   }
 
@@ -372,8 +422,10 @@ const Gestion = () => {
       "Por Valuar (USD)",
       "Por Facturar (USD)",
       "Facturado (USD)",
+      "Amortización (USD)",
+      "Monto Anticipo (USD)",
     ],
-    columnWidths: [8, 40, 20, 15, 15, 15, 20, 20, 20, 20, 20],
+    columnWidths: [8, 40, 20, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20],
     formatData: formatProyectosData,
     additionalSheets: [
       {
@@ -443,8 +495,31 @@ const Gestion = () => {
         </div>
 
         {/* Métricas en tarjetas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-          {metrics.map((metric) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {metrics.slice(0, 4).map((metric) => (
+            <div
+              key={metric.id}
+              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
+              onMouseEnter={() => setHoveredMetric(metric.id)}
+              onMouseLeave={() => setHoveredMetric(null)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
+                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
+                    {formatMontoConSeparador(metric.value)}
+                  </p>
+                </div>
+                <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
+                  <metric.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {metrics.slice(4).map((metric) => (
             <div
               key={metric.id}
               className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
@@ -541,12 +616,18 @@ const Gestion = () => {
                         <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                           Facturado
                         </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Amortización
+                        </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Monto Anticipo
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {paginatedData.length === 0 ? (
                         <tr>
-                          <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
+                          <td colSpan="10" className="px-6 py-4 text-center text-sm text-gray-500">
                             No hay proyectos disponibles.
                           </td>
                         </tr>
@@ -565,12 +646,13 @@ const Gestion = () => {
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${proyecto.nombre_region === "Centro"
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  proyecto.nombre_region === "Centro"
                                     ? "bg-blue-100 text-blue-800"
                                     : proyecto.nombre_region === "Occidente"
                                       ? "bg-green-100 text-green-800"
                                       : "bg-yellow-100 text-yellow-800"
-                                  }`}
+                                }`}
                               >
                                 {proyecto.nombre_region}
                               </span>
@@ -598,6 +680,12 @@ const Gestion = () => {
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               {formatMontoConSeparador(proyecto.facturado || 0)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.total_amortizacion || 0)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.monto_anticipo_total || 0)}
                             </td>
                           </tr>
                         ))

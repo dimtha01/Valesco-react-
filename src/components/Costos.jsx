@@ -12,7 +12,10 @@ const Costos = () => {
   const params = useParams()
   const [costos, setCostos] = useState([])
   const [costoOfertado, setCostoOfertado] = useState(0)
+  const [costoOrdenesCompra, setCostoOrdenesCompra] = useState(0)
+  const [totalAmortizacion, setTotalAmortizacion] = useState(0)
   const [costoTotal, setCostoTotal] = useState(0)
+  const [montoAnticipo, setMontoAnticipo] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
@@ -26,6 +29,10 @@ const Costos = () => {
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false)
   const [montoEditado, setMontoEditado] = useState("")
 
+  // Estado para el modal de edición de amortización
+  const [mostrarModalAmortizacion, setMostrarModalAmortizacion] = useState(false)
+  const [amortizacionEditada, setAmortizacionEditada] = useState("")
+
   // Actualizar el estado estatusOptions para que coincida con los estatus de AvanceFinanciero
   const [estatusOptions, setEstatusOptions] = useState([
     { id: 4, nombre: "Por Valuar" },
@@ -34,11 +41,19 @@ const Costos = () => {
   ])
 
   // Estado para el formulario
+  // Modificar el estado nuevoCosto para incluir el campo amortizacion
   const [nuevoCosto, setNuevoCosto] = useState({
     costo: "",
     fecha_inicio: "",
     fecha_fin: "",
     numero_valuacion: "", // Campo para número de valuación
+    amortizacion: "", // Añadir campo para amortización
+  })
+
+  // Estado para el formulario de amortización
+  const [nuevaAmortizacion, setNuevaAmortizacion] = useState({
+    id_costo: "",
+    amortizacion: "",
   })
 
   // Función para cambiar de página
@@ -90,6 +105,9 @@ const Costos = () => {
       const data = await response.json()
       setCostos(data.costos || [])
       setCostoOfertado(Number(data.costosOfertado) || 0)
+      setMontoAnticipo(Number(data.totalMontoAnticipo) || 0)
+      setCostoOrdenesCompra(Number(data.CostoOrdenesCompra) || 0)
+      setTotalAmortizacion(Number(data.totalAmortizacion) || 0)
 
       // Calcular el costo total
       const total = data.costos.reduce((sum, costo) => sum + Number(costo.costo), 0)
@@ -124,6 +142,14 @@ const Costos = () => {
     }
   }
 
+  const handleChangeAmortizacion = (e) => {
+    const value = e.target.value
+    if (!isNaN(value)) {
+      setNuevaAmortizacion({ ...nuevaAmortizacion, [e.target.name]: value })
+    }
+  }
+
+  // Modificar la función handleSubmit para incluir la amortización
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -142,6 +168,20 @@ const Costos = () => {
     const nuevoTotal = costoTotal + nuevoCostoNumerico
     // Ya no calculamos monto_sobrepasado porque no aplica según la imagen
     const montoSobrepasado = 0 // Establecido a 0 porque "Monto sobre pasado No aplica"
+    const amortizacionNumerica = Number(nuevoCosto.amortizacion || 0)
+
+    // Calcular la suma total de amortizaciones existentes
+    const totalAmortizacionesExistentes = costos.reduce((sum, costo) => sum + Number(costo.amortizacion || 0), 0)
+
+    // Verificar que la suma total de amortizaciones no exceda el monto de anticipo
+    if (totalAmortizacionesExistentes + amortizacionNumerica > montoAnticipo) {
+      showNotification(
+        "error",
+        "Amortización excedida",
+        `La suma de amortizaciones (${formatMontoConSeparador(totalAmortizacionesExistentes + amortizacionNumerica)}) superaría el monto de anticipo total (${formatMontoConSeparador(montoAnticipo)}).`,
+      )
+      return
+    }
 
     try {
       setIsLoading(true)
@@ -156,6 +196,7 @@ const Costos = () => {
           fecha_inicio: nuevoCosto.fecha_inicio,
           fecha_fin: nuevoCosto.fecha_fin,
           numero_valuacion: nuevoCosto.numero_valuacion, // Número de valuación del proveedor
+          amortizacion: amortizacionNumerica, // Usar el valor ingresado
         }),
       })
 
@@ -168,12 +209,59 @@ const Costos = () => {
         fecha_inicio: "",
         fecha_fin: "",
         numero_valuacion: "",
+        amortizacion: "", // Limpiar también el campo de amortización
       })
       fetchCostos()
       showNotification("success", "Éxito", "El costo ha sido agregado exitosamente.")
     } catch (error) {
       console.error("Error al agregar el costo:", error)
       showNotification("error", "Error", "Ocurrió un problema al agregar el costo. Por favor, inténtalo de nuevo.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmitAmortizacion = async (e) => {
+    e.preventDefault()
+
+    if (!nuevaAmortizacion.id_costo || !nuevaAmortizacion.amortizacion) {
+      showNotification("warning", "Campos incompletos", "Por favor, completa todos los campos antes de agregar.")
+      return
+    }
+
+    const amortizacionNumerica = Number(nuevaAmortizacion.amortizacion)
+    if (amortizacionNumerica <= 0) {
+      showNotification("error", "Valor inválido", "La amortización debe ser mayor que cero.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${UrlApi}/api/costos/amortizacion/${nuevaAmortizacion.id_costo}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amortizacion: amortizacionNumerica,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al agregar la amortización")
+      }
+
+      setNuevaAmortizacion({
+        id_costo: "",
+        amortizacion: "",
+      })
+      fetchCostos()
+      showNotification("success", "Éxito", "La amortización ha sido agregada exitosamente.")
+    } catch (error) {
+      console.error("Error al agregar la amortización:", error)
+      showNotification(
+        "error",
+        "Error",
+        "Ocurrió un problema al agregar la amortización. Por favor, inténtalo de nuevo.",
+      )
     } finally {
       setIsLoading(false)
     }
@@ -202,11 +290,14 @@ const Costos = () => {
     setCostoSeleccionado(costo)
     setMontoEditado(costo.costo)
     setMostrarModalEdicion(true)
-    // if (costo.nombre_estatus === "Por Valuar") {
+  }
 
-    // } else {
-    //   showNotification("warning", "No permitido", "Solo se puede editar el monto cuando el estado es 'Por Valuar'.")
-    // }
+  // Función para abrir el modal de edición de amortización
+  const handleEditarAmortizacion = (costo, e) => {
+    e.stopPropagation() // Evitar que se propague al handleRowClick
+    setCostoSeleccionado(costo)
+    setAmortizacionEditada(costo.amortizacion || "0")
+    setMostrarModalAmortizacion(true)
   }
 
   // Función para actualizar el monto
@@ -233,6 +324,57 @@ const Costos = () => {
     } catch (error) {
       console.error("Error al actualizar el monto:", error)
       showNotification("error", "Error", "Ocurrió un problema al actualizar el monto. Por favor, inténtalo de nuevo.")
+    }
+  }
+
+  // Función para actualizar la amortización
+  const handleActualizarAmortizacion = async () => {
+    if (!amortizacionEditada || isNaN(amortizacionEditada) || Number(amortizacionEditada) < 0) {
+      showNotification("error", "Amortización inválida", "Por favor, ingrese un valor válido para la amortización.")
+      return
+    }
+
+    // Calcular la suma total de amortizaciones existentes, excluyendo la que se está editando
+    const totalAmortizacionesExistentes = costos.reduce((sum, costo) => {
+      if (costo.id !== costoSeleccionado.id) {
+        return sum + Number(costo.amortizacion || 0)
+      }
+      return sum
+    }, 0)
+
+    const nuevaAmortizacion = Number(amortizacionEditada)
+
+    // Verificar que la suma total de amortizaciones no exceda el monto de anticipo
+    if (totalAmortizacionesExistentes + nuevaAmortizacion > montoAnticipo) {
+      showNotification(
+        "error",
+        "Amortización excedida",
+        `La suma de amortizaciones (${formatMontoConSeparador(totalAmortizacionesExistentes + nuevaAmortizacion)}) superaría el monto de anticipo total (${formatMontoConSeparador(montoAnticipo)}).`,
+      )
+      return
+    }
+
+    try {
+      const response = await fetch(`${UrlApi}/api/costos/${costoSeleccionado.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amortizacion: Number(amortizacionEditada) }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar la amortización")
+      }
+
+      fetchCostos()
+      setMostrarModalAmortizacion(false)
+      showNotification("success", "Éxito", "La amortización ha sido actualizada exitosamente.")
+    } catch (error) {
+      console.error("Error al actualizar la amortización:", error)
+      showNotification(
+        "error",
+        "Error",
+        "Ocurrió un problema al actualizar la amortización. Por favor, inténtalo de nuevo.",
+      )
     }
   }
 
@@ -288,10 +430,22 @@ const Costos = () => {
       <div className="flex flex-col h-auto overflow-hidden p-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Gestión de Costos</h1>
         {costoOfertado > 0 && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 my-3">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-4 my-3">
             <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Planificado (USD)</h3>
               <p className="text-lg font-bold text-gray-900">{formatMontoConSeparador(costoOfertado)}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo por Orden de Compra (USD)</h3>
+              <p className="text-lg font-bold text-red-600">{formatMontoConSeparador(costoOrdenesCompra || 0)}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Monto Anticipo a Proveedores (USD)</h3>
+              <p className="text-lg font-bold text-blue-600">{formatMontoConSeparador(montoAnticipo || 0)}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Perdiente Por Amortizar</h3>
+              <p className="text-lg font-bold text-purple-600">{formatMontoConSeparador((montoAnticipo - totalAmortizacion) || 0)}</p>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real (USD)</h3>
@@ -314,6 +468,7 @@ const Costos = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Modificar el formulario de registro de costos para incluir el campo de amortización */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* N° Valuación del Proveedor - Cambiado según la imagen */}
                 <div className="form-control w-full">
@@ -344,6 +499,24 @@ const Costos = () => {
                       onChange={handleChangeNumero}
                       min="0"
                       required
+                    />
+                  </div>
+                </div>
+
+                {/* Monto de Amortización (USD) - Nuevo campo */}
+                <div className="form-control w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monto de Amortización (USD)</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="amortizacion"
+                      placeholder="Ingrese el monto de amortización"
+                      className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={nuevoCosto.amortizacion}
+                      onChange={handleChangeNumero}
+                      min="0"
                     />
                   </div>
                 </div>
@@ -388,6 +561,8 @@ const Costos = () => {
             </form>
           </div>
 
+          {/* Formulario de Amortización */}
+
           {isLoading ? (
             <LoadingBar />
           ) : (
@@ -414,6 +589,9 @@ const Costos = () => {
                           Monto USD
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Amortización
+                        </th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha Inicio
                         </th>
                         <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -430,7 +608,7 @@ const Costos = () => {
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {paginatedData.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="text-center py-4 text-gray-500">
+                          <td colSpan="8" className="text-center py-4 text-gray-500">
                             No hay datos disponibles.
                           </td>
                         </tr>
@@ -445,6 +623,9 @@ const Costos = () => {
                             <td className="py-4 px-4 text-sm text-gray-900">{costo.numero_valuacion || "-"}</td>
                             <td className="py-4 px-4 text-sm font-medium text-gray-900">
                               {formatMontoConSeparador(costo.costo)}
+                            </td>
+                            <td className="py-4 px-4 text-sm font-medium text-gray-900">
+                              {formatMontoConSeparador(costo.amortizacion || 0)}
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha_inicio)}</td>
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha_fin)}</td>
@@ -462,13 +643,16 @@ const Costos = () => {
                               <div className="flex space-x-2">
                                 <button
                                   onClick={(e) => handleEditarMonto(costo, e)}
-                                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded transition-colors"
+                                  className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs transition-colors"
                                 >
                                   Editar Monto
                                 </button>
-                                {/* {costo.nombre_estatus === "Por Valuar" && (
-                                  
-                                )} */}
+                                <button
+                                  onClick={(e) => handleEditarAmortizacion(costo, e)}
+                                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded text-xs transition-colors"
+                                >
+                                  Editar Amortización
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -613,6 +797,54 @@ const Costos = () => {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
               >
                 Actualizar Monto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para editar amortización */}
+      {mostrarModalAmortizacion && costoSeleccionado && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Editar Amortización</h2>
+            <p>
+              <strong>N° Valuación del Proveedor:</strong> {costoSeleccionado.numero_valuacion}
+            </p>
+            <p>
+              <strong>Estado actual:</strong> {costoSeleccionado.nombre_estatus}
+            </p>
+            <div className="mt-4">
+              <label className="block">
+                <span className="font-semibold">Amortización USD:</span>
+                <div className="relative mt-1">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={amortizacionEditada}
+                    onChange={(e) => setAmortizacionEditada(e.target.value)}
+                    min="0"
+                    required
+                  />
+                </div>
+              </label>
+            </div>
+            <div className="flex justify-end mt-6 space-x-3">
+              <button
+                type="button"
+                onClick={() => setMostrarModalAmortizacion(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleActualizarAmortizacion}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+              >
+                Actualizar Amortización
               </button>
             </div>
           </div>

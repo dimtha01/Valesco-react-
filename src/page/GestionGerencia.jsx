@@ -14,6 +14,7 @@ import {
   FiDollarSign,
   FiShoppingCart,
   FiCheckCircle,
+  FiCreditCard,
 } from "react-icons/fi"
 import { decimalAEntero, UrlApi } from "../utils/utils"
 import {
@@ -38,7 +39,7 @@ const GestionGerencia = () => {
     Occidente: null,
   })
   const [estatus, setEstatus] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setIsLoading] = useState(true)
   const [animate, setAnimate] = useState(false)
   // Add state for region data
   const [regionData, setRegionData] = useState({
@@ -58,12 +59,15 @@ const GestionGerencia = () => {
     primary: "#015999", // Color primario corporativo
     secondary: "#e67e22", // Color secundario corporativo
     accent: "#4CAF50", // Color de acento
+    anticipoTotal: "#3498db", // Azul para "Anticipo Total"
+    amortizacion: "#e74c3c", // Rojo para "Amortización"
+    anticipoDisponible: "#2ecc71", // Verde para "Anticipo Disponible"
   }
 
   // Actualizar la función fetchRegiones para manejar correctamente la estructura de datos
   // Eliminar la función fetchRegiones y reemplazarla por una función que obtenga los datos de las regiones desde la API de dashboard
   const fetchAllRegionData = async () => {
-    setLoading(true)
+    setIsLoading(true)
     try {
       // Obtener datos de Oriente
       await fetchRegionData("Oriente")
@@ -75,14 +79,14 @@ const GestionGerencia = () => {
     } catch (error) {
       console.error("Error al cargar datos de regiones:", error)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   // Actualizar la función fetchRegionData para manejar correctamente la estructura de datos
   const fetchRegionData = async (region) => {
     try {
-      const response = await fetch(`${UrlApi}/api/dashdoard/${region.toLowerCase()}`)
+      const response = await fetch(`${UrlApi}/api/proyectos/${region.toLowerCase()}`)
       if (!response.ok) {
         throw new Error(`Error al cargar datos de ${region}: ${response.statusText}`)
       }
@@ -180,6 +184,8 @@ const GestionGerencia = () => {
         total_por_facturar: 0,
         total_por_valuar: 0,
         total_proyectos: 0,
+        total_monto_anticipo: 0,
+        total_amortizacion: 0,
       }
     }
 
@@ -203,6 +209,12 @@ const GestionGerencia = () => {
         Number.parseFloat(regiones.Oriente.totales.total_por_valuar || 0) +
         Number.parseFloat(regiones.Occidente.totales.total_por_valuar || 0),
       total_proyectos: (regiones.Oriente.proyectos?.length || 0) + (regiones.Occidente.proyectos?.length || 0),
+      total_monto_anticipo:
+        Number.parseFloat(regiones.Oriente.totales.total_monto_anticipo || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_monto_anticipo || 0),
+      total_amortizacion:
+        Number.parseFloat(regiones.Oriente.totales.total_amortizacion || 0) +
+        Number.parseFloat(regiones.Occidente.totales.total_amortizacion || 0),
     }
   }
 
@@ -321,6 +333,70 @@ const GestionGerencia = () => {
     }
   }
 
+  // Nueva función para preparar los datos de anticipo y amortización
+  const prepareAnticipoAmortizacionData = (title, regionName) => {
+    // Si es el total, calcular la suma de todas las regiones
+    if (regionName === "Total") {
+      const totales = calculateTotals()
+      const anticipoValue = totales.total_monto_anticipo
+      const amortizacionValue = totales.total_amortizacion
+      const anticipoDisponibleValue = Math.max(0, anticipoValue - amortizacionValue)
+
+      // Calcular el porcentaje de amortización respecto al anticipo
+      const percentage = decimalAEntero(anticipoValue > 0 ? ((amortizacionValue / anticipoValue) * 100).toFixed(2) : 0)
+
+      // Calcular la diferencia (Anticipo - Amortización)
+      const difference = anticipoDisponibleValue
+
+      return {
+        name: title,
+        data: [
+          { name: "Anticipo Total", value: anticipoValue, fill: COLORS.anticipoTotal },
+          { name: "Amortización", value: amortizacionValue, fill: COLORS.amortizacion },
+          { name: "Por Amortizar", value: anticipoDisponibleValue, fill: COLORS.anticipoDisponible },
+        ],
+        percentage,
+        difference,
+      }
+    }
+
+    // Si es una región específica, usar los datos de esa región
+    if (regiones[regionName]) {
+      const anticipoValue = Number.parseFloat(regiones[regionName].totales.total_monto_anticipo || 0)
+      const amortizacionValue = Number.parseFloat(regiones[regionName].totales.total_amortizacion || 0)
+      const anticipoDisponibleValue = Math.max(0, anticipoValue - amortizacionValue)
+
+      // Calcular el porcentaje de amortización respecto al anticipo
+      const percentage = decimalAEntero(anticipoValue > 0 ? ((amortizacionValue / anticipoValue) * 100).toFixed(2) : 0)
+
+      // Calcular la diferencia (Anticipo - Amortización)
+      const difference = anticipoDisponibleValue
+
+      return {
+        name: title,
+        data: [
+          { name: "Anticipo Total", value: anticipoValue, fill: COLORS.anticipoTotal },
+          { name: "Amortización", value: amortizacionValue, fill: COLORS.amortizacion },
+          { name: "Por Amortizar", value: anticipoDisponibleValue, fill: COLORS.anticipoDisponible },
+        ],
+        percentage,
+        difference,
+      }
+    }
+
+    // Default empty data
+    return {
+      name: title,
+      data: [
+        { name: "Anticipo Total", value: 0, fill: COLORS.anticipoTotal },
+        { name: "Amortización", value: 0, fill: COLORS.amortizacion },
+        { name: "Por Amortizar", value: 0, fill: COLORS.anticipoDisponible },
+      ],
+      percentage: "0.00",
+      difference: 0,
+    }
+  }
+
   // Update the prepareRegionPieChartData function to use API data
   // Actualizar la función prepareRegionPieChartData para usar los datos de la API de dashboard
   const prepareRegionPieChartData = (regionName) => {
@@ -427,6 +503,14 @@ const GestionGerencia = () => {
   const financialResultOriente = prepareFinancialResultData("Resultado financiero Oriente", "Oriente")
   const financialResultOccidente = prepareFinancialResultData("Resultado financiero Occidente", "Occidente")
 
+  // Preparar datos para los gráficos de anticipo y amortización
+  const anticipoAmortizacionTotal = prepareAnticipoAmortizacionData("Anticipo y Amortización total", "Total")
+  const anticipoAmortizacionOriente = prepareAnticipoAmortizacionData("Anticipo y Amortización Oriente", "Oriente")
+  const anticipoAmortizacionOccidente = prepareAnticipoAmortizacionData(
+    "Anticipo y Amortización Occidente",
+    "Occidente",
+  )
+
   const pieChartData = prepareRegionPieChartData("Total")
   const pieChartDataOriente = prepareRegionPieChartData("Oriente")
   const pieChartDataOccidente = prepareRegionPieChartData("Occidente")
@@ -435,17 +519,25 @@ const GestionGerencia = () => {
   const BarChartComponent = ({ title, data, percentage, index = 0, difference }) => {
     // For financial plan charts, we need to handle differently
     const isFinancialPlan = data[0].name === "Ofertado" || data[1].name === "Ofertado"
+    const isAnticipoAmortizacion = data.some(
+      (item) => item.name === "Anticipo Total" || item.name === "Amortización" || item.name === "Perdiente Por Amortizar",
+    )
 
     // Identificar correctamente los valores
     const ofertadoValue = data.find((d) => d.name === "Ofertado")?.value || 0
     const costoPlaneadoValue = data.find((d) => d.name === "Costo Planificado")?.value || 0
     const facturadoValue = data.find((d) => d.name === "Facturado")?.value || 0
     const costoRealValue = data.find((d) => d.name === "Costo real")?.value || 0
+    const anticipoTotalValue = data.find((d) => d.name === "Anticipo Total")?.value || 0
+    const amortizacionValue = data.find((d) => d.name === "Amortización")?.value || 0
+    const anticipoDisponibleValue = data.find((d) => d.name === "Perdiente Por Amortizar")?.value || 0
 
     // Calcular la diferencia correctamente según el tipo de gráfico
     let calculatedDifference = 0
     if (isFinancialPlan) {
       calculatedDifference = ofertadoValue - costoPlaneadoValue
+    } else if (isAnticipoAmortizacion) {
+      calculatedDifference = anticipoTotalValue - amortizacionValue
     } else {
       calculatedDifference = facturadoValue - costoRealValue
     }
@@ -453,16 +545,27 @@ const GestionGerencia = () => {
     // Usar la diferencia proporcionada o la calculada
     const finalDifference = difference !== undefined ? difference : calculatedDifference
 
-    const label1 = isFinancialPlan ? "% Costo Planificado / Ofertado = " : "% Costo Real / Facturado = "
-    const label2 = isFinancialPlan
-      ? "Diferencia (Ofertado - Costo Planificado) = "
-      : "Diferencia (Facturado - Costo Real) = "
+    // Determinar las etiquetas según el tipo de gráfico
+    let label1 = ""
+    let label2 = ""
+
+    if (isFinancialPlan) {
+      label1 = "% Costo Planificado / Ofertado = "
+      label2 = "Diferencia (Ofertado - Costo Planificado) = "
+    } else if (isAnticipoAmortizacion) {
+      label1 = "% Amortización / Anticipo Total = "
+      label2 = "Perdiente Por Amortizar = "
+    } else {
+      label1 = "% Costo Real / Facturado = "
+      label2 = "Diferencia (Facturado - Costo Real) = "
+    }
 
     // Handle case where both values are zero
     const displayPercentage =
       percentage === "0.00" &&
-        ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
-          (!isFinancialPlan && facturadoValue === 0 && costoRealValue === 0))
+      ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
+        (!isFinancialPlan && !isAnticipoAmortizacion && facturadoValue === 0 && costoRealValue === 0) ||
+        (isAnticipoAmortizacion && anticipoTotalValue === 0 && amortizacionValue === 0))
         ? "0.00"
         : percentage
 
@@ -493,24 +596,10 @@ const GestionGerencia = () => {
 
         <div className="h-[220px] sm:h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[
-                {
-                  name: data[0].name,
-                  value: data[0].value,
-                  fill: data[0].fill,
-                },
-                {
-                  name: data[1].name,
-                  value: data[1].value,
-                  fill: data[1].fill,
-                },
-              ]}
-              margin={{ top: 30, right: 10, left: 10, bottom: 20 }}
-            >
+            <BarChart data={data} margin={{ top: 30, right: 10, left: 10, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#666", fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={false} />
               <Tooltip
                 formatter={(value) => getFullFormattedValue(value)}
                 contentStyle={{
@@ -827,6 +916,37 @@ const GestionGerencia = () => {
               </div>
             </div>
 
+            {/* Anticipo y Amortización */}
+            <div>
+              <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
+                <h2 className="text-lg font-bold text-white">GESTION DE ANTICIPOS A PROVEEDORES</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                <BarChartComponent
+                  title="Anticipo y Amortización total"
+                  data={anticipoAmortizacionTotal.data}
+                  percentage={anticipoAmortizacionTotal.percentage}
+                  difference={anticipoAmortizacionTotal.difference}
+                  index={0}
+                />
+                <BarChartComponent
+                  title="Anticipo y Amortización Oriente"
+                  data={anticipoAmortizacionOriente.data}
+                  percentage={anticipoAmortizacionOriente.percentage}
+                  difference={anticipoAmortizacionOriente.difference}
+                  index={1}
+                />
+                <BarChartComponent
+                  title="Anticipo y Amortización Occidente"
+                  data={anticipoAmortizacionOccidente.data}
+                  percentage={anticipoAmortizacionOccidente.percentage}
+                  difference={anticipoAmortizacionOccidente.difference}
+                  index={2}
+                />
+              </div>
+            </div>
+
             {/* Administración de Contratos */}
             <div>
               <div className="w-full bg-[#1e5a7b] py-2 px-4 mb-4 text-center rounded-xl">
@@ -913,6 +1033,20 @@ const GestionGerencia = () => {
               {formatCurrency(totales.total_costo_real || 0)}
             </p>
           </div>
+          <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
+            <div className="flex items-center mb-1">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-teal-50 rounded-lg flex items-center justify-center mr-2">
+                <FiCreditCard className="w-3 h-3 sm:w-4 sm:h-4 text-teal-600" />
+              </div>
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Perdiente Por Amortizar</h3>
+            </div>
+            <p
+              className="text-sm sm:text-lg font-bold text-teal-600"
+              title={getFullFormattedValue(Math.max(0, totales.total_monto_anticipo - totales.total_amortizacion) || 0)}
+            >
+              {formatCurrency(Math.max(0, totales.total_monto_anticipo - totales.total_amortizacion) || 0)}
+            </p>
+          </div>
         </div>
       </main>
     </div>
@@ -920,4 +1054,3 @@ const GestionGerencia = () => {
 }
 
 export default GestionGerencia
-

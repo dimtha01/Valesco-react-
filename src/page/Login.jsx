@@ -87,6 +87,12 @@ const Login = () => {
       role: "administrador",
       permissionEdit: true,
     },
+    {
+      email: "procura@business.com",
+      password: "procura123",
+      role: "procura",
+      permissionEdit: true,
+    },
   ]
 
   // Función para manejar el inicio de sesión
@@ -120,6 +126,8 @@ const Login = () => {
           navigate("/InicioGestion")
         } else if (user.role === "administrador") {
           navigate("/InicioAdministrador")
+        }else if (user.role === "procura") {
+          navigate("/InicioProcura")
         }
       } else {
         setError("Correo electrónico o contraseña incorrectos.")

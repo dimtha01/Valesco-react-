@@ -21,6 +21,7 @@ import EditarProyectos from "./page/EditarProyectos";
 import EditarAvanceProyectos from "./page/EditarAvanceProyectos";
 import GestionProcura from "./page/GestionProcura";
 import ProcedimientoComercial from "./page/ProcedimientoComercial";
+import InicioProcura from "./page/InicioProcura";
 
 const App = () => {
   return (
@@ -93,6 +94,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <GestionGerencia />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/InicioProcura"
+            element={
+              <ProtectedRoute>
+                <InicioProcura />
               </ProtectedRoute>
             }
           />

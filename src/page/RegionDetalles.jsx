@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { FiDollarSign, FiShoppingCart, FiCheckCircle, FiUsers, FiBarChart2, FiActivity, FiInfo } from "react-icons/fi"
+import {
+  FiDollarSign,
+  FiShoppingCart,
+  FiCheckCircle,
+  FiUsers,
+  FiBarChart2,
+  FiActivity,
+  FiInfo,
+  FiCreditCard,
+} from "react-icons/fi"
 import { decimalAEntero, UrlApi } from "../utils/utils"
 
 // Utilidades para formateo de moneda
@@ -102,7 +111,17 @@ export function ProgressIndicator({ progress }) {
 const RegionDetalles = () => {
   const { region } = useParams() // Obtiene la región desde los parámetros de la URL
   const [data, setData] = useState([]) // Estado para almacenar los datos de la API
-  const [dataTotales, setDataTotales] = useState([]) // Estado para almacenar los datos de la API
+  // Actualizar el estado inicial de totales para incluir total_monto_anticipo
+  const [dataTotales, setDataTotales] = useState({
+    total_ofertado: 0,
+    total_costo_planificado: 0,
+    total_costo_real: 0,
+    total_facturado: 0,
+    total_por_facturar: 0,
+    total_por_valuar: 0,
+    total_amortizacion: 0,
+    total_monto_anticipo: 0,
+  })
   const [loading, setLoading] = useState(true) // Estado para manejar la carga
   const [error, setError] = useState(null) // Estado para manejar errores
   const navigate = useNavigate() // Hook para navegar programáticamente
@@ -207,9 +226,10 @@ const RegionDetalles = () => {
   const totalOfertado = dataTotales.total_ofertado
   const totalCostoPlanificado = dataTotales.total_costo_planificado
   const totalCostoReal = dataTotales.total_costo_real
-  const totalFacturado = dataTotales.total_facturado;
-  const totalPorFacturar = dataTotales.total_por_facturar;
-  const totalPorValuar = dataTotales.total_por_valuar;
+  const totalFacturado = dataTotales.total_facturado
+  const totalPorFacturar = dataTotales.total_por_facturar
+  const totalPorValuar = dataTotales.total_por_valuar
+  const totalAmortizacion = dataTotales.total_amortizacion
 
   // Métricas para mostrar en las tarjetas
   const metrics = [
@@ -254,6 +274,20 @@ const RegionDetalles = () => {
       value: totalPorValuar,
       icon: FiUsers,
       color: "bg-pink-100 text-pink-600",
+    },
+    {
+      id: "amortizacion",
+      title: "Total Amortización",
+      value: totalAmortizacion,
+      icon: FiCreditCard,
+      color: "bg-orange-100 text-orange-600",
+    },
+    {
+      id: "anticipoTotal",
+      title: "Monto Anticipo Total",
+      value: dataTotales.total_monto_anticipo || 0,
+      icon: FiCreditCard,
+      color: "bg-teal-100 text-teal-600",
     },
   ]
 
@@ -335,8 +369,31 @@ const RegionDetalles = () => {
       {/* Contenido Principal */}
       <div className="flex-1 overflow-y-hidden p-4 space-y-6">
         {/* Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {metrics.map((metric) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {metrics.slice(0, 4).map((metric) => (
+            <div
+              key={metric.id}
+              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
+              onMouseEnter={() => setHoveredMetric(metric.id)}
+              onMouseLeave={() => setHoveredMetric(null)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
+                  <p className="text-xl font-bold text-gray-900" title={getFullFormattedValue(metric.value)}>
+                    {hoveredMetric === metric.id ? getFullFormattedValue(metric.value) : formatCurrency(metric.value)}
+                  </p>
+                </div>
+                <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
+                  <metric.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          {metrics.slice(4).map((metric) => (
             <div
               key={metric.id}
               className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
@@ -383,12 +440,18 @@ const RegionDetalles = () => {
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Facturado
                   </th>
-
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Por facturar
                   </th>
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Por Valuar
+                  </th>
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amortización
+                  </th>
+                  {/* Agregar la columna de Monto Anticipo Total a la tabla */}
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Monto Anticipo
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Avance
@@ -398,7 +461,7 @@ const RegionDetalles = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-4 text-gray-500">
+                    <td colSpan="7" className="text-center py-4 text-gray-500">
                       No hay proyectos disponibles
                     </td>
                   </tr>
@@ -433,6 +496,17 @@ const RegionDetalles = () => {
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span title={getFullFormattedValue(project.monto_por_valuar)}>
                           {formatCurrency(project.monto_por_valuar)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={getFullFormattedValue(project.total_amortizacion)}>
+                          {formatCurrency(project.total_amortizacion)}
+                        </span>
+                      </td>
+                      {/* Agregar el valor en la fila de la tabla (después de la columna de Amortización) */}
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={getFullFormattedValue(project.monto_anticipo_total)}>
+                          {formatCurrency(project.monto_anticipo_total)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm md:text-base">
@@ -505,10 +579,11 @@ const RegionDetalles = () => {
                       <button
                         key={i}
                         onClick={() => handlePageChange(pageNumber)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNumber
-                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                          }`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === pageNumber
+                            ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
                       >
                         {pageNumber}
                       </button>
@@ -545,4 +620,3 @@ const RegionDetalles = () => {
 }
 
 export default RegionDetalles
-

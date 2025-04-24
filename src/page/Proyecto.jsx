@@ -2,14 +2,21 @@
 
 import { useState, useEffect, useContext, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { decimalAEntero, formatMontoConSeparador, UrlApi } from "../utils/utils"
+import { formatMontoConSeparador, UrlApi } from "../utils/utils"
 import { AuthContext } from "../components/AuthContext"
 import LoadingComponent from "../components/LoadingComponent" // Import LoadingComponent
-import { FiActivity, FiBarChart2, FiCheckCircle, FiDollarSign, FiShoppingCart, FiUsers } from "react-icons/fi"
+import {
+  FiActivity,
+  FiBarChart2,
+  FiCheckCircle,
+  FiDollarSign,
+  FiShoppingCart,
+  FiUsers,
+  FiCreditCard,
+} from "react-icons/fi"
 import { ProgressIndicator } from "./RegionDetalles"
 
 // Función local para formatear montos con separador de miles (formato: 1,234,567.89)
-
 
 const Proyecto = () => {
   const [proyectos, setProyectos] = useState([])
@@ -23,7 +30,6 @@ const Proyecto = () => {
   const [searchText, setSearchText] = useState("")
   const [selectedRegionFilter, setSelectedRegionFilter] = useState("all")
   const [hoveredMetric, setHoveredMetric] = useState(null) // Estado para controlar qué métrica tiene el cursor encima
-
 
   const navigate = useNavigate()
 
@@ -61,11 +67,11 @@ const Proyecto = () => {
       setIsLoading(true)
       try {
         const response = await fetch(`${UrlApi}/api/proyectos/${region}`)
-        console.log(region);
+        console.log(region)
 
         const data = await response.json()
         setProyectos(data.proyectos)
-        setTotales(data.totales);
+        setTotales(data.totales)
 
         // Extract unique regions
         const uniqueRegions = [...new Set(data.proyectos.map((proyecto) => proyecto.nombre_region))]
@@ -106,56 +112,71 @@ const Proyecto = () => {
   const paginatedData = filteredProyectos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
   const totalPages = Math.ceil(filteredProyectos.length / rowsPerPage)
 
-  const totalOfertado = totales.total_ofertado;
-  const totalCostoPlanificado = totales.total_costo_planificado;
-  const totalCostoReal = totales.total_costo_real;
-  const totalFacturado = totales.total_facturado;
-  const totalPorFacturar = totales.total_por_facturar;
-  const totalPorValuar = totales.total_por_valuar;
+  const totalOfertado = totales.total_ofertado
+  const totalCostoPlanificado = totales.total_costo_planificado
+  const totalCostoReal = totales.total_costo_real
+  const totalFacturado = totales.total_facturado
+  const totalPorFacturar = totales.total_por_facturar
+  const totalPorValuar = totales.total_por_valuar
+  const totalAmortizacion = totales.total_amortizacion
 
   // Métricas para mostrar en las tarjetas
   const metrics = [
     {
       id: "ofertado",
       title: "Ofertado",
-      value: totalOfertado,
+      value: totales.total_ofertado || 0,
       icon: FiDollarSign,
       color: "bg-green-100 text-green-600",
     },
     {
       id: "costoPlanificado",
       title: "Costo Planificado",
-      value: totalCostoPlanificado,
+      value: totales.total_costo_planificado || 0,
       icon: FiBarChart2,
       color: "bg-blue-100 text-blue-600",
     },
     {
       id: "costoReal",
       title: "Costo Real",
-      value: totalCostoReal,
+      value: totales.total_costo_real || 0,
       icon: FiActivity,
       color: "bg-indigo-100 text-indigo-600",
     },
     {
       id: "facturado",
       title: "Facturado",
-      value: totalFacturado,
+      value: totales.total_facturado || 0,
       icon: FiCheckCircle,
       color: "bg-purple-100 text-purple-600",
     },
     {
       id: "porFacturar",
       title: "Por Facturar",
-      value: totalPorFacturar,
+      value: totales.total_por_facturar || 0,
       icon: FiShoppingCart,
       color: "bg-yellow-100 text-yellow-600",
     },
     {
       id: "porValuar",
       title: "Por Valuar",
-      value: totalPorValuar,
+      value: totales.total_por_valuar || 0,
       icon: FiUsers,
       color: "bg-pink-100 text-pink-600",
+    },
+    {
+      id: "amortizacion",
+      title: "Total Amortización",
+      value: totales.total_amortizacion || 0,
+      icon: FiCreditCard,
+      color: "bg-orange-100 text-orange-600",
+    },
+    {
+      id: "anticipoTotal",
+      title: "Monto Anticipo Total",
+      value: totales.total_monto_anticipo || 0,
+      icon: FiCreditCard,
+      color: "bg-teal-100 text-teal-600",
     },
   ]
 
@@ -207,11 +228,9 @@ const Proyecto = () => {
       <div className="flex flex-col h-auto overflow-hidden p-4">
         <div className="text-sm text-gray-500 flex items-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Proyectos</h1>
-
-
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-          {metrics.map((metric) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {metrics.slice(0, 4).map((metric) => (
             <div
               key={metric.id}
               className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
@@ -222,7 +241,34 @@ const Proyecto = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
                   <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
-                    {hoveredMetric === metric.id ? formatMontoConSeparador(metric.value) : formatMontoConSeparador(metric.value)}
+                    {hoveredMetric === metric.id
+                      ? formatMontoConSeparador(metric.value)
+                      : formatMontoConSeparador(metric.value)}
+                  </p>
+                </div>
+                <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
+                  <metric.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {metrics.slice(4).map((metric) => (
+            <div
+              key={metric.id}
+              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
+              onMouseEnter={() => setHoveredMetric(metric.id)}
+              onMouseLeave={() => setHoveredMetric(null)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
+                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
+                    {hoveredMetric === metric.id
+                      ? formatMontoConSeparador(metric.value)
+                      : formatMontoConSeparador(metric.value)}
                   </p>
                 </div>
                 <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
@@ -257,8 +303,6 @@ const Proyecto = () => {
               )}
             </div>
           </div>
-
-
         </div>
 
         {isLoading ? (
@@ -305,12 +349,18 @@ const Proyecto = () => {
                         <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                           Facturado
                         </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Amortización
+                        </th>
+                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          Monto Anticipo
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {paginatedData.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                          <td colSpan="10" className="px-6 py-4 text-center text-sm text-gray-500">
                             No hay proyectos disponibles.
                           </td>
                         </tr>
@@ -330,12 +380,13 @@ const Proyecto = () => {
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center   ">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full  ${proyecto.nombre_region === "Centro"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : proyecto.nombre_region === "Occidente"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                  }`}
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full  ${
+                                  proyecto.nombre_region === "Centro"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : proyecto.nombre_region === "Occidente"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                }`}
                               >
                                 {proyecto.nombre_region}
                               </span>
@@ -347,7 +398,6 @@ const Proyecto = () => {
                                   planned: Number.parseFloat(proyecto.avance_planificado_maximo) || 0,
                                   completed: 100, // Asumimos que el avance completado es siempre 100%
                                 }}
-
                               />
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
@@ -364,6 +414,12 @@ const Proyecto = () => {
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               {formatMontoConSeparador(proyecto.facturado || 0)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.total_amortizacion || 0)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
+                              {formatMontoConSeparador(proyecto.monto_anticipo_total || 0)}
                             </td>
                           </tr>
                         ))
@@ -407,4 +463,3 @@ const Proyecto = () => {
 }
 
 export default Proyecto
-
