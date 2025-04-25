@@ -476,7 +476,7 @@ const RegionDetalles = () => {
                         {project.id_proyecto}
                       </td>
                       <td className="px-6 py-4 text-sm md:text-base text-gray-900">
-                        <div className="max-w-md truncate uppercase">{project.nombre_proyecto}</div>
+                        <div className="max-w-md truncate uppercase">{project.nombre_cortos}</div>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span title={getFullFormattedValue(project.costo_real)}>
