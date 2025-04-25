@@ -30,7 +30,7 @@ const GestionProcura = () => {
 
   // Estados para paginación de requisiciones
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 10
+  const rowsPerPage = 8
   const [totalPages, setTotalPages] = useState(1)
 
   // Cargar datos iniciales cuando el componente se monta
@@ -494,7 +494,7 @@ const GestionProcura = () => {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <div className="h-[500px] overflow-y-auto">
+                  <div className="h-[525px] overflow-y-hidden">
                     <table className="min-w-full bg-white">
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
