@@ -563,9 +563,9 @@ const GestionGerencia = () => {
     // Handle case where both values are zero
     const displayPercentage =
       percentage === "0.00" &&
-      ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
-        (!isFinancialPlan && !isAnticipoAmortizacion && facturadoValue === 0 && costoRealValue === 0) ||
-        (isAnticipoAmortizacion && anticipoTotalValue === 0 && amortizacionValue === 0))
+        ((isFinancialPlan && ofertadoValue === 0 && costoPlaneadoValue === 0) ||
+          (!isFinancialPlan && !isAnticipoAmortizacion && facturadoValue === 0 && costoRealValue === 0) ||
+          (isAnticipoAmortizacion && anticipoTotalValue === 0 && amortizacionValue === 0))
         ? "0.00"
         : percentage
 
@@ -1008,15 +1008,15 @@ const GestionGerencia = () => {
           <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
             <div className="flex items-center mb-1">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-50 rounded-lg flex items-center justify-center mr-2">
-                <FiTarget className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                <FiDollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
               </div>
-              <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Costo Plan</h3>
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700">Facturado</h3>
             </div>
             <p
               className="text-sm sm:text-lg font-bold text-gray-900"
-              title={getFullFormattedValue(totales.total_costo_planificado || 0)}
+              title={getFullFormattedValue(totales.total_facturado || 0)}
             >
-              {formatCurrency(totales.total_costo_planificado || 0)}
+              {formatCurrency(totales.total_facturado || 0)}
             </p>
           </div>
           <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl">
