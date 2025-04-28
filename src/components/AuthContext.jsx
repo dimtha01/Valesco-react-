@@ -2,6 +2,7 @@
 
 import { createContext, useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { UrlApi } from "../utils/utils"
 
 export const AuthContext = createContext()
 
@@ -20,7 +21,6 @@ export const AuthProvider = ({ children }) => {
   const location = useLocation()
 
   // API base URL
-  const API_URL = "http://localhost:3000/api"
 
   // Verificar si hay un token guardado al cargar la aplicación
   useEffect(() => {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           // Verificar si el token es válido haciendo una petición al endpoint de perfil
-          const response = await fetch(`${API_URL}/auth/profile`, {
+          const response = await fetch(`${UrlApi}/auth/profile`, {
             headers: {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
