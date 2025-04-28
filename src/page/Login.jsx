@@ -6,6 +6,7 @@ import img from "../assets/image 3.png"
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from "react-icons/fa" // Añadido íconos adicionales
 import { ClipLoader } from "react-spinners"
 import { AuthContext } from "../components/AuthContext"
+import { UrlApi } from "../utils/utils"
 
 const Login = () => {
   const [email, setEmail] = useState("")
@@ -15,14 +16,46 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
   const navigate = useNavigate()
-  const { login } = useContext(AuthContext)
+  const { login, isAuthenticated, userRole } = useContext(AuthContext)
+
+  // URL base de la API
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated && userRole) {
+      redirectBasedOnRole(userRole)
+    }
+  }, [isAuthenticated, userRole])
+
+  // Función para redirigir según el rol
+  const redirectBasedOnRole = (role) => {
+    switch (role) {
+      case "planificador":
+        navigate("/InicioPlanificador", { replace: true })
+        break
+      case "direccion":
+        navigate("/GestionGerencia", { replace: true })
+        break
+      case "gestion":
+        navigate("/InicioGestion", { replace: true })
+        break
+      case "administrador":
+        navigate("/InicioAdministrador", { replace: true })
+        break
+      case "procura":
+        navigate("/InicioProcura", { replace: true })
+        break
+      default:
+        navigate("/", { replace: true })
+    }
+  }
 
   // Efecto para validación en tiempo real después del primer envío
   useEffect(() => {
     if (formSubmitted) {
       validateForm()
     }
-  }, [formSubmitted])
+  }, [email, password, formSubmitted])
 
   // Función de validación
   const validateForm = () => {
@@ -46,68 +79,6 @@ const Login = () => {
     return true
   }
 
-  // Simulación de usuarios en la base de datos
-  const users = [
-    {
-      email: "manuelviera-oriente@business.com",
-      password: "manuel2025",
-      role: "planificador",
-      permissionEdit: false,
-      region: "Oriente",
-    },
-    {
-      email: "Luisvasquez-occidente@business.com",
-      password: "luis2025",
-      role: "planificador",
-      permissionEdit: false,
-      region: "Occidente",
-
-    },
-    {
-      email: "direccion@business.com",
-      password: "direccion123",
-      role: "direccion",
-      permissionEdit: false,
-    },
-    {
-      email: "luis.lamas@business.com",
-      password: "luislamas123",
-      role: "direccion",
-      permissionEdit: false,
-    },
-    {
-      email: "orencio.marante@business.com",
-      password: "orenciomarante123",
-      role: "direccion",
-      permissionEdit: false,
-    },
-    {
-      email: "mauricioesteves-gestion@business.com",
-      password: "mauricio123",
-      role: "gestion",
-      permissionEdit: false,
-    },
-    {
-      email: "israelnunez-gestion@business.com",
-      password: "israel123",
-      role: "gestion",
-      permissionEdit: false,
-    },
-    {
-      email: "jesusgarcia-administrador@business.com",
-      password: "jesus123",
-      role: "administrador",
-      permissionEdit: true,
-    },
-    {
-      email: "procura@business.com",
-      password: "procura123",
-      role: "procura",
-      permissionEdit: true,
-    },
-    
-  ]
-
   // Función para manejar el inicio de sesión
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -120,32 +91,35 @@ const Login = () => {
     setIsLoading(true)
 
     try {
-      // Simular una demora en la validación
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Llamada a la API de autenticación
+      const response = await fetch(`${UrlApi}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-      // Buscar al usuario en la lista simulada
-      const user = users.find((u) => u.email === email && u.password === password)
+      const data = await response.json()
 
-      if (user) {
+      if (response.ok && data.success) {
+        // Guardar el token en localStorage para usarlo en futuras peticiones
+        localStorage.setItem("authToken", data.token)
+
+        // Extraer información del usuario de la respuesta
+        const { role, permissionEdit } = data.user
+
+        // Determinar la región si existe en los datos del usuario
+        const region = data.user.region || null
+
         // Iniciar sesión y pasar el rol, permiso de edición y región del usuario
-        login(user.role, user.permissionEdit, user.region)
-
-        // Redirigir según el rol del usuario
-        if (user.role === "planificador") {
-          navigate(`/InicioPlanificador/`)
-        } else if (user.role === "direccion") {
-          navigate("/GestionGerencia")
-        } else if (user.role === "gestion") {
-          navigate("/InicioGestion")
-        } else if (user.role === "administrador") {
-          navigate("/InicioAdministrador")
-        }else if (user.role === "procura") {
-          navigate("/InicioProcura")
-        }
+        login(role, permissionEdit, region, data.user)
       } else {
-        setError("Correo electrónico o contraseña incorrectos.")
+        // Mostrar mensaje de error de la API o un mensaje genérico
+        setError(data.message || "Correo electrónico o contraseña incorrectos.")
       }
     } catch (err) {
+      console.error("Error de login:", err)
       setError("Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo.")
     } finally {
       setIsLoading(false)
@@ -155,7 +129,7 @@ const Login = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex items-center justify-center p-4 sm:p-6 md:p-8">
       <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row">
-        {/* Imagen - Oculta en móvil, visible en md y superior */}
+        {/* Imagen - Oculta en móvil, viAsible en md y superior */}
         <div className="md:w-1/2 hidden md:block relative">
           <img className="w-full h-full object-cover" src={img || "/placeholder.svg"} alt="Login" />
           <div className="absolute inset-0 bg-blue-900/20 flex items-center justify-center">
@@ -193,10 +167,11 @@ const Login = () => {
                 </div>
                 <input
                   id="email"
-                  className={`pl-10 w-full p-3 border ${formSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } rounded-lg transition-all duration-200`}
+                  className={`pl-10 w-full p-3 border ${
+                    formSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  } rounded-lg transition-all duration-200`}
                   type="email"
                   name="email"
                   placeholder="nombre@ejemplo.com"
@@ -229,10 +204,11 @@ const Login = () => {
                 </div>
                 <input
                   id="password"
-                  className={`pl-10 w-full p-3 border ${formSubmitted && !password
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    } rounded-lg transition-all duration-200`}
+                  className={`pl-10 w-full p-3 border ${
+                    formSubmitted && !password
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  } rounded-lg transition-all duration-200`}
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="••••••••"
@@ -291,4 +267,3 @@ const Login = () => {
 }
 
 export default Login
-

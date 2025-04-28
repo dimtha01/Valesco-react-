@@ -1,36 +1,36 @@
-import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Login from "./page/Login";
-import Header from "./components/Header";
-import InicioPlanificador from "./page/InicioPlanificador";
-import Proyecto from "./page/Proyecto";
-import GestionGerencia from "./page/GestionGerencia";
-import NuevoCliente from "./page/NuevoCliente";
-import Cliente from "./page/Cliente";
-import CrearProyecto from "./page/CrearProyecto";
-import ActualizarProyecto from "./page/ActualizarProyecto";
-import ReginDetalles from "./page/RegionDetalles";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./components/AuthContext";
-import DetallesProyecto from "./page/DetallesProyecto";
-import Gestion from "./page/Gestion";
-import GestionProyectos from "./page/GestionProyectos";
-import InicioGestion from "./page/InicioGestion";
-import InicioAdministrador from "./page/InicioAdministrador";
-import EditarCliente from "./page/EditarCliente";
-import EditarProyectos from "./page/EditarProyectos";
-import EditarAvanceProyectos from "./page/EditarAvanceProyectos";
-import GestionProcura from "./page/GestionProcura";
-import ProcedimientoComercial from "./page/ProcedimientoComercial";
-import InicioProcura from "./page/InicioProcura";
-import Footer from "./components/Footer";
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+import Login from "./page/Login"
+import Header from "./components/Header"
+import InicioPlanificador from "./page/InicioPlanificador"
+import Proyecto from "./page/Proyecto"
+import GestionGerencia from "./page/GestionGerencia"
+import NuevoCliente from "./page/NuevoCliente"
+import Cliente from "./page/Cliente"
+import CrearProyecto from "./page/CrearProyecto"
+import ActualizarProyecto from "./page/ActualizarProyecto"
+import ReginDetalles from "./page/RegionDetalles"
+import ProtectedRoute from "./components/ProtectedRoute"
+import { AuthProvider } from "./components/AuthContext"
+import DetallesProyecto from "./page/DetallesProyecto"
+import Gestion from "./page/Gestion"
+import GestionProyectos from "./page/GestionProyectos"
+import InicioGestion from "./page/InicioGestion"
+import InicioAdministrador from "./page/InicioAdministrador"
+import EditarCliente from "./page/EditarCliente"
+import EditarProyectos from "./page/EditarProyectos"
+import EditarAvanceProyectos from "./page/EditarAvanceProyectos"
+import GestionProcura from "./page/GestionProcura"
+import ProcedimientoComercial from "./page/ProcedimientoComercial"
+import InicioProcura from "./page/InicioProcura"
+import Footer from "./components/Footer"
 
 const App = () => {
   return (
-    <AuthProvider>
-      {/* Contenedor principal con flexbox y eliminación del scroll horizontal */}
-      <div className="flex flex-col min-h-screen overflow-x-hidden">
-        <BrowserRouter>
+    // Move BrowserRouter outside of AuthProvider
+    <BrowserRouter>
+      <AuthProvider>
+        {/* Contenedor principal con flexbox y eliminación del scroll horizontal */}
+        <div className="flex flex-col min-h-screen overflow-x-hidden">
           {/* Header siempre visible */}
           <Header />
 
@@ -39,6 +39,7 @@ const App = () => {
             <Routes>
               {/* Ruta pública: Inicio de sesión */}
               <Route path="/" element={<Login />} />
+              <Route path="/login" element={<Login />} />
 
               {/* Rutas protegidas */}
               <Route
@@ -198,10 +199,10 @@ const App = () => {
 
           {/* Footer siempre al final */}
           <Footer />
-        </BrowserRouter>
-      </div>
-    </AuthProvider>
-  );
-};
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}
 
-export default App;
+export default App
