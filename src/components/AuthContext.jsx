@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           // Verificar si el token es válido haciendo una petición al endpoint de perfil
-          const response = await fetch(`${UrlApi}/auth/profile`, {
+          const response = await fetch(`${UrlApi}/api/auth/profile`, {
             headers: {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
