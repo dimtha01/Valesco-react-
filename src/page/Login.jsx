@@ -45,6 +45,9 @@ const Login = () => {
       case "procura":
         navigate("/InicioProcura", { replace: true })
         break
+      case "procedimiento comercial":
+        navigate("/InicioProcedimientoComercial", { replace: true })
+        break
       default:
         navigate("/", { replace: true })
     }
@@ -135,7 +138,7 @@ const Login = () => {
           <div className="absolute inset-0 bg-blue-900/20 flex items-center justify-center">
             <div className="text-white text-center p-6 bg-blue-900/60 backdrop-blur-sm rounded-lg">
               <h1 className="text-3xl font-bold mb-2">Bienvenido a Valesco</h1>
-              <p className="text-lg">Sistema de gestión de proyectos</p>
+              <p className="text-lg">Sistema de Gestión Gerencial</p>
             </div>
           </div>
         </div>

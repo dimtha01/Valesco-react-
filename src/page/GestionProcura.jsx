@@ -18,11 +18,14 @@ const GestionProcura = () => {
     monto_total: "",
     numero_renglones: "",
     monto_anticipo: "",
+    nro_odc: "", // Nuevo campo para número de orden de compra
   })
 
   const [proyectos, setProyectos] = useState([])
   const [proveedores, setProveedores] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
+  const [editingODC, setEditingODC] = useState(null) // Estado para edición de nro_odc
+  const [newODCValue, setNewODCValue] = useState("") // Valor para editar nro_odc
 
   // Estado para las requisiciones
   const [requisiciones, setRequisiciones] = useState([])
@@ -165,6 +168,56 @@ const GestionProcura = () => {
     return requisiciones.slice(startIndex, endIndex)
   }
 
+  // Función para iniciar la edición del nro_odc
+  const handleEditODC = (requisicion) => {
+    setEditingODC(requisicion.id)
+    setNewODCValue(requisicion.nro_odc || "")
+  }
+
+  // Función para guardar el nro_odc editado
+  const handleSaveODC = async (id) => {
+    try {
+      const response = await fetch(`${UrlApi}/api/requisiciones/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nro_odc: newODCValue }),
+      })
+
+      if (response.ok) {
+        // Actualizar la lista de requisiciones localmente
+        setRequisiciones(requisiciones.map((req) => (req.id === id ? { ...req, nro_odc: newODCValue } : req)))
+
+        Swal.fire({
+          icon: "success",
+          title: "Actualizado",
+          text: "Número de ODC actualizado correctamente",
+          timer: 1500,
+          showConfirmButton: false,
+        })
+      } else {
+        throw new Error("Error al actualizar el número de ODC")
+      }
+    } catch (error) {
+      console.error("Error al actualizar el número de ODC:", error)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el número de ODC",
+      })
+    } finally {
+      setEditingODC(null)
+      setNewODCValue("")
+    }
+  }
+
+  // Función para cancelar la edición
+  const handleCancelEdit = () => {
+    setEditingODC(null)
+    setNewODCValue("")
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -206,6 +259,7 @@ const GestionProcura = () => {
           monto_total: Number.parseFloat(formData.monto_total),
           nro_renglones: Number.parseInt(formData.numero_renglones),
           monto_anticipo: Number.parseFloat(formData.monto_anticipo || 0),
+          nro_odc: formData.nro_odc || null, // Incluir el nuevo campo
         }),
       })
 
@@ -234,6 +288,7 @@ const GestionProcura = () => {
           monto_total: "",
           numero_renglones: "",
           monto_anticipo: "",
+          nro_odc: "",
         })
       } else {
         throw new Error(data.message || "Error al crear la requisición")
@@ -417,6 +472,19 @@ const GestionProcura = () => {
                       required
                     />
                   </div>
+
+                  {/* Número de ODC */}
+                  <div className="form-control w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">N° ODC</label>
+                    <input
+                      type="text"
+                      name="nro_odc"
+                      placeholder="Ingrese número de orden de compra"
+                      className="input input-bordered w-full h-12 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={formData.nro_odc}
+                      onChange={handleChange}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -525,12 +593,18 @@ const GestionProcura = () => {
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Renglones
                           </th>
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            N° ODC
+                          </th>
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Acciones
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {getPaginatedData().length === 0 ? (
                           <tr>
-                            <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colSpan="11" className="px-6 py-4 text-center text-sm text-gray-500">
                               No hay requisiciones disponibles
                             </td>
                           </tr>
@@ -538,6 +612,18 @@ const GestionProcura = () => {
                           getPaginatedData().map((requisicion) => (
                             <tr key={requisicion.id} className="hover:bg-gray-50">
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.id}</td>
+                              <td className="py-4 px-4 text-sm text-gray-900">
+                                {editingODC === requisicion.id ? (
+                                  <input
+                                    type="text"
+                                    className="input input-bordered input-sm w-full max-w-xs"
+                                    value={newODCValue}
+                                    onChange={(e) => setNewODCValue(e.target.value)}
+                                  />
+                                ) : (
+                                  requisicion.nro_odc || "-"
+                                )}
+                              </td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 <span
                                   className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
@@ -553,7 +639,7 @@ const GestionProcura = () => {
                                 {requisicion.nombre_corto_proyecto || "-"}
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">
-                                {requisicion.nombre_comercial_provedore}
+                                {requisicion.nombre_comercial_proveedor}
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 {formatDate(requisicion.fecha_elaboracion)}
@@ -565,6 +651,32 @@ const GestionProcura = () => {
                                 {formatMonto(requisicion.monto_anticipo)}
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_renglones}</td>
+
+                              <td className="py-4 px-4 text-sm text-gray-900">
+                                {editingODC === requisicion.id ? (
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => handleSaveODC(requisicion.id)}
+                                      className="bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded text-xs"
+                                    >
+                                      Guardar
+                                    </button>
+                                    <button
+                                      onClick={handleCancelEdit}
+                                      className="bg-gray-500 hover:bg-gray-600 text-white py-1 px-2 rounded text-xs"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => handleEditODC(requisicion)}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded text-xs"
+                                  >
+                                    Editar ODC
+                                  </button>
+                                )}
+                              </td>
                             </tr>
                           ))
                         )}

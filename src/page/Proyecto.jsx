@@ -30,15 +30,17 @@ const Proyecto = () => {
   }) // Initialize with default values
   const [filteredProyectos, setFilteredProyectos] = useState([])
   const [regions, setRegions] = useState([])
-  const { userRegion } = useContext(AuthContext) // Changed from region to userRegion to avoid confusion
-  const region = userRegion || "all" // Default to "all" if userRegion is undefined
+  const { userRegion, user } = useContext(AuthContext) // Changed from region to userRegion to avoid confusion
+  const region = userRegion // Default to "all" if userRegion is undefined
   const rowsPerPage = 7
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [searchText, setSearchText] = useState("")
   const [selectedRegionFilter, setSelectedRegionFilter] = useState("all")
   const [hoveredMetric, setHoveredMetric] = useState(null)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(null);
+  console.log(user);
+
 
   const navigate = useNavigate()
 
@@ -438,10 +440,10 @@ const Proyecto = () => {
                             <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
                               <span
                                 className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full  ${proyecto.nombre_region === "Centro"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : proyecto.nombre_region === "Occidente"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : proyecto.nombre_region === "Occidente"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
                                   }`}
                               >
                                 {proyecto.nombre_region || "N/A"}

@@ -1,18 +1,22 @@
 "use client"
 
-import { useState, useContext, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { AuthContext } from "../components/AuthContext"
 import Swal from "sweetalert2"
 import { UrlApi } from "../utils/utils"
 
 const ProcedimientoComercial = () => {
-  const { region } = useContext(AuthContext)
-
   // Estados para los datos
   const [datos, setDatos] = useState([])
   const [estatusOptions, setEstatusOptions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedRegion, setSelectedRegion] = useState("")
+
+  // Definir regiones como constante en lugar de estado
+  const regiones = [
+    { id: 2, nombre: "Occidente" },
+    { id: 3, nombre: "Oriente" }
+  ]
 
   // Estado para el formulario
   const [formData, setFormData] = useState({
@@ -76,25 +80,23 @@ const ProcedimientoComercial = () => {
     return "bg-gray-100 text-gray-800"
   }
 
-  // Add a function to convert region name to ID after the formData useState
-  const getRegionId = (regionName) => {
-    if (regionName === "Occidente") return 2
-    if (regionName === "Oriente") return 3
-    return null // Return null if region is not recognized
+  // Función para manejar el cambio de región
+  const handleRegionChange = (e) => {
+    const regionId = e.target.value
+    setSelectedRegion(regionId)
+
+    // Actualizar el id_region en el formulario
+    setFormData(prev => ({
+      ...prev,
+      id_region: regionId
+    }))
   }
 
-  // Asegurar que la región se actualice cuando cambie el contexto
-  useEffect(() => {
-    if (region) {
-      const regionId = getRegionId(region)
-      if (regionId) {
-        setFormData((prevState) => ({
-          ...prevState,
-          id_region: regionId,
-        }))
-      }
-    }
-  }, [region])
+  // Función para obtener el nombre de la región por ID
+  const getRegionNameById = (regionId) => {
+    const region = regiones.find(r => r.id.toString() === regionId.toString())
+    return region ? region.nombre : ""
+  }
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1)
@@ -112,49 +114,48 @@ const ProcedimientoComercial = () => {
       if (estatusResponse.ok) {
         const estatusData = await estatusResponse.json()
         setEstatusOptions(estatusData)
-
-        // Mostrar alerta de información si no hay estatus
-        if (estatusData.length === 0) {
-          Swal.fire({
-            icon: "info",
-            title: "Sin estatus",
-            text: "No hay estatus comerciales disponibles en este momento.",
-            timer: 3000,
-            timerProgressBar: true,
-          })
-        }
       } else {
         console.error("Error al cargar estatus comerciales")
       }
 
-      // Cargar procedimientos comerciales según la región
-      let procedimientosUrl = `${UrlApi}/api/procedimientosComerciales`
-      if (region) {
-        procedimientosUrl = `${UrlApi}/api/procedimientosComerciales/region/${region}`
-      }
-
+      // Cargar procedimientos comerciales (todos)
+      const procedimientosUrl = `${UrlApi}/api/procedimientosComerciales`
       const procedimientosResponse = await fetch(procedimientosUrl)
       if (procedimientosResponse.ok) {
         const procedimientosData = await procedimientosResponse.json()
         setDatos(procedimientosData)
-
-        // Mostrar alerta de información si no hay procedimientos
-        if (procedimientosData.length === 0) {
-          Swal.fire({
-            icon: "info",
-            title: "Sin procedimientos",
-            text: region
-              ? `No hay procedimientos comerciales disponibles para la región ${region}.`
-              : "No hay procedimientos comerciales disponibles en este momento.",
-            timer: 3000,
-            timerProgressBar: true,
-          })
-        }
       } else {
         console.error("Error al cargar procedimientos comerciales")
       }
     } catch (error) {
       console.error("Error al cargar datos:", error)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar los datos. Por favor, intente nuevamente.",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Cargar datos por región
+  const fetchDataByRegion = async (regionId) => {
+    setLoading(true)
+    try {
+      // Cargar procedimientos comerciales según la región seleccionada
+      const regionName = getRegionNameById(regionId)
+      const procedimientosUrl = `${UrlApi}/api/procedimientosComerciales/region/${regionName}`
+
+      const procedimientosResponse = await fetch(procedimientosUrl)
+      if (procedimientosResponse.ok) {
+        const procedimientosData = await procedimientosResponse.json()
+        setDatos(procedimientosData)
+      } else {
+        console.error("Error al cargar procedimientos comerciales")
+      }
+    } catch (error) {
+      console.error("Error al cargar datos por región:", error)
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -229,7 +230,7 @@ const ProcedimientoComercial = () => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo determinar la región del usuario. Por favor, contacte al administrador.",
+        text: "Debe seleccionar una región para continuar.",
       })
       return
     }
@@ -259,7 +260,7 @@ const ProcedimientoComercial = () => {
 
         // Actualizar la lista de procedimientos
         // Ensure the new record has the proper structure with region name and status name
-        const regionName = region
+        const regionName = getRegionNameById(formData.id_region)
         const estatusName = estatusOptions.find((e) => e.id.toString() === formData.id_estatus_comercial)?.nombre || "-"
         const formattedNewRecord = {
           ...nuevoRegistro,
@@ -279,7 +280,7 @@ const ProcedimientoComercial = () => {
 
         // Limpiar formulario pero mantener la región
         setFormData({
-          id_region: getRegionId(region),
+          id_region: formData.id_region,
           nombre_contrato: "",
           nombre_corto: "",
           oferta_Proveedor: "",
@@ -306,42 +307,10 @@ const ProcedimientoComercial = () => {
 
   // Función para recargar los datos
   const recargarDatos = async () => {
-    setLoading(true)
-    try {
-      let procedimientosUrl = `${UrlApi}/api/procedimientosComerciales`
-      if (region) {
-        procedimientosUrl = `${UrlApi}/api/procedimientosComerciales/region/${region}`
-      }
-
-      const procedimientosResponse = await fetch(procedimientosUrl)
-      if (procedimientosResponse.ok) {
-        const procedimientosData = await procedimientosResponse.json()
-        setDatos(procedimientosData)
-
-        // Mostrar alerta de información si no hay procedimientos al recargar
-        if (procedimientosData.length === 0) {
-          Swal.fire({
-            icon: "info",
-            title: "Sin procedimientos",
-            text: region
-              ? `No hay procedimientos comerciales disponibles para la región ${region}.`
-              : "No hay procedimientos comerciales disponibles en este momento.",
-            timer: 3000,
-            timerProgressBar: true,
-          })
-        }
-      } else {
-        throw new Error("Error al cargar procedimientos comerciales")
-      }
-    } catch (error) {
-      console.error("Error al recargar datos:", error)
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudieron recargar los datos. Por favor, intente nuevamente.",
-      })
-    } finally {
-      setLoading(false)
+    if (selectedRegion) {
+      await fetchDataByRegion(selectedRegion)
+    } else {
+      await fetchData()
     }
   }
 
@@ -448,7 +417,7 @@ const ProcedimientoComercial = () => {
 
   useEffect(() => {
     fetchData()
-  }, [region])
+  }, [])
 
   return (
     <>
@@ -456,7 +425,7 @@ const ProcedimientoComercial = () => {
         <ul className="flex items-center space-x-2">
           <li>
             <Link
-              to="/InicioPlanificador"
+              to="/InicioProcedimientoComercial"
               className="flex items-center hover:text-blue-500 transition-colors duration-300"
             >
               <svg
@@ -472,7 +441,7 @@ const ProcedimientoComercial = () => {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              Sistema Gerencial
+              Comercialización
             </Link>
           </li>
           <li>
@@ -498,15 +467,10 @@ const ProcedimientoComercial = () => {
 
       {/* Modificar la estructura del contenedor principal para dar más espacio */}
       <div className="w-full max-w-7xl mx-auto px-4 mt-6">
-        {/* Display current region */}
+        {/* Display current region selection - sin botón */}
         <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-blue-700 text-lg">
-            <span className="font-medium">Región actual:</span> {region || "No definida"}
-          </p>
-          <p className="text-sm text-blue-600 mt-1">
-            {region
-              ? `Se muestran los procedimientos comerciales de la región ${region}.`
-              : "Se muestran todos los procedimientos comerciales."}
+            <span className="font-medium">Región seleccionada:</span> {getRegionNameById(selectedRegion) || "Todas las regiones"}
           </p>
         </div>
 
@@ -527,20 +491,26 @@ const ProcedimientoComercial = () => {
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <h3 className="text-lg font-medium text-gray-700 mb-3">Información Básica</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Región */}
+                    {/* Región - Ahora como selector */}
                     <div className="form-control w-full">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Región</label>
-                      <input
-                        type="text"
-                        value={region || "No definida"}
-                        className="input input-bordered w-full bg-gray-100 h-12 rounded-md"
-                        disabled
-                      />
-                      {!region && (
-                        <p className="text-xs text-red-500 mt-1">
-                          No se ha detectado una región. Por favor, contacte al administrador.
-                        </p>
-                      )}
+                      <select
+                        name="id_region"
+                        value={formData.id_region}
+                        onChange={(e) => {
+                          handleChange(e);
+                          handleRegionChange(e);
+                        }}
+                        className="select select-bordered w-full h-12 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      >
+                        <option value="">Seleccionar región</option>
+                        {regiones.map((region) => (
+                          <option key={region.id} value={region.id}>
+                            {region.nombre}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Nombre del Contrato */}
@@ -770,13 +740,12 @@ const ProcedimientoComercial = () => {
                             <td className="py-4 px-4 text-base text-gray-900">{item.id}</td>
                             <td className="py-4 px-4 text-base text-gray-900">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  !item.nombreRegion
-                                    ? "bg-gray-100 text-gray-800"
-                                    : item.nombreRegion === "Occidente"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                }`}
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${!item.nombreRegion
+                                  ? "bg-gray-100 text-gray-800"
+                                  : item.nombreRegion === "Occidente"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                  }`}
                               >
                                 {item.nombreRegion || "-"}
                               </span>

@@ -12,7 +12,7 @@ import {
   FiInfo,
   FiCreditCard,
 } from "react-icons/fi"
-import { decimalAEntero, UrlApi } from "../utils/utils"
+import { decimalAEntero, formatMontoConSeparador, UrlApi } from "../utils/utils"
 
 // Utilidades para formateo de moneda
 const formatCurrency = (value) => {
@@ -27,15 +27,6 @@ const formatCurrency = (value) => {
 }
 
 // Función para mostrar el valor completo con formato al pasar el cursor
-const getFullFormattedValue = (amount) => {
-  if (amount === undefined || amount === null) return "$0,00"
-
-  // Formatear el número con separadores de miles (puntos) y decimales (coma)
-  return `$${amount.toLocaleString("es-ES", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`
-}
 
 // Componente de indicador de progreso
 export function ProgressIndicator({ progress }) {
@@ -380,8 +371,8 @@ const RegionDetalles = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                  <p className="text-xl font-bold text-gray-900" title={getFullFormattedValue(metric.value)}>
-                    {hoveredMetric === metric.id ? getFullFormattedValue(metric.value) : formatCurrency(metric.value)}
+                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
+                    {hoveredMetric === metric.id ? formatMontoConSeparador(metric.value) : formatCurrency(metric.value)}
                   </p>
                 </div>
                 <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
@@ -403,8 +394,8 @@ const RegionDetalles = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                  <p className="text-xl font-bold text-gray-900" title={getFullFormattedValue(metric.value)}>
-                    {hoveredMetric === metric.id ? getFullFormattedValue(metric.value) : formatCurrency(metric.value)}
+                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
+                    {hoveredMetric === metric.id ? formatMontoConSeparador(metric.value) : formatCurrency(metric.value)}
                   </p>
                 </div>
                 <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
@@ -479,33 +470,33 @@ const RegionDetalles = () => {
                         <div className="max-w-md truncate uppercase">{project.nombre_cortos}</div>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={getFullFormattedValue(project.costo_real)}>
+                        <span title={formatMontoConSeparador(project.costo_real)}>
                           {formatCurrency(project.costo_real)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={getFullFormattedValue(project.monto_facturado)}>
+                        <span title={formatMontoConSeparador(project.monto_facturado)}>
                           {formatCurrency(project.monto_facturado)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={getFullFormattedValue(project.monto_por_facturar)}>
+                        <span title={formatMontoConSeparador(project.monto_por_facturar)}>
                           {formatCurrency(project.monto_por_facturar)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={getFullFormattedValue(project.monto_por_valuar)}>
+                        <span title={formatMontoConSeparador(project.monto_por_valuar)}>
                           {formatCurrency(project.monto_por_valuar)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={getFullFormattedValue(project.total_amortizacion)}>
+                        <span title={formatMontoConSeparador(project.total_amortizacion)}>
                           {formatCurrency(project.total_amortizacion)}
                         </span>
                       </td>
                       {/* Agregar el valor en la fila de la tabla (después de la columna de Amortización) */}
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={getFullFormattedValue(project.monto_anticipo_total)}>
+                        <span title={formatMontoConSeparador(project.monto_anticipo_total)}>
                           {formatCurrency(project.monto_anticipo_total)}
                         </span>
                       </td>
@@ -579,11 +570,10 @@ const RegionDetalles = () => {
                       <button
                         key={i}
                         onClick={() => handlePageChange(pageNumber)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === pageNumber
-                            ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNumber
+                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                          }`}
                       >
                         {pageNumber}
                       </button>

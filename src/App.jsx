@@ -23,6 +23,8 @@ import GestionProcura from "./page/GestionProcura"
 import ProcedimientoComercial from "./page/ProcedimientoComercial"
 import InicioProcura from "./page/InicioProcura"
 import Footer from "./components/Footer"
+import ActualizarProveedor from "./page/ActualizarProveedor"
+import InicionProcedimientoComercial from "./page/InicionProcedimientoComercial"
 
 const App = () => {
   return (
@@ -43,6 +45,14 @@ const App = () => {
 
               {/* Rutas protegidas */}
               <Route
+                path="/InicioProcedimientoComercial"
+                element={
+                  <ProtectedRoute>
+                    <InicionProcedimientoComercial />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/InicioPlanificador"
                 element={
                   <ProtectedRoute>
@@ -59,10 +69,18 @@ const App = () => {
                 }
               />
               <Route
-                path="/InicioPlanificador/GestionProcura"
+                path="/InicioProcura/GestionProcura"
                 element={
                   <ProtectedRoute>
                     <GestionProcura />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioProcura/ActualizarProveedor"
+                element={
+                  <ProtectedRoute>
+                    <ActualizarProveedor />
                   </ProtectedRoute>
                 }
               />

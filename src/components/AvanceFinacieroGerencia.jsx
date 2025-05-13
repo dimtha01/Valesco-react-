@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link, useParams } from "react-router-dom"
-import { UrlApi } from "../utils/utils"
+import { formatMontoConSeparador, UrlApi } from "../utils/utils"
 import { FiDollarSign, FiBarChart2, FiShoppingCart, FiCheckCircle, FiUsers, FiTrendingUp, FiInfo } from "react-icons/fi"
 
 // Utilidades para formateo de moneda
@@ -18,15 +18,7 @@ const formatCurrency = (value) => {
 }
 
 // Función para mostrar el valor completo con formato al pasar el cursor
-const getFullFormattedValue = (amount) => {
-  if (amount === undefined || amount === null) return "$0,00"
 
-  // Formatear el número con separadores de miles (puntos) y decimales (coma)
-  return `$${amount.toLocaleString("es-ES", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`
-}
 
 const AvanceFinancieroGerencial = () => {
   const params = useParams()
@@ -280,8 +272,8 @@ const AvanceFinancieroGerencial = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                  <p className="text-xl font-bold text-gray-900" title={getFullFormattedValue(metric.value)}>
-                    {hoveredMetric === metric.id ? getFullFormattedValue(metric.value) : formatCurrency(metric.value)}
+                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
+                    {hoveredMetric === metric.id ? formatMontoConSeparador(metric.value) : formatCurrency(metric.value)}
                   </p>
                 </div>
                 <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
@@ -372,7 +364,7 @@ const AvanceFinancieroGerencial = () => {
                           {avance.numero_valuacion || "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <span title={getFullFormattedValue(avance.monto_usd)}>
+                          <span title={formatMontoConSeparador(avance.monto_usd)}>
                             {formatCurrency(avance.monto_usd)}
                           </span>
                         </td>

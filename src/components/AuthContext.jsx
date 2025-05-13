@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
                 setIsAuthenticated(true)
                 setUserRole(data.user.role)
                 setPermissionEdit(data.user.permissionEdit)
-                setUserRegion(data.user.region || null)
+                setUserRegion(data.user.regionName || null)
                 setUser(data.user)
               } else {
                 // Si hay algún problema con la respuesta, limpiar el token
@@ -149,6 +149,9 @@ export const AuthProvider = ({ children }) => {
         break
       case "procura":
         navigate("/InicioProcura", { replace: true })
+        break
+      case "procedimiento comercial":
+        navigate("/InicioProcedimientoComercial", { replace: true })
         break
       default:
         navigate("/", { replace: true })
