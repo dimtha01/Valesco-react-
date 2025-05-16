@@ -14,7 +14,7 @@ const GestionProcura = () => {
     id_proyecto: "",
     numero_requisicion: "",
     id_proveedor: "",
-    fecha_elaboracion: new Date().toISOString().split("T")[0],
+    fecha_elaboracion:"",
     monto_total: "",
     numero_renglones: "",
     monto_anticipo: "",
@@ -24,8 +24,6 @@ const GestionProcura = () => {
   const [proyectos, setProyectos] = useState([])
   const [proveedores, setProveedores] = useState([])
   const [modalVisible, setModalVisible] = useState(false)
-  const [editingODC, setEditingODC] = useState(null) // Estado para edición de nro_odc
-  const [newODCValue, setNewODCValue] = useState("") // Valor para editar nro_odc
 
   // Estado para las requisiciones
   const [requisiciones, setRequisiciones] = useState([])
@@ -33,8 +31,16 @@ const GestionProcura = () => {
 
   // Estados para paginación de requisiciones
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 8
+  const rowsPerPage = 7
   const [totalPages, setTotalPages] = useState(1)
+
+  // Estado para controlar si estamos editando una requisición existente
+  const [editingRequisicion, setEditingRequisicion] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+
+  // Estado para el modal de detalles
+  const [modalDetallesVisible, setModalDetallesVisible] = useState(false)
+  const [requisicionSeleccionada, setRequisicionSeleccionada] = useState(null)
 
   // Cargar datos iniciales cuando el componente se monta
   useEffect(() => {
@@ -121,6 +127,7 @@ const GestionProcura = () => {
     }
   }
 
+  // Función básica para manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prevState) => ({
@@ -168,54 +175,81 @@ const GestionProcura = () => {
     return requisiciones.slice(startIndex, endIndex)
   }
 
-  // Función para iniciar la edición del nro_odc
-  const handleEditODC = (requisicion) => {
-    setEditingODC(requisicion.id)
-    setNewODCValue(requisicion.nro_odc || "")
+  // Función para abrir el modal con los detalles de la requisición
+  const handleOpenModal = (requisicion) => {
+    setRequisicionSeleccionada(requisicion)
+    setModalDetallesVisible(true)
   }
 
-  // Función para guardar el nro_odc editado
-  const handleSaveODC = async (id) => {
-    try {
-      const response = await fetch(`${UrlApi}/api/requisiciones/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ nro_odc: newODCValue }),
-      })
+  // Función para cerrar el modal
+  const handleCloseModal = () => {
+    setModalDetallesVisible(false)
+    setRequisicionSeleccionada(null)
+  }
 
-      if (response.ok) {
-        // Actualizar la lista de requisiciones localmente
-        setRequisiciones(requisiciones.map((req) => (req.id === id ? { ...req, nro_odc: newODCValue } : req)))
+  // Modificar la función handleSelectRequisicion para asegurar que los IDs se manejen correctamente y se añadan logs de depuración:
+  const handleSelectRequisicion = (requisicion) => {
+    // Convertir el tipo de requisición a formato para el formulario
+    const tipo = requisicion.tipo_requisition === "producto" ? "producto" : "servicio"
 
-        Swal.fire({
-          icon: "success",
-          title: "Actualizado",
-          text: "Número de ODC actualizado correctamente",
-          timer: 1500,
-          showConfirmButton: false,
-        })
-      } else {
-        throw new Error("Error al actualizar el número de ODC")
+    // Formatear la fecha para el input date
+    let fechaFormateada = requisicion.fecha_elaboracion
+    if (fechaFormateada) {
+      try {
+        const fecha = new Date(fechaFormateada)
+        fechaFormateada = fecha.toISOString().split("T")[0]
+      } catch (error) {
+        console.error("Error al formatear la fecha:", error)
       }
-    } catch (error) {
-      console.error("Error al actualizar el número de ODC:", error)
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo actualizar el número de ODC",
-      })
-    } finally {
-      setEditingODC(null)
-      setNewODCValue("")
     }
+
+    // Asegurarse de que los IDs sean strings y existan
+    const proyectoId = requisicion.id_proyecto 
+    const proveedorId = requisicion.id_proveedores
+
+    console.log("Proyecto ID:", proyectoId)
+    console.log("Proveedor ID:", proveedorId)
+    console.log("Requisición completa:", requisicion)
+
+    // Llenar el formulario con los datos de la requisición seleccionada
+    setFormData({
+      tipo: tipo,
+      id_proyecto: requisicion.id_proyecto,
+      numero_requisicion: requisicion.nro_requisicion || "",
+      id_proveedor: requisicion.id_proveedores,
+      fecha_elaboracion: fechaFormateada,
+      monto_total: requisicion.monto_total?.toString() || "",
+      numero_renglones: requisicion.nro_renglones?.toString() || "",
+      monto_anticipo: requisicion.monto_anticipo?.toString() || "",
+      nro_odc: requisicion.nro_odc || "",
+    })
+
+    // Guardar el ID de la requisición que estamos editando
+    setEditingRequisicion(requisicion.id)
+    setIsEditing(true)
+
+    // Desplazar la página hacia arriba para mostrar el formulario
+   
+
+    // Mostrar mensaje informativo
+    Swal.fire({
+      icon: "success",
+      title: "Requisición seleccionada",
+      text: `Ahora está editando la requisición #${requisicion.id}`,
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+    })
+
+    
   }
 
-  // Función para cancelar la edición
-  const handleCancelEdit = () => {
-    setEditingODC(null)
-    setNewODCValue("")
+  // Modificar también la función handleSelectFromModal para asegurar la misma funcionalidad
+  const handleSelectFromModal = () => {
+    if (requisicionSeleccionada) {
+      handleSelectRequisicion(requisicionSeleccionada)
+      handleCloseModal()
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -245,60 +279,81 @@ const GestionProcura = () => {
       // Convertir tipo a id_tipo (ejemplo: "producto" -> 1, "servicio" -> 2)
       const id_tipo = formData.tipo === "producto" ? 1 : 2
 
-      const response = await fetch(`${UrlApi}/api/requisiciones`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id_tipo: id_tipo,
-          id_proyecto: Number.parseInt(formData.id_proyecto),
-          nro_requisicion: formData.numero_requisicion,
-          id_proveedores: Number.parseInt(formData.id_proveedor),
-          fecha_elaboracion: formData.fecha_elaboracion,
-          monto_total: Number.parseFloat(formData.monto_total),
-          nro_renglones: Number.parseInt(formData.numero_renglones),
-          monto_anticipo: Number.parseFloat(formData.monto_anticipo || 0),
-          nro_odc: formData.nro_odc || null, // Incluir el nuevo campo
-        }),
-      })
+      // Preparar los datos para enviar
+      const requisicionData = {
+        id_tipo: id_tipo,
+        id_proyecto: Number.parseInt(formData.id_proyecto),
+        nro_requisicion: formData.numero_requisicion,
+        id_proveedores: Number.parseInt(formData.id_proveedor),
+        fecha_elaboracion: formData.fecha_elaboracion,
+        monto_total: Number.parseFloat(formData.monto_total),
+        nro_renglones: Number.parseInt(formData.numero_renglones),
+        monto_anticipo: Number.parseFloat(formData.monto_anticipo || 0),
+        nro_odc: formData.nro_odc || null,
+      }
+
+      let response
+
+      // Si estamos editando, hacer un PUT, si no, hacer un POST
+      if (isEditing && editingRequisicion) {
+        response = await fetch(`${UrlApi}/api/requisiciones/${editingRequisicion}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requisicionData),
+        })
+      } else {
+        response = await fetch(`${UrlApi}/api/requisiciones`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requisicionData),
+        })
+      }
 
       const data = await response.json()
 
       if (response.ok) {
-        console.log("Requisición agregada:", formData)
         Swal.fire({
           icon: "success",
-          title: "Requisición creada",
-          text: "La requisición ha sido creada exitosamente.",
+          title: isEditing ? "Requisición actualizada" : "Requisición creada",
+          text: isEditing
+            ? "La requisición ha sido actualizada exitosamente."
+            : "La requisición ha sido creada exitosamente.",
           showConfirmButton: false,
           timer: 1500,
         })
 
-        // Recargar las requisiciones para mostrar la nueva
+        // Recargar las requisiciones para mostrar los cambios
         fetchRequisiciones()
 
-        // Limpiar el formulario
+        // Limpiar el formulario y resetear el estado de edición
         setFormData({
           tipo: "",
           id_proyecto: "",
           numero_requisicion: "",
           id_proveedor: "",
-          fecha_elaboracion: new Date().toISOString().split("T")[0],
+          fecha_elaboracion: "",
           monto_total: "",
           numero_renglones: "",
           monto_anticipo: "",
           nro_odc: "",
         })
+        setIsEditing(false)
+        setEditingRequisicion(null)
       } else {
-        throw new Error(data.message || "Error al crear la requisición")
+        throw new Error(data.message || `Error al ${isEditing ? "actualizar" : "crear"} la requisición`)
       }
     } catch (error) {
-      console.error("Error al crear la requisición:", error)
+      console.error(`Error al ${isEditing ? "actualizar" : "crear"} la requisición:`, error)
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.message || "Ocurrió un error inesperado al intentar crear la requisición.",
+        text:
+          error.message ||
+          `Ocurrió un error inesperado al intentar ${isEditing ? "actualizar" : "crear"} la requisición.`,
       })
     }
   }
@@ -313,6 +368,23 @@ const GestionProcura = () => {
       ...formData,
       id_proveedor: nuevoProveedor.id,
     })
+  }
+
+  const handleCancelEdit = () => {
+    // Limpiar el formulario y resetear el estado de edición
+    setFormData({
+      tipo: "",
+      id_proyecto: "",
+      numero_requisicion: "",
+      id_proveedor: "",
+      fecha_elaboracion:"",
+      monto_total: "",
+      numero_renglones: "",
+      monto_anticipo: "",
+      nro_odc: "",
+    })
+    setIsEditing(false)
+    setEditingRequisicion(null)
   }
 
   return (
@@ -363,7 +435,17 @@ const GestionProcura = () => {
         <div className="flex flex-col gap-8">
           {/* Formulario de Requisición */}
           <div className="bg-white rounded-lg shadow-xl p-6 w-full">
-            <h3 className="font-bold text-2xl mb-6">Base de Datos de Orden de Compra</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-2xl">
+                {isEditing ? "Actualizar Orden de Compra" : "Base de Datos de Orden de Compra"}
+              </h3>
+
+              {isEditing && (
+                <button onClick={handleCancelEdit} className="btn btn-outline btn-error">
+                  Cancelar Edición
+                </button>
+              )}
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tipo de Requisición */}
@@ -409,7 +491,7 @@ const GestionProcura = () => {
                     >
                       <option value="">Lista de los Proyectos</option>
                       {proyectos.map((proyecto) => (
-                        <option key={proyecto.id} value={proyecto.id}>
+                        <option key={proyecto.id} value={String(proyecto.id)}>
                           {proyecto.nombre_cortos}
                         </option>
                       ))}
@@ -443,7 +525,7 @@ const GestionProcura = () => {
                       >
                         <option value="">Lista de los proveedores</option>
                         {proveedores.map((proveedor) => (
-                          <option key={proveedor.id} value={proveedor.id}>
+                          <option key={proveedor.id} value={String(proveedor.id)}>
                             {proveedor.nombre_comercial}
                           </option>
                         ))}
@@ -498,13 +580,12 @@ const GestionProcura = () => {
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                       <input
-                        type="number"
+                        type="text"
                         name="monto_total"
                         placeholder="0.00"
                         className="input input-bordered w-full h-12 pl-8 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={formData.monto_total}
                         onChange={handleChange}
-                        step="0.01"
                         required
                       />
                     </div>
@@ -516,13 +597,12 @@ const GestionProcura = () => {
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                       <input
-                        type="number"
+                        type="text"
                         name="monto_anticipo"
                         placeholder="0.00"
                         className="input input-bordered w-full h-12 pl-8 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={formData.monto_anticipo}
                         onChange={handleChange}
-                        step="0.01"
                       />
                     </div>
                   </div>
@@ -531,7 +611,7 @@ const GestionProcura = () => {
                   <div className="form-control w-full">
                     <label className="block text-sm font-medium text-gray-700 mb-1">N° Renglones</label>
                     <input
-                      type="number"
+                      type="text"
                       name="numero_renglones"
                       placeholder="0"
                       className="input input-bordered w-full h-12 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -545,7 +625,7 @@ const GestionProcura = () => {
 
               <div className="mt-8 flex justify-center">
                 <button type="submit" className="btn btn-primary px-16 py-3 text-lg rounded-md">
-                  Guardar
+                  {isEditing ? "Actualizar" : "Guardar"}
                 </button>
               </div>
             </form>
@@ -562,12 +642,15 @@ const GestionProcura = () => {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <div className="h-[525px] overflow-y-hidden">
+                  <div className="h-[525px] overflow-y-auto">
                     <table className="min-w-full bg-white">
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             N° O/C
+                          </th>
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            N° ODC
                           </th>
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Tipo
@@ -593,9 +676,7 @@ const GestionProcura = () => {
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Renglones
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            N° ODC
-                          </th>
+                          
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Acciones
                           </th>
@@ -610,26 +691,20 @@ const GestionProcura = () => {
                           </tr>
                         ) : (
                           getPaginatedData().map((requisicion) => (
-                            <tr key={requisicion.id} className="hover:bg-gray-50">
+                            <tr
+                              key={requisicion.id}
+                              className="hover:bg-gray-50 cursor-pointer"
+                              onClick={() => handleOpenModal(requisicion)}
+                            >
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.id}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
-                                {editingODC === requisicion.id ? (
-                                  <input
-                                    type="text"
-                                    className="input input-bordered input-sm w-full max-w-xs"
-                                    value={newODCValue}
-                                    onChange={(e) => setNewODCValue(e.target.value)}
-                                  />
-                                ) : (
-                                  requisicion.nro_odc || "-"
-                                )}
-                              </td>
+                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_odc || "-"}</td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 <span
-                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-green-100 text-green-800"
-                                    }`}
+                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    requisicion.tipo_requisition === "producto"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-green-100 text-green-800"
+                                  }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                                 </span>
@@ -651,31 +726,18 @@ const GestionProcura = () => {
                                 {formatMonto(requisicion.monto_anticipo)}
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_renglones}</td>
-
+                             
                               <td className="py-4 px-4 text-sm text-gray-900">
-                                {editingODC === requisicion.id ? (
-                                  <div className="flex space-x-2">
-                                    <button
-                                      onClick={() => handleSaveODC(requisicion.id)}
-                                      className="bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded text-xs"
-                                    >
-                                      Guardar
-                                    </button>
-                                    <button
-                                      onClick={handleCancelEdit}
-                                      className="bg-gray-500 hover:bg-gray-600 text-white py-1 px-2 rounded text-xs"
-                                    >
-                                      Cancelar
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => handleEditODC(requisicion)}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded text-xs"
-                                  >
-                                    Editar ODC
-                                  </button>
-                                )}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation() // Evitar que se abra el modal
+                                    handleSelectRequisicion(requisicion)
+                                  }}
+                                  className="text-blue-600 hover:text-blue-900 font-medium"
+                                >
+                                  Seleccionar
+                                </button>
                               </td>
                             </tr>
                           ))
@@ -724,6 +786,112 @@ const GestionProcura = () => {
           onProveedorCreado={handleProveedorCreado}
           urlApi={UrlApi}
         />
+      )}
+
+      {/* Modal de Detalles de la Requisición */}
+      {modalDetallesVisible && requisicionSeleccionada && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-2xl">Detalles de la Orden de Compra</h3>
+                <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Información General */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
+                  <h4 className="text-lg font-medium text-gray-700 mb-3">Información General</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">ID</p>
+                      <p className="text-base">{requisicionSeleccionada.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Tipo</p>
+                      <p className="text-base">
+                        <span
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            requisicionSeleccionada.tipo_requisition === "producto"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {requisicionSeleccionada.tipo_requisition === "producto" ? "Producto" : "Servicio"}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">N° Requisición</p>
+                      <p className="text-base">{requisicionSeleccionada.nro_requisicion}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">N° ODC</p>
+                      <p className="text-base">{requisicionSeleccionada.nro_odc || "-"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Información del Proyecto y Proveedor */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
+                  <h4 className="text-lg font-medium text-gray-700 mb-3">Proyecto y Proveedor</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Proyecto</p>
+                      <p className="text-base">{requisicionSeleccionada.nombre_corto_proyecto || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Proveedor</p>
+                      <p className="text-base">{requisicionSeleccionada.nombre_comercial_proveedor}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Fecha de Elaboración</p>
+                      <p className="text-base">{formatDate(requisicionSeleccionada.fecha_elaboracion)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Información Financiera */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
+                  <h4 className="text-lg font-medium text-gray-700 mb-3">Información Financiera</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Monto Total</p>
+                      <p className="text-base">${formatMonto(requisicionSeleccionada.monto_total)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Monto Anticipo</p>
+                      <p className="text-base">${formatMonto(requisicionSeleccionada.monto_anticipo)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">N° Renglones</p>
+                      <p className="text-base">{requisicionSeleccionada.nro_renglones}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center mt-8 space-x-4">
+                <button onClick={handleCloseModal} className="btn btn-outline px-8 py-2 rounded-md">
+                  Cerrar
+                </button>
+                <button onClick={handleSelectFromModal} className="btn btn-primary px-8 py-2 rounded-md">
+                  Seleccionar para Editar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
