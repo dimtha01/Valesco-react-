@@ -31,7 +31,7 @@ const GestionProcura = () => {
 
   // Estados para paginación de requisiciones
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 6
+  const rowsPerPage = 8
   const [totalPages, setTotalPages] = useState(1)
 
   // Estado para controlar si estamos editando una requisición existente
@@ -637,45 +637,65 @@ const GestionProcura = () => {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <div className="h-[575px] overflow-y-auto">
+                <div className="w-full overflow-x-hidden">
+                  <div className="h-[550px]">
                     <table className="min-w-full bg-white">
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {/* Columna: N° O/C */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             N° O/C
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: N° ODC */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             N° ODC
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Tipo */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Tipo
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: N° Requisición */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                             N° Requisición
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Proyecto */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                             Proyecto
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Proveedor */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                             Proveedor
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Fecha */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Fecha
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Monto */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Monto
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Anticipo */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Anticipo
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Renglones */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Renglones
                           </th>
 
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {/* Columna: Acciones */}
+                          {/* <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Acciones
-                          </th>
+                          </th> */}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
@@ -692,48 +712,76 @@ const GestionProcura = () => {
                               className="hover:bg-gray-50 cursor-pointer"
                               onClick={() => handleOpenModal(requisicion)}
                             >
-                              <td className="py-4 px-4 text-sm text-gray-900">{requisicion.id}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_odc || "-"}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+                              {/* Columna: N° O/C */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {requisicion.id}
+                              </td>
+
+                              {/* Columna: N° ODC */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {requisicion.nro_odc || "-"}
+                              </td>
+
+                              {/* Columna: Tipo */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 <span
                                   className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-green-100 text-green-800"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-green-100 text-green-800"
                                     }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                                 </span>
                               </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_requisicion}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+
+                              {/* Columna: N° Requisición */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {requisicion.nro_requisicion}
+                              </td>
+
+                              {/* Columna: Proyecto */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                                 {requisicion.nombre_corto_proyecto || "-"}
                               </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+
+                              {/* Columna: Proveedor */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                                 {requisicion.nombre_comercial_proveedor}
                               </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+
+                              {/* Columna: Fecha */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 {formatDate(requisicion.fecha_elaboracion)}
                               </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+
+                              {/* Columna: Monto */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 {formatMonto(requisicion.monto_total)}
                               </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+
+                              {/* Columna: Anticipo */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 {formatMonto(requisicion.monto_anticipo)}
                               </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_renglones}</td>
 
-                              <td className="py-4 px-4 text-sm text-gray-900">
+                              {/* Columna: Renglones */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {requisicion.nro_renglones}
+                              </td>
+
+                              {/* Columna: Acciones */}
+                              {/* <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 <button
                                   type="button"
                                   onClick={(e) => {
-                                    e.stopPropagation() // Evitar que se abra el modal
-                                    handleSelectRequisicion(requisicion)
+                                    e.stopPropagation(); // Evitar que se abra el modal
+                                    handleSelectRequisicion(requisicion);
                                   }}
                                   className="text-blue-600 hover:text-blue-900 font-medium"
                                 >
                                   Seleccionar
                                 </button>
-                              </td>
+                              </td> */}
                             </tr>
                           ))
                         )}
@@ -785,12 +833,42 @@ const GestionProcura = () => {
 
       {/* Modal de Detalles de la Requisición */}
       {modalDetallesVisible && requisicionSeleccionada && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-2xl">Detalles de la Orden de Compra</h3>
-                <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-all duration-300">
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-fadeIn"
+            style={{
+              animation: "fadeInScale 0.3s ease-out forwards",
+            }}
+          >
+            {/* Header con gradiente */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white bg-opacity-20 p-2 rounded-lg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-2xl">Orden de Compra #{requisicionSeleccionada.id}</h3>
+                    <p className="text-sm text-blue-100">Detalles completos de la orden</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-white hover:text-blue-200 transition-colors duration-200 bg-white bg-opacity-10 p-2 rounded-full hover:bg-opacity-20"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"
@@ -802,84 +880,288 @@ const GestionProcura = () => {
                   </svg>
                 </button>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Información General */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                  <h4 className="text-lg font-medium text-gray-700 mb-3">Información General</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">ID</p>
-                      <p className="text-base">{requisicionSeleccionada.id}</p>
+            {/* Contenido principal */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Resumen de información clave */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        />
+                      </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Tipo</p>
-                      <p className="text-base">
-                        <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicionSeleccionada.tipo_requisition === "producto"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
-                            }`}
-                        >
-                          {requisicionSeleccionada.tipo_requisition === "producto" ? "Producto" : "Servicio"}
-                        </span>
-                      </p>
+                    <span className="text-xs text-gray-500 uppercase font-medium">Tipo</span>
+                    <span
+                      className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        requisicionSeleccionada.tipo_requisition === "producto"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {requisicionSeleccionada.tipo_requisition === "producto" ? "Producto" : "Servicio"}
+                    </span>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                        />
+                      </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">N° Requisición</p>
-                      <p className="text-base">{requisicionSeleccionada.nro_requisicion}</p>
+                    <span className="text-xs text-gray-500 uppercase font-medium">N° Requisición</span>
+                    <span className="mt-1 text-lg font-semibold text-gray-800">
+                      {requisicionSeleccionada.nro_requisicion}
+                    </span>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">N° ODC</p>
-                      <p className="text-base">{requisicionSeleccionada.nro_odc || "-"}</p>
+                    <span className="text-xs text-gray-500 uppercase font-medium">Fecha</span>
+                    <span className="mt-1 text-lg font-semibold text-gray-800">
+                      {formatDate(requisicionSeleccionada.fecha_elaboracion)}
+                    </span>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
                     </div>
+                    <span className="text-xs text-gray-500 uppercase font-medium">N° ODC</span>
+                    <span className="mt-1 text-lg font-semibold text-gray-800">
+                      {requisicionSeleccionada.nro_odc || "-"}
+                    </span>
                   </div>
                 </div>
 
-                {/* Información del Proyecto y Proveedor */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                  <h4 className="text-lg font-medium text-gray-700 mb-3">Proyecto y Proveedor</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Proyecto</p>
-                      <p className="text-base">{requisicionSeleccionada.nombre_corto_proyecto || "-"}</p>
+                {/* Secciones principales */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Proyecto */}
+                  <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6 text-blue-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                          />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-gray-800">Información del Proyecto</h4>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Proveedor</p>
-                      <p className="text-base">{requisicionSeleccionada.nombre_comercial_proveedor}</p>
+                    <div className="pl-2 border-l-4 border-blue-200">
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-500">Nombre del Proyecto</p>
+                        <p className="text-base font-semibold text-gray-800">
+                          {requisicionSeleccionada.nombre_corto_proyecto || "No especificado"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">ID del Proyecto</p>
+                        <p className="text-base font-semibold text-gray-800">
+                          {requisicionSeleccionada.id_proyecto || "No especificado"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Fecha de Elaboración</p>
-                      <p className="text-base">{formatDate(requisicionSeleccionada.fecha_elaboracion)}</p>
+                  </div>
+
+                  {/* Proveedor */}
+                  <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-green-100 p-2 rounded-lg mr-3">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6 text-green-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-gray-800">Información del Proveedor</h4>
+                    </div>
+                    <div className="pl-2 border-l-4 border-green-200">
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-500">Nombre Comercial</p>
+                        <p className="text-base font-semibold text-gray-800">
+                          {requisicionSeleccionada.nombre_comercial_proveedor || "No especificado"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">ID del Proveedor</p>
+                        <p className="text-base font-semibold text-gray-800">
+                          {requisicionSeleccionada.id_proveedores || "No especificado"}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Información Financiera */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                  <h4 className="text-lg font-medium text-gray-700 mb-3">Información Financiera</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Monto Total</p>
-                      <p className="text-base">${formatMonto(requisicionSeleccionada.monto_total)}</p>
+                <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-purple-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Monto Anticipo</p>
-                      <p className="text-base">${formatMonto(requisicionSeleccionada.monto_anticipo)}</p>
+                    <h4 className="text-lg font-semibold text-gray-800">Información Financiera</h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 shadow-sm border border-purple-100">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Monto Total</p>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-purple-700">$</span>
+                        <span className="text-2xl font-bold text-gray-800 ml-1">
+                          {formatMonto(requisicionSeleccionada.monto_total)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Sin IVA incluido</p>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">N° Renglones</p>
-                      <p className="text-base">{requisicionSeleccionada.nro_renglones}</p>
+
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 shadow-sm border border-blue-100">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Monto Anticipo</p>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-blue-700">$</span>
+                        <span className="text-2xl font-bold text-gray-800 ml-1">
+                          {formatMonto(requisicionSeleccionada.monto_anticipo)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {requisicionSeleccionada.monto_anticipo && requisicionSeleccionada.monto_total
+                          ? `${Math.round((requisicionSeleccionada.monto_anticipo / requisicionSeleccionada.monto_total) * 100)}% del total`
+                          : "0% del total"}
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 shadow-sm border border-indigo-100">
+                      <p className="text-sm font-medium text-gray-500 mb-1">N° Renglones</p>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-indigo-700">
+                          {requisicionSeleccionada.nro_renglones}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Elementos incluidos</p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="flex justify-center mt-8 space-x-4">
-                <button onClick={handleCloseModal} className="btn btn-outline px-8 py-2 rounded-md">
+            {/* Footer con acciones */}
+            <div className="bg-gray-50 p-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+                <button
+                  onClick={handleCloseModal}
+                  className="btn btn-outline px-6 py-2 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-950 transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Cerrar
                 </button>
-                <button onClick={handleSelectFromModal} className="btn btn-primary px-8 py-2 rounded-md">
+                <button
+                  onClick={handleSelectFromModal}
+                  className="btn btn-primary px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
                   Seleccionar para Editar
                 </button>
               </div>
@@ -887,6 +1169,19 @@ const GestionProcura = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeInScale {
+          0% {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </>
   )
 }

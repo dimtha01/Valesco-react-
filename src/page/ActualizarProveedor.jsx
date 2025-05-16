@@ -305,6 +305,30 @@ const ActualizarProveedor = () => {
     }
   }
 
+  const handleCancelEdit = () => {
+    // Limpiar el formulario
+    setFormData({
+      id: "",
+      nombre_comercial: "",
+      direccion_fiscal: "",
+      pais: "",
+      telefono: "",
+      email: "",
+      rif: "",
+      estatus_id: "",
+    })
+    setObservaciones("")
+
+    // Mostrar notificación
+    Swal.fire({
+      icon: "info",
+      title: "Edición cancelada",
+      text: "Se ha cancelado la edición del proveedor.",
+      showConfirmButton: false,
+      timer: 1500,
+    })
+  }
+
   // Obtener el nombre del estatus según el ID
   const getEstatusNombre = (id) => {
     const estatus = estatusOptions.find((est) => est.id === Number(id))
@@ -365,7 +389,15 @@ const ActualizarProveedor = () => {
         <div className="flex flex-col gap-8">
           {/* Formulario de Actualización de Proveedor */}
           <div className="bg-white rounded-lg shadow-xl p-6 w-full">
-            <h3 className="font-bold text-2xl mb-6">Actualizar Proveedor</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-2xl">Actualizar Proveedor</h3>
+
+              {formData.id && (
+                <button onClick={handleCancelEdit} className="btn btn-outline btn-error">
+                  Cancelar Edición
+                </button>
+              )}
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Información del Proveedor */}
@@ -498,16 +530,48 @@ const ActualizarProveedor = () => {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-center space-x-4">
+              <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <button
                   type="button"
-                  className="btn btn-secondary px-8 py-3 text-lg rounded-md"
+                  className="btn btn-secondary px-8 py-3 text-lg rounded-md flex items-center"
                   onClick={handleCambiarEstatus}
                   disabled={!formData.id}
                 >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
                   Actualizar Estatus
                 </button>
-                <button type="submit" className="btn btn-primary px-8 py-3 text-lg rounded-md" disabled={!formData.id}>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-8 py-3 text-lg rounded-md flex items-center"
+                  disabled={!formData.id}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
+                  </svg>
                   Actualizar Proveedor
                 </button>
               </div>
@@ -529,29 +593,39 @@ const ActualizarProveedor = () => {
                     <table className="min-w-full bg-white">
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {/* Columna: ID */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">
                             ID
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Nombre Comercial */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                             Nombre Comercial
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: RIF */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             RIF
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: País */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             País
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Teléfono */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Teléfono
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Email */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                             Email
                           </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+                          {/* Columna: Estatus */}
+                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                             Estatus
-                          </th>
-                          <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Acciones
                           </th>
                         </tr>
                       </thead>
@@ -569,13 +643,38 @@ const ActualizarProveedor = () => {
                               className="hover:bg-gray-50 cursor-pointer"
                               onClick={() => handleOpenModal(proveedor)}
                             >
-                              <td className="py-4 px-4 text-sm text-gray-900">{proveedor.id}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{proveedor.nombre_comercial}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{proveedor.RIF || proveedor.rif}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{proveedor.pais}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{proveedor.telefono}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">{proveedor.email}</td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
+                              {/* Columna: ID */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">
+                                {proveedor.id}
+                              </td>
+
+                              {/* Columna: Nombre Comercial */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                                {proveedor.nombre_comercial}
+                              </td>
+
+                              {/* Columna: RIF */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {proveedor.RIF || proveedor.rif}
+                              </td>
+
+                              {/* Columna: País */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {proveedor.pais}
+                              </td>
+
+                              {/* Columna: Teléfono */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                                {proveedor.telefono}
+                              </td>
+
+                              {/* Columna: Email */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                                {proveedor.email}
+                              </td>
+
+                              {/* Columna: Estatus */}
+                              <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 <span
                                   className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
                                   style={{
@@ -587,18 +686,7 @@ const ActualizarProveedor = () => {
                                 >
                                   {proveedor.estatus_nombre || "Desconocido"}
                                 </span>
-                              </td>
-                              <td className="py-4 px-4 text-sm text-gray-900">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation() // Evitar que se abra el modal
-                                    handleSelectProveedor(proveedor)
-                                  }}
-                                  className="text-blue-600 hover:text-blue-900 font-medium"
-                                >
-                                  Seleccionar
-                                </button>
-                              </td>
+                              </td>                            
                             </tr>
                           ))
                         )}
@@ -641,12 +729,42 @@ const ActualizarProveedor = () => {
 
       {/* Modal de Detalles del Proveedor */}
       {modalVisible && proveedorSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-2xl">Detalles del Proveedor</h3>
-                <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-all duration-300">
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-fadeIn"
+            style={{
+              animation: "fadeInScale 0.3s ease-out forwards",
+            }}
+          >
+            {/* Header con gradiente */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white bg-opacity-20 p-2 rounded-lg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-2xl">Detalles del Proveedor</h3>
+                    <p className="text-sm text-blue-100">{proveedorSeleccionado.nombre_comercial}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-white hover:text-blue-200 transition-colors duration-200 bg-white bg-opacity-10 p-2 rounded-full hover:bg-opacity-20"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"
@@ -658,89 +776,263 @@ const ActualizarProveedor = () => {
                   </svg>
                 </button>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Contenido principal */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Resumen de información clave */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 uppercase font-medium">ID</span>
+                    <span className="mt-1 text-lg font-semibold text-gray-800">{proveedorSeleccionado.id}</span>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 uppercase font-medium">RIF</span>
+                    <span className="mt-1 text-lg font-semibold text-gray-800">
+                      {proveedorSeleccionado.RIF || proveedorSeleccionado.rif}
+                    </span>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 uppercase font-medium">País</span>
+                    <span className="mt-1 text-lg font-semibold text-gray-800">{proveedorSeleccionado.pais}</span>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm border border-blue-100">
+                    <div className="text-blue-500 mb-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 uppercase font-medium">Estatus</span>
+                    <span
+                      className="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      style={{
+                        backgroundColor: proveedorSeleccionado.estatus_color
+                          ? `${proveedorSeleccionado.estatus_color}20`
+                          : "#cccccc20",
+                        color: proveedorSeleccionado.estatus_color || "#666666",
+                      }}
+                    >
+                      {proveedorSeleccionado.estatus_nombre ||
+                        getEstatusNombre(proveedorSeleccionado.estatus_id) ||
+                        "Desconocido"}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Información General */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                  <h4 className="text-lg font-medium text-gray-700 mb-3">Información General</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">ID</p>
-                      <p className="text-base">{proveedorSeleccionado.id}</p>
+                <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
+                      </svg>
                     </div>
-                    <div>
+                    <h4 className="text-lg font-semibold text-gray-800">Información General</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div className="pl-2 border-l-4 border-blue-200">
                       <p className="text-sm font-medium text-gray-500">Nombre Comercial</p>
-                      <p className="text-base">{proveedorSeleccionado.nombre_comercial}</p>
+                      <p className="text-base font-semibold text-gray-800">{proveedorSeleccionado.nombre_comercial}</p>
                     </div>
-                    <div>
+                    <div className="pl-2 border-l-4 border-blue-200">
                       <p className="text-sm font-medium text-gray-500">RIF</p>
-                      <p className="text-base">{proveedorSeleccionado.RIF}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Estatus</p>
-                      <p className="flex items-center">
-                        <span
-                          className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full mr-2"
-                          style={{
-                            backgroundColor: proveedorSeleccionado.estatus_color
-                              ? `${proveedorSeleccionado.estatus_color}20`
-                              : "#cccccc20",
-                            color: proveedorSeleccionado.estatus_color || "#666666",
-                          }}
-                        >
-                          {proveedorSeleccionado.estatus_nombre ||
-                            getEstatusNombre(proveedorSeleccionado.estatus_id) ||
-                            "Desconocido"}
-                        </span>
+                      <p className="text-base font-semibold text-gray-800">
+                        {proveedorSeleccionado.RIF || proveedorSeleccionado.rif}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Información de Contacto */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                  <h4 className="text-lg font-medium text-gray-700 mb-3">Información de Contacto</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-green-100 p-2 rounded-lg mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-green-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-800">Información de Contacto</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div className="pl-2 border-l-4 border-green-200">
                       <p className="text-sm font-medium text-gray-500">Dirección Fiscal</p>
-                      <p className="text-base">{proveedorSeleccionado.direccion_fiscal}</p>
+                      <p className="text-base font-semibold text-gray-800">{proveedorSeleccionado.direccion_fiscal}</p>
                     </div>
-                    <div>
+                    <div className="pl-2 border-l-4 border-green-200">
                       <p className="text-sm font-medium text-gray-500">País</p>
-                      <p className="text-base">{proveedorSeleccionado.pais}</p>
+                      <p className="text-base font-semibold text-gray-800">{proveedorSeleccionado.pais}</p>
                     </div>
-                    <div>
+                    <div className="pl-2 border-l-4 border-green-200">
                       <p className="text-sm font-medium text-gray-500">Teléfono</p>
-                      <p className="text-base">{proveedorSeleccionado.telefono}</p>
+                      <p className="text-base font-semibold text-gray-800">{proveedorSeleccionado.telefono}</p>
                     </div>
-                    <div>
+                    <div className="pl-2 border-l-4 border-green-200">
                       <p className="text-sm font-medium text-gray-500">Email</p>
-                      <p className="text-base">{proveedorSeleccionado.email}</p>
+                      <p className="text-base font-semibold text-gray-800">{proveedorSeleccionado.email}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Fechas */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 md:col-span-2">
-                  <h4 className="text-lg font-medium text-gray-700 mb-3">Fechas</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Fecha de Creación</p>
-                      <p className="text-base">{formatDate(proveedorSeleccionado.created_at)}</p>
+                <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-purple-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Última Actualización</p>
-                      <p className="text-base">{formatDate(proveedorSeleccionado.updated_at)}</p>
+                    <h4 className="text-lg font-semibold text-gray-800">Fechas</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 shadow-sm border border-purple-100">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Fecha de Creación</p>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {formatDate(proveedorSeleccionado.created_at)}
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 shadow-sm border border-blue-100">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Última Actualización</p>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {formatDate(proveedorSeleccionado.updated_at)}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="flex justify-center mt-8 space-x-4">
-                <button onClick={handleCloseModal} className="btn btn-outline px-8 py-2 rounded-md">
+            {/* Footer con acciones */}
+            <div className="bg-gray-50 p-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+                <button
+                  onClick={handleCloseModal}
+                  className="btn btn-outline px-6 py-2 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-950 transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Cerrar
                 </button>
-                <button onClick={handleSelectFromModal} className="btn btn-primary px-8 py-2 rounded-md">
+                <button
+                  onClick={handleSelectFromModal}
+                  className="btn btn-primary px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
                   Seleccionar para Editar
                 </button>
               </div>
@@ -748,6 +1040,19 @@ const ActualizarProveedor = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+  @keyframes fadeInScale {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`}</style>
     </>
   )
 }
