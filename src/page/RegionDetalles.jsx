@@ -425,17 +425,27 @@ const RegionDetalles = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nombre del proyecto
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Avance
+                  </th>
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ofertado
+                  </th>
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Costo Planificado
+                  </th>
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Costo Real
                   </th>
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Facturado
+                    Por Valuar
                   </th>
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Por facturar
                   </th>
+
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Por Valuar
+                    Facturado
                   </th>
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Amortización
@@ -444,9 +454,7 @@ const RegionDetalles = () => {
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Monto Anticipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avance
-                  </th>
+
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -469,37 +477,6 @@ const RegionDetalles = () => {
                       <td className="px-6 py-4 text-sm md:text-base text-gray-900">
                         <div className="max-w-md truncate uppercase">{project.nombre_cortos}</div>
                       </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.costo_real)}>
-                          {formatCurrency(project.costo_real)}
-                        </span>
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_facturado)}>
-                          {formatCurrency(project.monto_facturado)}
-                        </span>
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_por_facturar)}>
-                          {formatCurrency(project.monto_por_facturar)}
-                        </span>
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_por_valuar)}>
-                          {formatCurrency(project.monto_por_valuar)}
-                        </span>
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.total_amortizacion)}>
-                          {formatCurrency(project.total_amortizacion)}
-                        </span>
-                      </td>
-                      {/* Agregar el valor en la fila de la tabla (después de la columna de Amortización) */}
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_anticipo_total)}>
-                          {formatCurrency(project.monto_anticipo_total)}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm md:text-base">
                         <ProgressIndicator
                           progress={{
@@ -509,6 +486,50 @@ const RegionDetalles = () => {
                           }}
                         />
                       </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.monto_ofertado)}>
+                          {formatMontoConSeparador(project.monto_ofertado)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.costo_planificado)}>
+                          {formatMontoConSeparador(project.costo_planificado)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.costo_real)}>
+                          {formatMontoConSeparador(project.costo_real)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.monto_por_valuar)}>
+                          {formatMontoConSeparador(project.monto_por_valuar)}
+                        </span>
+                      </td>
+
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.monto_por_facturar)}>
+                          {formatMontoConSeparador(project.monto_por_facturar)}
+                        </span>
+                      </td>
+
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.monto_facturado)}>
+                          {formatMontoConSeparador(project.monto_facturado)}
+                        </span>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.total_amortizacion)}>
+                          {formatMontoConSeparador(project.total_amortizacion)}
+                        </span>
+                      </td>
+                      {/* Agregar el valor en la fila de la tabla (después de la columna de Amortización) */}
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span title={formatMontoConSeparador(project.monto_anticipo_total)}>
+                          {formatMontoConSeparador(project.monto_anticipo_total)}
+                        </span>
+                      </td>
+
                     </tr>
                   ))
                 )}

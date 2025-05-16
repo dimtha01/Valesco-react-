@@ -365,7 +365,7 @@ const AvanceFinancieroGerencial = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <span title={formatMontoConSeparador(avance.monto_usd)}>
-                            {formatCurrency(avance.monto_usd)}
+                            {formatMontoConSeparador(avance.monto_usd)}
                           </span>
                         </td>
                         <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">

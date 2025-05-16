@@ -861,7 +861,7 @@ const GestionProcura = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-2xl">Orden de Compra #{requisicionSeleccionada.id}</h3>
+                    <h3 className="font-bold text-2xl">Orden de Compra {requisicionSeleccionada.nro_odc}</h3>
                     <p className="text-sm text-blue-100">Detalles completos de la orden</p>
                   </div>
                 </div>
@@ -906,11 +906,10 @@ const GestionProcura = () => {
                     </div>
                     <span className="text-xs text-gray-500 uppercase font-medium">Tipo</span>
                     <span
-                      className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        requisicionSeleccionada.tipo_requisition === "producto"
+                      className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicionSeleccionada.tipo_requisition === "producto"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-green-100 text-green-800"
-                      }`}
+                        }`}
                     >
                       {requisicionSeleccionada.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                     </span>
