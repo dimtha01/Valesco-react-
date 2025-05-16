@@ -14,7 +14,7 @@ const GestionProcura = () => {
     id_proyecto: "",
     numero_requisicion: "",
     id_proveedor: "",
-    fecha_elaboracion:"",
+    fecha_elaboracion: "",
     monto_total: "",
     numero_renglones: "",
     monto_anticipo: "",
@@ -31,7 +31,7 @@ const GestionProcura = () => {
 
   // Estados para paginación de requisiciones
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 7
+  const rowsPerPage = 6
   const [totalPages, setTotalPages] = useState(1)
 
   // Estado para controlar si estamos editando una requisición existente
@@ -204,7 +204,7 @@ const GestionProcura = () => {
     }
 
     // Asegurarse de que los IDs sean strings y existan
-    const proyectoId = requisicion.id_proyecto 
+    const proyectoId = requisicion.id_proyecto
     const proveedorId = requisicion.id_proveedores
 
     console.log("Proyecto ID:", proyectoId)
@@ -223,25 +223,21 @@ const GestionProcura = () => {
       monto_anticipo: requisicion.monto_anticipo?.toString() || "",
       nro_odc: requisicion.nro_odc || "",
     })
-
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    })
     // Guardar el ID de la requisición que estamos editando
     setEditingRequisicion(requisicion.id)
     setIsEditing(true)
 
     // Desplazar la página hacia arriba para mostrar el formulario
-   
+
 
     // Mostrar mensaje informativo
-    Swal.fire({
-      icon: "success",
-      title: "Requisición seleccionada",
-      text: `Ahora está editando la requisición #${requisicion.id}`,
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false,
-    })
 
-    
+
+
   }
 
   // Modificar también la función handleSelectFromModal para asegurar la misma funcionalidad
@@ -377,7 +373,7 @@ const GestionProcura = () => {
       id_proyecto: "",
       numero_requisicion: "",
       id_proveedor: "",
-      fecha_elaboracion:"",
+      fecha_elaboracion: "",
       monto_total: "",
       numero_renglones: "",
       monto_anticipo: "",
@@ -642,7 +638,7 @@ const GestionProcura = () => {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <div className="h-[525px] overflow-y-auto">
+                  <div className="h-[575px] overflow-y-auto">
                     <table className="min-w-full bg-white">
                       <thead className="bg-gray-50 sticky top-0 z-10">
                         <tr className="border-b border-gray-200">
@@ -676,7 +672,7 @@ const GestionProcura = () => {
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Renglones
                           </th>
-                          
+
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Acciones
                           </th>
@@ -697,14 +693,13 @@ const GestionProcura = () => {
                               onClick={() => handleOpenModal(requisicion)}
                             >
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.id}</td>
-                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_odc || "-"}</td>
+                              <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_odc || "-"}</td>
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 <span
-                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    requisicion.tipo_requisition === "producto"
+                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
                                       ? "bg-blue-100 text-blue-800"
                                       : "bg-green-100 text-green-800"
-                                  }`}
+                                    }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                                 </span>
@@ -726,7 +721,7 @@ const GestionProcura = () => {
                                 {formatMonto(requisicion.monto_anticipo)}
                               </td>
                               <td className="py-4 px-4 text-sm text-gray-900">{requisicion.nro_renglones}</td>
-                             
+
                               <td className="py-4 px-4 text-sm text-gray-900">
                                 <button
                                   type="button"
@@ -821,11 +816,10 @@ const GestionProcura = () => {
                       <p className="text-sm font-medium text-gray-500">Tipo</p>
                       <p className="text-base">
                         <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            requisicionSeleccionada.tipo_requisition === "producto"
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicionSeleccionada.tipo_requisition === "producto"
                               ? "bg-blue-100 text-blue-800"
                               : "bg-green-100 text-green-800"
-                          }`}
+                            }`}
                         >
                           {requisicionSeleccionada.tipo_requisition === "producto" ? "Producto" : "Servicio"}
                         </span>
