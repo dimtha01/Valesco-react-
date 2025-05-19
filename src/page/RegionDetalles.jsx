@@ -151,7 +151,7 @@ const RegionDetalles = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${UrlApi}/api/dashdoard/${region}`)
+        const response = await fetch(`${UrlApi}/api/proyectos/${region}`)
         if (!response.ok) {
           throw new Error("No se pudieron cargar los datos")
         }
@@ -467,12 +467,12 @@ const RegionDetalles = () => {
                 ) : (
                   paginatedData.map((project) => (
                     <tr
-                      key={project.id_proyecto}
-                      onClick={() => handleRowClick(project.id_proyecto)}
+                      key={project.id}
+                      onClick={() => handleRowClick(project.id)}
                       className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
                     >
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {project.id_proyecto}
+                        {project.id}
                       </td>
                       <td className="px-6 py-4 text-sm md:text-base text-gray-900">
                         <div className="max-w-md truncate uppercase">{project.nombre_cortos}</div>
@@ -480,8 +480,8 @@ const RegionDetalles = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm md:text-base">
                         <ProgressIndicator
                           progress={{
-                            real: Number.parseFloat(project.avance_real) || 0,
-                            planned: Number.parseFloat(project.avance_planificado) || 0,
+                            real: Number.parseFloat(project.avance_real_maximo) || 0,
+                            planned: Number.parseFloat(project.avance_planificado_maximo) || 0,
                             completed: 100, // Asumimos que el avance completado es siempre 100%
                           }}
                         />
@@ -492,8 +492,8 @@ const RegionDetalles = () => {
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.costo_planificado)}>
-                          {formatMontoConSeparador(project.costo_planificado)}
+                        <span title={formatMontoConSeparador(project.costo_estimado)}>
+                          {formatMontoConSeparador(project.costo_estimado)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -502,20 +502,20 @@ const RegionDetalles = () => {
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_por_valuar)}>
-                          {formatMontoConSeparador(project.monto_por_valuar)}
+                        <span title={formatMontoConSeparador(project.por_valuar)}>
+                          {formatMontoConSeparador(project.por_valuar)}
                         </span>
                       </td>
 
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_por_facturar)}>
-                          {formatMontoConSeparador(project.monto_por_facturar)}
+                        <span title={formatMontoConSeparador(project.por_factura)}>
+                          {formatMontoConSeparador(project.por_factura)}
                         </span>
                       </td>
 
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span title={formatMontoConSeparador(project.monto_facturado)}>
-                          {formatMontoConSeparador(project.monto_facturado)}
+                        <span title={formatMontoConSeparador(project.facturado)}>
+                          {formatMontoConSeparador(project.facturado)}
                         </span>
                       </td>
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
