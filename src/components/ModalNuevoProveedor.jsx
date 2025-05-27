@@ -72,6 +72,8 @@ const ModalNuevoProveedor = ({ onClose, onProveedorCreado, urlApi }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log(formData);
+
 
     if (!validateForm()) {
       return

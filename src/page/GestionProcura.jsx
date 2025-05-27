@@ -379,6 +379,7 @@ const GestionProcura = () => {
       ...formData,
       id_proveedor: nuevoProveedor.id,
     })
+    fetchProveedores()
   }
 
   const handleCancelEdit = () => {
