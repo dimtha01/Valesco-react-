@@ -159,7 +159,7 @@ const ProcedimientoComercial = () => {
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1)
-  const rowsPerPage = 10
+  const rowsPerPage = 7
   const [filteredDatos, setFilteredDatos] = useState([])
   const [totalPages, setTotalPages] = useState(1)
   const [paginatedData, setPaginatedData] = useState([])
@@ -172,7 +172,7 @@ const ProcedimientoComercial = () => {
       await fetchEstatusComerciales()
 
       // Cargar proyectos (todos)
-      const proyectosUrl = `${UrlApi}/api/proyectos/all`
+      const proyectosUrl = `${UrlApi}/api/proyectos/requisition`
       const proyectosResponse = await fetch(proyectosUrl)
       if (proyectosResponse.ok) {
         const proyectosData = await proyectosResponse.json()
@@ -316,7 +316,7 @@ const ProcedimientoComercial = () => {
     }
 
     try {
-      const response = await fetch(`${UrlApi}/api/proyectos/requisition`, {
+      const response = await fetch(`${UrlApi}/api/proyectos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
