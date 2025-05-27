@@ -325,7 +325,7 @@ const ProcedimientoComercial = () => {
           numero: formData.numero,
           nombre: formData.nombre,
           nombreCorto: formData.nombre_corto,
-          codigoContratoCliente: formData.codigo_contrato_cliente,
+          codigoContratoCliente: formData.codigo_contrato_cliente || null,
           idCliente: Number.parseInt(formData.id_cliente),
           idRegion: Number.parseInt(formData.id_region),
           fechaInicio: formData.fecha_inicio,
@@ -436,6 +436,14 @@ const ProcedimientoComercial = () => {
           icon: "warning",
           title: "Selección requerida",
           text: "Para cambiar a Acta de Inicio, debe seleccionar el monto ofertado.",
+        })
+        return
+      }
+      if (!procedimientoSeleccionado.codigo_contrato_cliente) {
+        Swal.fire({
+          icon: "warning",
+          title: "Selección requerida",
+          text: "Para cambiar a Acta de Inicio, debe ingresar el Codigo Contrato Cliente",
         })
         return
       }
@@ -2489,6 +2497,7 @@ const ProcedimientoComercial = () => {
 
                   {/* Botones de acción */}
                   <div className="flex justify-end space-x-2 pt-2 border-t border-gray-200">
+
                     {nuevoEstatus && !(procedimientoSeleccionado.estatus_comercial === "Acta Inicio.") && (
                       <button
                         type="button"

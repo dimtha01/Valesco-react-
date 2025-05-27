@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Swal from "sweetalert2"
-import { UrlApi } from "../utils/utils"
+import { formatearFechaUTC, UrlApi } from "../utils/utils"
 import ModalNuevoProveedor from "../components/ModalNuevoProveedor"
 
 const GestionProcura = () => {
@@ -780,8 +780,8 @@ const GestionProcura = () => {
                               <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 <span
                                   className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-green-100 text-green-800"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-green-100 text-green-800"
                                     }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
@@ -809,7 +809,7 @@ const GestionProcura = () => {
 
                               {/* Columna: Fecha */}
                               <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
-                                {formatDate(requisicion.fecha_elaboracion)}
+                                {formatearFechaUTC(requisicion.fecha_elaboracion)}
                               </td>
 
                               {/* Columna: Monto */}
@@ -965,8 +965,8 @@ const GestionProcura = () => {
                     <span className="text-xs text-gray-500 uppercase font-medium">Tipo</span>
                     <span
                       className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicionSeleccionada.tipo_requisition === "producto"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-green-100 text-green-800"
                         }`}
                     >
                       {requisicionSeleccionada.tipo_requisition === "producto" ? "Producto" : "Servicio"}
@@ -1015,7 +1015,7 @@ const GestionProcura = () => {
                     </div>
                     <span className="text-xs text-gray-500 uppercase font-medium">Fecha</span>
                     <span className="mt-1 text-lg font-semibold text-gray-800">
-                      {formatDate(requisicionSeleccionada.fecha_elaboracion)}
+                      {formatearFechaUTC(requisicionSeleccionada.fecha_elaboracion)}
                     </span>
                   </div>
 
