@@ -540,7 +540,7 @@ const ProcedimientoComercial = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          codigoContratoCliente: procedimientoSeleccionado.codigo_contrato_cliente,
+          codigo_contrato_cliente: procedimientoSeleccionado.codigo_contrato_cliente,
         }),
       })
 
