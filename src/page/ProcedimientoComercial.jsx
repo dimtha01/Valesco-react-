@@ -316,7 +316,7 @@ const ProcedimientoComercial = () => {
     }
 
     try {
-      const response = await fetch(`${UrlApi}/api/proyectos`, {
+      const response = await fetch(`${UrlApi}/api/proyectos/requisition`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
