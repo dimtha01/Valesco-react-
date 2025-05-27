@@ -25,11 +25,17 @@ import InicioProcura from "./page/InicioProcura"
 import Footer from "./components/Footer"
 import ActualizarProveedor from "./page/ActualizarProveedor"
 import InicionProcedimientoComercial from "./page/InicionProcedimientoComercial"
+import InicioAdministraciónContratos from "./page/InicioAdministraciónContratos"
+import AdministracionContratos from "./page/AdministracionContratos"
+import AvanceFinanciero from "./components/AvanceFinanciero"
+import GestionUsuariosAdministracionContratos from "./page/GestionUsuariosAdministraciónContratos"
+import ScrollToTop from "./components/ScrollToTop"
 
 const App = () => {
   return (
     // Move BrowserRouter outside of AuthProvider
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         {/* Contenedor principal con flexbox y eliminación del scroll horizontal */}
         <div className="flex flex-col min-h-screen overflow-x-hidden">
@@ -61,6 +67,14 @@ const App = () => {
                 }
               />
               <Route
+                path="/InicioPlanificador/GestionUsuariosAdministracionContratos"
+                element={
+                  <ProtectedRoute>
+                    <GestionUsuariosAdministracionContratos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/InicioPlanificador/Proyecto"
                 element={
                   <ProtectedRoute>
@@ -85,7 +99,7 @@ const App = () => {
                 }
               />
               <Route
-                path="/InicioPlanificador/ProcedimientoComercial"
+                path="/InicioProcedimientoComercial/ProcedimientoComercial"
                 element={
                   <ProtectedRoute>
                     <ProcedimientoComercial />
@@ -209,6 +223,30 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <DetallesProyecto />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministraciónContratos"
+                element={
+                  <ProtectedRoute>
+                    <InicioAdministraciónContratos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministraciónContratos/AdministracionContratos"
+                element={
+                  <ProtectedRoute>
+                    <AdministracionContratos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministraciónContratos/AdministracionContratos/:nombre/:id"
+                element={
+                  <ProtectedRoute>
+                    <AvanceFinanciero />
                   </ProtectedRoute>
                 }
               />

@@ -45,7 +45,7 @@ const ActualizarProyecto = () => {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              Proyecto
+              Gestión de Proyectos
             </Link>
           </li>
           <li>{params.Proyecto}</li>
@@ -66,20 +66,12 @@ const ActualizarProyecto = () => {
         >
           Avance Físico
         </button>
-        <button
-          className={`px-4 py-2 rounded ${activeComponent === "avanceFinanciero" ? "bg-blue-500 text-white" : "bg-gray-200"
-            }`}
-          onClick={() => setActiveComponent("avanceFinanciero")}
-        >
-          Administración de Contratos
-        </button>
       </div>
 
       {/* Mostrar el componente seleccionado */}
       <div>
         {activeComponent === "costos" && <Costos />}
         {activeComponent === "avanceFisico" && <AvanceFisico />}
-        {activeComponent === "avanceFinanciero" && <AvanceFinanciero />}
       </div>
     </>
   );

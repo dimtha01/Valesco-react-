@@ -44,6 +44,8 @@ export const AuthProvider = ({ children }) => {
           if (response.ok) {
             try {
               const data = await response.json()
+              console.log(data);
+
 
               if (data.success && data.user) {
                 // Si el token es válido, establecer el estado de autenticación
@@ -152,6 +154,9 @@ export const AuthProvider = ({ children }) => {
         break
       case "procedimiento comercial":
         navigate("/InicioProcedimientoComercial", { replace: true })
+        break
+      case "Administracion de Contratos":
+        navigate("/InicioAdministraciónContratos", { replace: true })
         break
       default:
         navigate("/", { replace: true })

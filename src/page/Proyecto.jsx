@@ -13,6 +13,8 @@ import {
   FiShoppingCart,
   FiUsers,
   FiCreditCard,
+  FiSearch,
+  FiX,
 } from "react-icons/fi"
 import { ProgressIndicator } from "./RegionDetalles"
 
@@ -27,20 +29,18 @@ const Proyecto = () => {
     total_por_valuar: 0,
     total_amortizacion: 0,
     total_monto_anticipo: 0,
-  }) // Initialize with default values
+  })
   const [filteredProyectos, setFilteredProyectos] = useState([])
   const [regions, setRegions] = useState([])
-  const { userRegion, user } = useContext(AuthContext) // Changed from region to userRegion to avoid confusion
-  const region = userRegion // Default to "all" if userRegion is undefined
-  const rowsPerPage = 7
+  const { userRegion, user } = useContext(AuthContext)
+  const region = userRegion
+
+  const rowsPerPage = 5
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [searchText, setSearchText] = useState("")
   const [selectedRegionFilter, setSelectedRegionFilter] = useState("all")
-  const [hoveredMetric, setHoveredMetric] = useState(null)
-  const [error, setError] = useState(null);
-  console.log(user);
-
+  const [error, setError] = useState(null)
 
   const navigate = useNavigate()
 
@@ -51,15 +51,12 @@ const Proyecto = () => {
         return
       }
 
-      // Primero filtrar para excluir proyectos de la región Centro
       let filtered = data.filter((proyecto) => proyecto.nombre_region !== "Centro")
 
-      // Aplicar filtro de región basado en el contexto del usuario
       if (region && region !== "all") {
         filtered = filtered.filter((proyecto) => proyecto.nombre_region === region)
       }
 
-      // Aplicar filtro de búsqueda
       if (searchText) {
         const searchLower = searchText.toLowerCase()
         filtered = filtered.filter(
@@ -67,7 +64,6 @@ const Proyecto = () => {
             proyecto.nombre_proyecto?.toLowerCase().includes(searchLower) ||
             proyecto.nombre_corto?.toLowerCase().includes(searchLower) ||
             proyecto.numero?.toLowerCase().includes(searchLower) ||
-            // Buscar también en el nombre del cliente si está disponible
             (proyecto.nombre_cliente && proyecto.nombre_cliente.toLowerCase().includes(searchLower)),
         )
       }
@@ -92,9 +88,7 @@ const Proyecto = () => {
 
         const data = await response.json()
 
-        // Check if data has the expected structure
         if (!data || !data.proyectos) {
-          console.error("API response missing proyectos:", data)
           setProyectos([])
           setTotales({
             total_ofertado: 0,
@@ -108,8 +102,6 @@ const Proyecto = () => {
           })
         } else {
           setProyectos(data.proyectos)
-
-          // Safely set totales with default values if missing
           setTotales({
             total_ofertado: data.totales?.total_ofertado || 0,
             total_costo_planificado: data.totales?.total_costo_planificado || 0,
@@ -121,11 +113,8 @@ const Proyecto = () => {
             total_monto_anticipo: data.totales?.total_monto_anticipo || 0,
           })
 
-          // Extract unique regions safely
           const uniqueRegions = [...new Set(data.proyectos.map((proyecto) => proyecto.nombre_region).filter(Boolean))]
           setRegions(uniqueRegions)
-
-          // Filter projects
           filterProyectosByRegion(data.proyectos)
         }
       } catch (error) {
@@ -141,7 +130,6 @@ const Proyecto = () => {
     fetchProyectos()
   }, [region, filterProyectosByRegion])
 
-  // Update filter when projects or region changes
   useEffect(() => {
     filterProyectosByRegion(proyectos)
   }, [proyectos, searchText, filterProyectosByRegion])
@@ -156,81 +144,19 @@ const Proyecto = () => {
     navigate(`/InicioPlanificador/Proyecto/ActualizarProyecto/${nombre}/${id}`)
   }
 
-  // Función para manejar el cambio de filtro de región
-  const handleRegionFilterChange = (e) => {
-    setSelectedRegionFilter(e.target.value)
-  }
-
   const paginatedData = filteredProyectos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
   const totalPages = Math.ceil(filteredProyectos.length / rowsPerPage)
 
-  // Métricas para mostrar en las tarjetas - using safe access with default values
-  const metrics = [
-    {
-      id: "ofertado",
-      title: "Ofertado",
-      value: totales.total_ofertado || 0,
-      icon: FiDollarSign,
-      color: "bg-green-100 text-green-600",
-    },
-    {
-      id: "costoPlanificado",
-      title: "Costo Planificado",
-      value: totales.total_costo_planificado || 0,
-      icon: FiBarChart2,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      id: "costoReal",
-      title: "Costo Real",
-      value: totales.total_costo_real || 0,
-      icon: FiActivity,
-      color: "bg-indigo-100 text-indigo-600",
-    },
-    {
-      id: "facturado",
-      title: "Facturado",
-      value: totales.total_facturado || 0,
-      icon: FiCheckCircle,
-      color: "bg-purple-100 text-purple-600",
-    },
-    {
-      id: "porFacturar",
-      title: "Por Facturar",
-      value: totales.total_por_facturar || 0,
-      icon: FiShoppingCart,
-      color: "bg-yellow-100 text-yellow-600",
-    },
-    {
-      id: "porValuar",
-      title: "Por Valuar",
-      value: totales.total_por_valuar || 0,
-      icon: FiUsers,
-      color: "bg-pink-100 text-pink-600",
-    },
-    {
-      id: "amortizacion",
-      title: "Total Amortización",
-      value: totales.total_amortizacion || 0,
-      icon: FiCreditCard,
-      color: "bg-orange-100 text-orange-600",
-    },
-    {
-      id: "anticipoTotal",
-      title: "Monto Anticipo Total",
-      value: totales.total_monto_anticipo || 0,
-      icon: FiCreditCard,
-      color: "bg-teal-100 text-teal-600",
-    },
-  ]
-
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Breadcrumbs */}
-      <div className="breadcrumbs text-lg mx-2 mt-2 text-[#0f0f0f]">
+      <div className="breadcrumbs text-lg mx-6 pt-6 text-[#0f0f0f]">
         <ul>
           <li>
-            <Link to="/InicioPlanificador" className="flex items-center hover:text-blue-500">
+            <Link
+              to="/InicioPlanificador"
+              className="flex items-center hover:text-blue-500 transition-colors duration-300"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -248,7 +174,10 @@ const Proyecto = () => {
             </Link>
           </li>
           <li>
-            <Link to="/InicioPlanificador/Proyecto" className="flex items-center hover:text-blue-500">
+            <Link
+              to="/InicioPlanificador/Proyecto"
+              className="flex items-center hover:text-blue-500 transition-colors duration-300"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -262,261 +191,425 @@ const Proyecto = () => {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              Actualización de Proyecto
+              Gestión de Proyectos
             </Link>
           </li>
         </ul>
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-col h-auto overflow-hidden p-4">
-        <div className="text-sm text-gray-500 flex items-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Proyectos</h1>
-        </div>
-
-        {/* Display error message if there is one */}
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
-            <p>{error}</p>
+      {/* Header */}
+      <div className="mb-8 my-5 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 p-4 rounded-2xl mr-4 shadow-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-8 w-8 stroke-current text-white"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Gestión de Proyectos</h1>
+              <p className="text-gray-600 mt-1">Monitoreo financiero y operativo en tiempo real</p>
+            </div>
           </div>
-        )}
-
-        {/* Metrics cards - first row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {metrics.slice(0, 4).map((metric) => (
-            <div
-              key={metric.id}
-              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
-              onMouseEnter={() => setHoveredMetric(metric.id)}
-              onMouseLeave={() => setHoveredMetric(null)}
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
-                    {formatMontoConSeparador(metric.value)}
-                  </p>
-                </div>
-                <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
-                  <metric.icon className="h-5 w-5" />
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
+      </div>
 
-        {/* Metrics cards - second row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {metrics.slice(4).map((metric) => (
-            <div
-              key={metric.id}
-              className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
-              onMouseEnter={() => setHoveredMetric(metric.id)}
-              onMouseLeave={() => setHoveredMetric(null)}
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                  <p className="text-xl font-bold text-gray-900" title={formatMontoConSeparador(metric.value)}>
-                    {formatMontoConSeparador(metric.value)}
-                  </p>
-                </div>
-                <div className={`h-10 w-10 rounded-full ${metric.color} flex items-center justify-center`}>
-                  <metric.icon className="h-5 w-5" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Search bar */}
-        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            <div className="relative w-full md:w-80">
-              <input
-                type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Buscar proyecto..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
-              {searchText && (
-                <button onClick={() => setSearchText("")} className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg
-                    className="w-4 h-4 text-gray-500 hover:text-gray-700"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                  >
+      {/* Error Message */}
+      {error && (
+        <div className="px-6 mb-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                     <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m1 1 12 12M1 13 13 1"
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
                     />
                   </svg>
-                </button>
-              )}
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Loading state or table */}
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <LoadingComponent />
+      {/* Main Content */}
+      <div className="px-6 pb-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Metrics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-600 text-sm font-medium mb-1">Monto Ofertado</p>
+                  <p className="text-2xl font-bold text-blue-900">${formatMontoConSeparador(totales.total_ofertado)}</p>
+                  <p className="text-blue-500 text-xs mt-1">Total contratado</p>
+                </div>
+                <div className="bg-blue-500 p-3 rounded-xl">
+                  <FiDollarSign className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-600 text-sm font-medium mb-1">Costo Planificado</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    ${formatMontoConSeparador(totales.total_costo_planificado)}
+                  </p>
+                  <p className="text-green-500 text-xs mt-1">Presupuesto estimado</p>
+                </div>
+                <div className="bg-green-500 p-3 rounded-xl">
+                  <FiBarChart2 className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-600 text-sm font-medium mb-1">Costo Real</p>
+                  <p className="text-2xl font-bold text-purple-900">
+                    ${formatMontoConSeparador(totales.total_costo_real)}
+                  </p>
+                  <p className="text-purple-500 text-xs mt-1">Gasto ejecutado</p>
+                </div>
+                <div className="bg-purple-500 p-3 rounded-xl">
+                  <FiActivity className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-teal-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-teal-600 text-sm font-medium mb-1">Total Facturado</p>
+                  <p className="text-2xl font-bold text-teal-900">
+                    ${formatMontoConSeparador(totales.total_facturado)}
+                  </p>
+                  <p className="text-teal-500 text-xs mt-1">Ingresos confirmados</p>
+                </div>
+                <div className="bg-teal-500 p-3 rounded-xl">
+                  <FiCheckCircle className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-orange-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-600 text-sm font-medium mb-1">Por Facturar</p>
+                  <p className="text-2xl font-bold text-orange-900">
+                    ${formatMontoConSeparador(totales.total_por_facturar)}
+                  </p>
+                  <p className="text-orange-500 text-xs mt-1">Pendiente facturación</p>
+                </div>
+                <div className="bg-orange-500 p-3 rounded-xl">
+                  <FiShoppingCart className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-pink-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-pink-600 text-sm font-medium mb-1">Por Valuar</p>
+                  <p className="text-2xl font-bold text-pink-900">
+                    ${formatMontoConSeparador(totales.total_por_valuar)}
+                  </p>
+                  <p className="text-pink-500 text-xs mt-1">En proceso evaluación</p>
+                </div>
+                <div className="bg-pink-500 p-3 rounded-xl">
+                  <FiUsers className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-slate-600 text-sm font-medium mb-1">Total Amortización</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    ${formatMontoConSeparador(totales.total_amortizacion)}
+                  </p>
+                  <p className="text-slate-500 text-xs mt-1">Amortización acumulada</p>
+                </div>
+                <div className="bg-slate-500 p-3 rounded-xl">
+                  <FiCreditCard className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-indigo-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-indigo-600 text-sm font-medium mb-1">Monto Anticipo Total</p>
+                  <p className="text-2xl font-bold text-indigo-900">
+                    ${formatMontoConSeparador(totales.total_monto_anticipo)}
+                  </p>
+                  <p className="text-indigo-500 text-xs mt-1">Anticipos recibidos</p>
+                </div>
+                <div className="bg-indigo-500 p-3 rounded-xl">
+                  <FiCreditCard className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="flex flex-col">
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
+
+          {/* Search and Filters */}
+
+
+          {/* Projects Table */}
+          {isLoading ? (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
+              <div className="flex justify-center items-center">
+                <LoadingComponent />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-800">Listado de Proyectos</h2>
-                <p className="text-sm text-gray-500">Gestión y edición de proyectos</p>
+                <p className="text-sm text-gray-500">Gestión y seguimiento detallado</p>
               </div>
 
-              <div className="overflow-x-auto">
-                <div className="h-[500px] overflow-y-auto">
-                  <table className="min-w-full">
-                    <thead className="bg-gray-50 sticky top-0 z-10">
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Número
-                        </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nombre Corto
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Región
-                        </th>
-                        <th className="py-3 px-4  text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell text-center">
-                          Avance Real(%) / Plan(%)
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Ofertado(USD)
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Costo Planificado(USD)
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Por Valuar
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Por Facturar
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Facturado
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Amortización
-                        </th>
-                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                          Monto Anticipo
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {paginatedData.length === 0 ? (
-                        <tr>
-                          <td colSpan="11" className="px-6 py-4 text-center text-sm text-gray-500">
-                            No hay proyectos disponibles.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedData.map((proyecto) => (
-                          <tr
-                            key={proyecto.id}
-                            onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
-                            className="hover:bg-gray-50 cursor-pointer"
-                          >
-                            <td className="py-4 px-4 text-sm text-gray-900 text-center">{proyecto.numero || "N/A"}</td>
-
-                            <td className="py-4 px-4 text-sm text-gray-900 text-left">
-                              <div className="truncate max-w-[150px]" title={proyecto.nombre_proyecto || "N/A"}>
-                                {proyecto.nombre_cortos || proyecto.nombre_corto || "N/A"}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full  ${proyecto.nombre_region === "Centro"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : proyecto.nombre_region === "Occidente"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                  }`}
+              <div className="h-[500px] overflow-hidden">
+                <div className="flex h-full">
+                  {/* Columnas fijas */}
+                  <div className="sticky left-0 z-20 bg-white">
+                    <div className="overflow-y-auto h-full">
+                      <table className="border-collapse">
+                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-30">
+                          <tr>
+                            <th className="py-4 px-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider border-r border-gray-200 w-[100px]">
+                              Número
+                            </th>
+                            <th
+                              className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-r border-gray-200"
+                              style={{ width: "200px" }}
+                            >
+                              Nombre Corto
+                            </th>
+                            <th className="py-4 px-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 w-[120px]">
+                              Código Contrato Cliente
+                            </th>
+                            <th className="py-4 px-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider border-r border-gray-200 w-[120px]">
+                              Región
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 bg-white">
+                          {paginatedData.length === 0 ? (
+                            <tr>
+                              <td colSpan="3" className="px-6 py-12 text-center border-r border-gray-200">
+                                <div className="flex flex-col items-center">
+                                  <svg
+                                    className="w-16 h-16 text-gray-300 mb-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={1}
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                  </svg>
+                                  <p className="text-gray-500 text-lg font-medium">No hay proyectos disponibles</p>
+                                  <p className="text-gray-400 text-sm">Intenta ajustar los filtros de búsqueda</p>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : (
+                            paginatedData.map((proyecto) => (
+                              <tr
+                                key={`fixed-${proyecto.id}`}
+                                onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
+                                className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer transition-all duration-300 group"
+                                title="Haga clic para ver detalles y actualizar este proyecto"
                               >
-                                {proyecto.nombre_region || "N/A"}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              <ProgressIndicator
-                                progress={{
-                                  real: Number.parseFloat(proyecto.avance_real_maximo) || 0,
-                                  planned: Number.parseFloat(proyecto.avance_planificado_maximo) || 0,
-                                  completed: 100, // Asumimos que el avance completado es siempre 100%
-                                }}
-                              />
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.monto_ofertado || 0)}
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.costo_estimado || 0)}
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.por_valuar || 0)}
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.por_factura || 0)}
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.facturado || 0)}
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.total_amortizacion || 0)}
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-900 hidden md:table-cell text-center">
-                              {formatMontoConSeparador(proyecto.monto_anticipo_total || 0)}
+                                <td className="py-7 px-4 text-sm font-medium text-gray-900 text-center border-r border-gray-200 w-[100px] group-hover:text-blue-600 transition-colors uppercase tracking-wider whitespace-nowrap">
+                                  {proyecto.numero || "N/A"}
+                                </td>
+                                <td
+                                  className="py-7 px-4 text-sm text-gray-900 text-left border-r border-gray-200"
+                                  style={{ width: "250px" }}
+                                >
+                                  <div
+                                    className="truncate max-w-[250px] font-medium group-hover:text-blue-600 transition-colors"
+                                    title={proyecto.nombre_proyecto || "N/A"}
+                                  >
+                                    {proyecto.nombre_cortos || proyecto.nombre_corto || "N/A"}
+                                  </div>
+                                </td>
+                                <td
+                                  className="py-7 px-4 text-sm text-gray-900 text-left border-r border-gray-200 text-center"
+                                  style={{ width: "250px" }}
+                                >
+                                  <div
+                                    className="truncate max-w-[250px] font-medium group-hover:text-blue-600 transition-colors "
+
+                                  >
+                                    {proyecto.codigo_contrato_cliente || "N/A"}
+                                  </div>
+                                </td>
+                                <td className="py-7 px-4 text-sm text-gray-900 text-center border-r border-gray-200 w-[120px]">
+                                  <span
+                                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${proyecto.nombre_region === "Centro"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : proyecto.nombre_region === "Occidente"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-yellow-100 text-yellow-800"
+                                      }`}
+                                  >
+                                    {proyecto.nombre_region || "N/A"}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Columnas con scroll */}
+                  <div className="overflow-x-auto overflow-y-auto h-full">
+                    <table className="border-collapse">
+                      <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                        <tr>
+                          <th className="py-4 px-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[200px]">
+                            Avance Real(%) / Plan(%)
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[150px]">
+                            Ofertado(USD)
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[180px]">
+                            Costo Planificado(USD)
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[150px]">
+                            Por Valuar
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[150px]">
+                            Por Facturar
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[150px]">
+                            Facturado
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[150px]">
+                            Amortización
+                          </th>
+                          <th className="py-4 px-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap w-[150px]">
+                            Monto Anticipo
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 bg-white">
+                        {paginatedData.length === 0 ? (
+                          <tr>
+                            <td colSpan="8" className="px-6 py-12 text-center text-sm text-gray-500">
+                              No hay proyectos disponibles.
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          paginatedData.map((proyecto) => (
+                            <tr
+                              key={`scroll-${proyecto.id}`}
+                              onClick={() => handleRowClick(proyecto.id, proyecto.nombre_proyecto)}
+                              className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer transition-all duration-300 group"
+                              title="Haga clic para ver detalles y actualizar este proyecto"
+                            >
+                              <td className="py-4 px-4 text-sm text-gray-900 w-[200px]">
+                                <ProgressIndicator
+                                  progress={{
+                                    real: Number.parseFloat(proyecto.avance_real_maximo) || 0,
+                                    planned: Number.parseFloat(proyecto.avance_planificado_maximo) || 0,
+                                    completed: 100,
+                                  }}
+                                />
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[150px] ">
+                                {formatMontoConSeparador(proyecto.monto_ofertado || 0)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[180px] ">
+                                {formatMontoConSeparador(proyecto.costo_estimado || 0)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[150px] ">
+                                {formatMontoConSeparador(proyecto.por_valuar || 0)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[150px] ">
+                                {formatMontoConSeparador(proyecto.por_factura || 0)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[150px] ">
+                                {formatMontoConSeparador(proyecto.facturado || 0)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[150px] ">
+                                {formatMontoConSeparador(proyecto.total_amortizacion || 0)}
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 text-center whitespace-nowrap w-[150px] ">
+                                {formatMontoConSeparador(proyecto.monto_anticipo_total || 0)}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
               {/* Pagination */}
-              <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Mostrando {filteredProyectos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
-                  {Math.min(currentPage * rowsPerPage, filteredProyectos.length)} de {filteredProyectos.length}{" "}
-                  resultados
+              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Mostrando{" "}
+                  <span className="font-medium">
+                    {filteredProyectos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}
+                  </span>{" "}
+                  a <span className="font-medium">{Math.min(currentPage * rowsPerPage, filteredProyectos.length)}</span>{" "}
+                  de <span className="font-medium">{filteredProyectos.length}</span> resultados
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >
-                    &lt;
+                    Anterior
                   </button>
-                  <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
+                  <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 shadow-sm">
+                    {currentPage} de {totalPages || 1}
+                  </span>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >
-                    &gt;
+                    Siguiente
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </>
+    </div>
   )
 }
 

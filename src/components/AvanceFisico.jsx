@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 import Swal from "sweetalert2"
 import { formatearFechaUTC, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
@@ -202,44 +202,199 @@ const AvanceFisico = () => {
     }
   }
 
+  // Función para crear barra de progreso
+  const ProgressBar = ({ value, max = 100, color = "blue" }) => {
+    const percentage = Math.min((value / max) * 100, 100)
+    const colorClasses = {
+      blue: "bg-blue-500",
+      green: "bg-green-500",
+      yellow: "bg-yellow-500",
+      red: "bg-red-500",
+    }
+
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className={`h-2 rounded-full transition-all duration-300 ${colorClasses[color]}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col h-auto overflow-hidden p-4">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Informe de Avance Físico</h1>
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 my-3">
-        <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Último Avance Real</h3>
-          <p className="text-lg font-bold text-blue-600">{ultimoAvanceReal}%</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Último Avance Planificado</h3>
-          <p className="text-lg font-bold text-green-600">{ultimoAvancePlanificado}%</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+
+
+      <div className="mx-auto max-w-7xl px-4 py-2 ">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 p-4 rounded-2xl mr-4 shadow-lg">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Avance Físico</h1>
+              <p className="text-gray-600 text-lg">Monitoreo y registro del progreso del proyecto</p>              </div>
+          </div>
         </div>
       </div>
+      <div className="container mx-auto max-w-7xl px-4 py-5 space-y-8">
 
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-          <p>{error}</p>
-        </div>
-      )}
 
-      <div className="flex flex-col">
-        <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-          <div className="px-0 py-2 border-b border-gray-200 mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">Registrar Nuevo Avance</h2>
-            <p className="text-sm text-gray-500">Ingrese los detalles del nuevo avance físico</p>
+        {/* Tarjetas de métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Último Avance Real */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
+                  </svg>
+                  <h3 className="text-sm font-semibold opacity-90">Último Avance Real</h3>
+                </div>
+                <p className="text-3xl font-bold">{ultimoAvanceReal}%</p>
+                <div className="mt-3">
+                  <ProgressBar value={ultimoAvanceReal} color="blue" />
+                </div>
+              </div>
+              <div className="rounded-full bg-white/20 p-3">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Último Avance Planificado */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
+                  </svg>
+                  <h3 className="text-sm font-semibold opacity-90">Último Avance Planificado</h3>
+                </div>
+                <p className="text-3xl font-bold">{ultimoAvancePlanificado}%</p>
+                <div className="mt-3">
+                  <ProgressBar value={ultimoAvancePlanificado} color="green" />
+                </div>
+              </div>
+              <div className="rounded-full bg-white/20 p-3">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mensaje de proyecto completado */}
+        {formularioDeshabilitado && (
+          <div className="rounded-2xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 p-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-green-500 p-2">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-green-800">¡Proyecto Completado!</h3>
+                <p className="text-green-700">
+                  El proyecto ha alcanzado el 100% de avance real. No se pueden agregar más registros.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-2xl bg-gradient-to-r from-red-100 to-pink-100 border border-red-200 p-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-red-500 p-2">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-red-800">Error</h3>
+                <p className="text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Formulario */}
+        <div className="rounded-2xl bg-white p-8 shadow-xl">
+          <div className="border-b border-gray-200 pb-6 mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 p-2">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Registrar Nuevo Avance</h2>
+            </div>
+            <p className="text-gray-600">Ingrese los detalles del nuevo avance físico del proyecto</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Avance Real */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Avance Real (%)</label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                  Avance Real (%)
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   name="avanceReal"
                   placeholder="Ingrese el avance real %"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-3 border-2 rounded-xl transition-all duration-200 ${formularioDeshabilitado
+                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : "border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                    }`}
                   value={nuevoAvance.avanceReal}
                   onChange={(e) => handleChangeNumero(e, "avanceReal")}
                   min="1"
@@ -250,14 +405,27 @@ const AvanceFisico = () => {
               </div>
 
               {/* Avance Planificado */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Avance Planificado (%)</label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
+                  </svg>
+                  Avance Planificado (%)
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   name="avancePlanificado"
                   placeholder="Ingrese el avance planificado %"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-3 border-2 rounded-xl transition-all duration-200 ${formularioDeshabilitado
+                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : "border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                    }`}
                   value={nuevoAvance.avancePlanificado}
                   onChange={(e) => handleChangeNumero(e, "avancePlanificado")}
                   min="1"
@@ -268,12 +436,25 @@ const AvanceFisico = () => {
               </div>
 
               {/* Fecha Inicio */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio</label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Fecha de Inicio
+                </label>
                 <input
                   type="date"
                   name="fecha_inicio"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-3 border-2 rounded-xl transition-all duration-200 ${formularioDeshabilitado
+                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : "border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                    }`}
                   value={nuevoAvance.fecha_inicio}
                   onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_inicio: e.target.value })}
                   disabled={formularioDeshabilitado}
@@ -282,12 +463,25 @@ const AvanceFisico = () => {
               </div>
 
               {/* Fecha Fin */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Fin</label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Fecha de Fin
+                </label>
                 <input
                   type="date"
                   name="fecha_fin"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-3 border-2 rounded-xl transition-all duration-200 ${formularioDeshabilitado
+                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : "border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                    }`}
                   value={nuevoAvance.fecha_fin}
                   onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_fin: e.target.value })}
                   min={nuevoAvance.fecha_inicio}
@@ -296,14 +490,27 @@ const AvanceFisico = () => {
                 />
               </div>
 
-              {/* Punto de Atención - Abarca dos columnas en pantallas medianas y grandes */}
-              <div className="form-control w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Punto de Atención</label>
+              {/* Punto de Atención */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Punto de Atención
+                </label>
                 <input
                   type="text"
                   name="puntoAtencion"
                   placeholder="Ingrese el punto de atención"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-3 border-2 rounded-xl transition-all duration-200 ${formularioDeshabilitado
+                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                    : "border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                    }`}
                   value={nuevoAvance.puntoAtencion}
                   onChange={(e) => setNuevoAvance({ ...nuevoAvance, puntoAtencion: e.target.value })}
                   disabled={formularioDeshabilitado}
@@ -313,69 +520,116 @@ const AvanceFisico = () => {
             </div>
 
             {/* Botón de Agregar */}
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end pt-6">
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
                 disabled={formularioDeshabilitado}
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${formularioDeshabilitado
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 hover:scale-105 shadow-lg hover:shadow-xl"
+                  }`}
               >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
                 Agregar Avance
               </button>
             </div>
           </form>
         </div>
 
+        {/* Tabla */}
         {isLoading ? (
-          <LoadingBar />
+          <div className="flex justify-center items-center py-12">
+            <LoadingBar />
+          </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Registro de Avances Físicos</h2>
-              <p className="text-sm text-gray-500">Detalle de avances físicos del proyecto</p>
+          <div className="rounded-2xl bg-white shadow-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+              <h2 className="text-2xl font-bold text-white">Registro de Avances Físicos</h2>
+              <p className="text-blue-100">Historial detallado de avances del proyecto</p>
             </div>
 
-            {/* Modificar la sección de la tabla para tener altura fija */}
             <div className="overflow-x-auto">
               <div className="h-[500px] overflow-y-auto">
                 <table className="min-w-full">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
-                    <tr className="border-b border-gray-200">
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <thead className="bg-gradient-to-r from-gray-50 to-blue-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Registrado
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Avance Real (%)
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Avance Planificado (%)
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Puntos de Atención
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Fecha Inicio
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Fecha Fin
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
+                  <tbody className="divide-y divide-gray-100 bg-white">
                     {paginatedData.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-4 text-gray-500">
-                          No hay datos disponibles.
+                        <td colSpan="6" className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="rounded-full bg-gray-100 p-4">
+                              <svg
+                                className="w-8 h-8 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                            </div>
+                            <p className="text-gray-500 font-medium">No hay avances físicos registrados</p>
+                            <p className="text-gray-400 text-sm">
+                              Los avances aparecerán aquí una vez que sean agregados
+                            </p>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       paginatedData.map((avance, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha)}</td>
-                          <td className="py-4 px-4 text-sm font-medium text-gray-900">{avance.avance_real}%</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{avance.avance_planificado}%</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{avance.puntos_atencion}</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_inicio)}</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_fin)}</td>
+                        <tr
+                          key={index}
+                          className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200"
+                        >
+                          <td className="py-4 px-6 text-sm text-gray-900 font-medium">
+                            {formatearFechaUTC(avance.fecha)}
+                          </td>
+                          <td className="py-4 px-6 text-sm">
+                            <div className="flex items-center gap-3">
+                              <span className=" text-blue-600">{avance.avance_real}%</span>
+                              <div className="flex-1">
+                                <ProgressBar value={Number.parseFloat(avance.avance_real)} color="blue" />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-sm">
+                            <div className="flex items-center gap-3">
+                              <span className=" text-green-600">{avance.avance_planificado}%</span>
+                              <div className="flex-1">
+                                <ProgressBar value={Number.parseFloat(avance.avance_planificado)} color="green" />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-sm text-gray-900">{avance.puntos_atencion}</td>
+                          <td className="py-4 px-6 text-sm text-gray-600">{formatearFechaUTC(avance.fecha_inicio)}</td>
+                          <td className="py-4 px-6 text-sm text-gray-600">{formatearFechaUTC(avance.fecha_fin)}</td>
                         </tr>
                       ))
                     )}
@@ -385,8 +639,8 @@ const AvanceFisico = () => {
             </div>
 
             {/* Paginador */}
-            <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
                 Mostrando {avancesFisicos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
                 {Math.min(currentPage * rowsPerPage, avancesFisicos.length)} de {avancesFisicos.length} resultados
               </div>
@@ -394,29 +648,27 @@ const AvanceFisico = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  &lt;
+                  Anterior
                 </button>
-                <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
+                <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
+                  {currentPage}
+                </span>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  &gt;
+                  Siguiente
                 </button>
               </div>
             </div>
           </div>
         )}
-
-        {/* Información de avance */}
-
       </div>
     </div>
   )
 }
 
 export default AvanceFisico
-

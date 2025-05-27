@@ -106,14 +106,19 @@ const Login = () => {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Guardar el token en localStorage para usarlo en futuras peticiones
+        localStorage.removeItem("authToken")
         localStorage.setItem("authToken", data.token)
+        console.log(data.token);
+
 
         // Extraer información del usuario de la respuesta
         const { role, permissionEdit } = data.user
 
         // Determinar la región si existe en los datos del usuario
         const region = data.user.region || null
+        console.log(data);
+
+
 
         // Iniciar sesión y pasar el rol, permiso de edición y región del usuario
         login(role, permissionEdit, region, data.user)
@@ -170,11 +175,10 @@ const Login = () => {
                 </div>
                 <input
                   id="email"
-                  className={`pl-10 w-full p-3 border ${
-                    formSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  } rounded-lg transition-all duration-200`}
+                  className={`pl-10 w-full p-3 border ${formSubmitted && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    } rounded-lg transition-all duration-200`}
                   type="email"
                   name="email"
                   placeholder="nombre@ejemplo.com"
@@ -207,11 +211,10 @@ const Login = () => {
                 </div>
                 <input
                   id="password"
-                  className={`pl-10 w-full p-3 border ${
-                    formSubmitted && !password
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  } rounded-lg transition-all duration-200`}
+                  className={`pl-10 w-full p-3 border ${formSubmitted && !password
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    } rounded-lg transition-all duration-200`}
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="••••••••"

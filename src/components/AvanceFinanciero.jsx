@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useParams } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import showNotification, { formatearFechaUTC, formatMontoConSeparador, UrlApi } from "../utils/utils"
 import LoadingBar from "./LoadingBar"
+import { FiDollarSign, FiCalendar, FiFileText, FiTrendingUp } from "react-icons/fi"
 
 const AvanceFinanciero = () => {
   const params = useParams()
@@ -126,7 +127,7 @@ const AvanceFinanciero = () => {
       showNotification(
         "warning",
         "Campos incompletos",
-        "Por favor, completa todos los campos antes de agregar el Administración de Contratos.",
+        "Por favor, completa todos los campos antes de agregar el avance financiero.",
       )
       return
     }
@@ -140,7 +141,7 @@ const AvanceFinanciero = () => {
       showNotification(
         "warning",
         "Campos incompletos",
-        "Por favor, completa todos los campos antes de agregar el Administración de Contratos.",
+        "Por favor, completa todos los campos antes de agregar el avance financiero.",
       )
       return
     }
@@ -184,7 +185,7 @@ const AvanceFinanciero = () => {
       })
 
       if (!response.ok) {
-        throw new Error("Error al agregar el Administración de Contratos")
+        throw new Error("Error al agregar el avance financiero")
       }
 
       setNuevoAvance({
@@ -194,13 +195,13 @@ const AvanceFinanciero = () => {
         fecha_fin: "",
       })
       fetchAvancesFinancieros()
-      showNotification("success", "Éxito", "El Administración de Contratos ha sido agregado exitosamente.")
+      showNotification("success", "Éxito", "El avance financiero ha sido agregado exitosamente.")
     } catch (error) {
-      console.error("Error al agregar el Administración de Contratos:", error)
+      console.error("Error al agregar el avance financiero:", error)
       showNotification(
         "error",
         "Error",
-        "Ocurrió un problema al agregar el Administración de Contratos. Por favor, inténtalo de nuevo.",
+        "Ocurrió un problema al agregar el avance financiero. Por favor, inténtalo de nuevo.",
       )
     } finally {
       setIsLoading(false)
@@ -219,11 +220,6 @@ const AvanceFinanciero = () => {
     setValuacionSeleccionada(avance)
     setMontoEditado(avance.monto_usd)
     setMostrarModalEdicion(true)
-    // if (avance.estatus_proceso_nombre === "Por Valuar") {
-
-    // } else {
-    //   showNotification("warning", "No permitido", "Solo se puede editar el monto cuando el estado es 'Por Valuar'.")
-    // }
   }
 
   // Función para actualizar el monto
@@ -344,41 +340,191 @@ const AvanceFinanciero = () => {
     return estatusMap[estatus] || null
   }
 
+  // Calcular métricas
+  const calcularMetricas = () => {
+    const totalValuaciones = avancesFinancieros.length
+    const totalMonto = avancesFinancieros.reduce((sum, avance) => sum + Number.parseFloat(avance.monto_usd || 0), 0)
+    const porValuar = avancesFinancieros.filter((avance) => avance.estatus_proceso_nombre === "Por Valuar").length
+    const facturado = avancesFinancieros.filter((avance) => avance.estatus_proceso_nombre === "Facturado").length
+
+    return { totalValuaciones, totalMonto, porValuar, facturado }
+  }
+
+  const metricas = calcularMetricas()
+
   return (
-    <div className="flex flex-col h-auto overflow-hidden p-4">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Administración de Contratos</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Breadcrumbs */}
+      <div className="breadcrumbs text-lg mx-2 mt-2 text-[#0f0f0f]">
+        <ul>
+          <li>
+            <Link to="/InicioAdministraciónContratos" className="flex items-center hover:text-blue-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-6 w-6 stroke-current mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              Administración de Contratos
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/InicioAdministraciónContratos/AdministracionContratos"
+              className="flex items-center hover:text-blue-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="h-6 w-6 stroke-current mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Gestión de Contratos
+            </Link>
+          </li>
+          <li>{params.nombre}</li>
+        </ul>
+      </div>
 
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-          <p>{error}</p>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center mb-4">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-xl mr-4 shadow-lg">
+              <FiTrendingUp className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Avance Financiero</h1>
+              <p className="text-gray-600 mt-1">Gestión de valuaciones y facturación del proyecto</p>
+            </div>
+          </div>
         </div>
-      )}
 
-      <div className="flex flex-col">
-        {proyecto && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-1 gap-4">
-            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Monto Ofertado (USD)</h3>
-              <p className="text-lg font-bold text-gray-900">{formatMontoConSeparador(proyecto.monto_ofertado || 0)}</p>
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 mb-6 rounded-lg shadow-sm" role="alert">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p>{error}</p>
+              </div>
             </div>
           </div>
         )}
-        <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-          <div className="px-0 py-2 border-b border-gray-200 mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">Registrar Nuevo Administración de Contratos</h2>
-            <p className="text-sm text-gray-500">Ingrese los detalles del nuevo Administración de Contratos</p>
+
+        {/* Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium mb-1">Total Valuaciones</p>
+                <p className="text-2xl font-bold text-blue-900">{metricas.totalValuaciones}</p>
+                <p className="text-blue-500 text-xs mt-1">Registros totales</p>
+              </div>
+              <div className="bg-blue-500 p-3 rounded-xl">
+                <FiFileText className="h-6 w-6 text-white" />
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium mb-1">Monto Total</p>
+                <p className="text-2xl font-bold text-green-900">${formatMontoConSeparador(metricas.totalMonto)}</p>
+                <p className="text-green-500 text-xs mt-1">USD acumulado</p>
+              </div>
+              <div className="bg-green-500 p-3 rounded-xl">
+                <FiDollarSign className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-yellow-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-600 text-sm font-medium mb-1">Por Valuar</p>
+                <p className="text-2xl font-bold text-yellow-900">{metricas.porValuar}</p>
+                <p className="text-yellow-500 text-xs mt-1">Pendientes</p>
+              </div>
+              <div className="bg-yellow-500 p-3 rounded-xl">
+                <FiCalendar className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium mb-1">Facturado</p>
+                <p className="text-2xl font-bold text-purple-900">{metricas.facturado}</p>
+                <p className="text-purple-500 text-xs mt-1">Completados</p>
+              </div>
+              <div className="bg-purple-500 p-3 rounded-xl">
+                <FiTrendingUp className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Información del proyecto */}
+        {proyecto && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 shadow-lg border border-indigo-200/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-900 mb-2">Monto Ofertado del Proyecto</h3>
+                  <p className="text-3xl font-bold text-indigo-700">
+                    ${formatMontoConSeparador(proyecto.monto_ofertado || 0)}
+                  </p>
+                  <p className="text-indigo-500 text-sm mt-1">Límite máximo disponible</p>
+                </div>
+                <div className="bg-indigo-500 p-4 rounded-xl">
+                  <FiDollarSign className="h-8 w-8 text-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Formulario */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
+          <div className="border-b border-gray-200 pb-4 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Registrar Nuevo Avance Financiero</h2>
+            <p className="text-gray-600 mt-1">Ingrese los detalles del nuevo avance financiero</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Número de Valuación */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1"> N° de Valuación del Cliente</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">N° de Valuación del Cliente</label>
                 <input
                   type="text"
                   name="numero_valuacion"
                   placeholder="Ingrese el número de valuación"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
                   value={nuevoAvance.numero_valuacion}
                   onChange={(e) => setNuevoAvance({ ...nuevoAvance, numero_valuacion: e.target.value })}
                   required
@@ -386,14 +532,14 @@ const AvanceFinanciero = () => {
               </div>
 
               {/* Monto (USD) */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto USD</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">Monto USD</label>
                 <input
                   type="number"
                   step="0.01"
                   name="monto_usd"
                   placeholder="Ingrese el monto en USD"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
                   value={nuevoAvance.monto_usd}
                   onChange={(e) => handleChangeNumero(e, "monto_usd")}
                   min="0"
@@ -402,12 +548,12 @@ const AvanceFinanciero = () => {
               </div>
 
               {/* Fecha de Inicio */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">Fecha de Inicio</label>
                 <input
                   type="date"
                   name="fecha_inicio"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
                   value={nuevoAvance.fecha_inicio}
                   onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_inicio: e.target.value })}
                   required
@@ -415,12 +561,12 @@ const AvanceFinanciero = () => {
               </div>
 
               {/* Fecha de Fin */}
-              <div className="form-control w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Fin</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">Fecha de Fin</label>
                 <input
                   type="date"
                   name="fecha_fin"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
                   value={nuevoAvance.fecha_fin}
                   onChange={(e) => setNuevoAvance({ ...nuevoAvance, fecha_fin: e.target.value })}
                   min={nuevoAvance.fecha_inicio}
@@ -430,10 +576,10 @@ const AvanceFinanciero = () => {
             </div>
 
             {/* Botón de Agregar */}
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end pt-4">
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Agregar Avance
               </button>
@@ -441,106 +587,119 @@ const AvanceFinanciero = () => {
           </form>
         </div>
 
-        <div className="mb-4">
-          <select
-            value={filterStatus}
-            onChange={handleFilterChange}
-            className="bg-white border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">Todos los estados</option>
-            <option value="por valuar">Por Valuar</option>
-            <option value="por facturar">Por Facturar</option>
-            <option value="facturado">Facturado</option>
-          </select>
+        {/* Filtros */}
+        <div className="mb-6">
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
+            <select
+              value={filterStatus}
+              onChange={handleFilterChange}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="por valuar">Por Valuar</option>
+              <option value="por facturar">Por Facturar</option>
+              <option value="facturado">Facturado</option>
+            </select>
+          </div>
         </div>
 
+        {/* Tabla */}
         {isLoading ? (
-          <LoadingBar />
+          <div className="flex justify-center items-center h-64">
+            <LoadingBar />
+          </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Administración de Contratos</h2>
-
-              <p className="text-sm text-gray-500">Detalle de valuaciones y facturación del proyecto</p>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Avances Financieros</h2>
+              <p className="text-gray-600 text-sm mt-1">Detalle de valuaciones y facturación del proyecto</p>
             </div>
 
-            {/* Modificar la sección de la tabla para tener altura fija */}
             <div className="overflow-x-auto">
               <div className="h-[500px] overflow-y-auto">
                 <table className="min-w-full">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
                     <tr className="border-b border-gray-200">
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         ID
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Fecha
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Número de Valuación del Cliente
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        N° Valuación
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Monto USD
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Fecha Inicio
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Fecha Fin
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                        Número de Factura
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        N° Factura
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Estatus del Proceso
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        Estado
                       </th>
-                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                         Acciones
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
+                  <tbody className="divide-y divide-gray-200 bg-white/50">
                     {paginatedData.length === 0 ? (
                       <tr>
-                        <td colSpan="9" className="text-center py-4 text-gray-500">
-                          No hay datos disponibles
+                        <td colSpan="9" className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                              <FiFileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <p className="text-gray-500 text-lg font-medium">No hay datos disponibles</p>
+                            <p className="text-gray-400 text-sm mt-1">
+                              Agregue un nuevo avance financiero para comenzar
+                            </p>
+                          </div>
                         </td>
                       </tr>
                     ) : (
-                      paginatedData.map((avance) => (
+                      paginatedData.map((avance, index) => (
                         <tr
                           key={avance.id}
-                          className="hover:bg-gray-50 cursor-pointer"
+                          className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer transition-all duration-200"
                           onClick={() => handleRowClick(avance)}
                         >
-                          <td className="py-4 px-4 text-sm text-gray-500 hidden md:table-cell">{avance.id}</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha)}</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{avance.numero_valuacion || "-"}</td>
-                          <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                            {formatMontoConSeparador(avance.monto_usd)}
+                          <td className="py-4 px-6 text-sm text-gray-900 font-medium">{avance.id}</td>
+                          <td className="py-4 px-6 text-sm text-gray-900 font-medium">
+                            {formatearFechaUTC(avance.fecha)}
                           </td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_inicio)}</td>
-                          <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_fin)}</td>
-                          <td className="py-4 px-4 text-sm text-gray-500 hidden md:table-cell">
-                            {avance.numero_factura || "-"}
+                          <td className="py-4 px-6 text-sm text-gray-900 font-medium">
+                            {avance.numero_valuacion || "-"}
                           </td>
-                          <td className="py-4 px-4">
+                          <td className="py-4 px-6 text-sm font-bold text-green-600">
+                            ${formatMontoConSeparador(avance.monto_usd)}
+                          </td>
+                          <td className="py-4 px-6 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_inicio)}</td>
+                          <td className="py-4 px-6 text-sm text-gray-900">{formatearFechaUTC(avance.fecha_fin)}</td>
+                          <td className="py-4 px-6 text-sm text-gray-500">{avance.numero_factura || "-"}</td>
+                          <td className="py-4 px-6">
                             <span
-                              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
-                                ? "bg-green-100 text-green-800"
-                                : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-blue-100 text-blue-800"
+                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
+                                  ? "bg-green-100 text-green-800"
+                                  : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-blue-100 text-blue-800"
                                 }`}
                             >
                               {avance.estatus_proceso_nombre}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-sm" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-4 px-6 text-sm" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={(e) => handleEditarMonto(avance, e)}
-                              className={`bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded transition-colors `}
-
+                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                             >
                               Editar Monto
                             </button>
@@ -553,9 +712,9 @@ const AvanceFinanciero = () => {
               </div>
             </div>
 
-            {/* Paginador */}
-            <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+            {/* Paginación */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
                 Mostrando {filteredData.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
                 {Math.min(currentPage * rowsPerPage, filteredData.length)} de {filteredData.length} resultados
               </div>
@@ -563,156 +722,185 @@ const AvanceFinanciero = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-white hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  &lt;
+                  Anterior
                 </button>
-                <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
+                <span className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white rounded-lg shadow-sm border border-gray-200">
+                  {currentPage}
+                </span>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-white hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  &gt;
+                  Siguiente
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Información del proyecto */}
-      </div>
+        {/* Modal para cambiar estado */}
+        {mostrarModal && valuacionSeleccionada && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-t-2xl">
+                <h2 className="text-xl font-bold text-white">Cambiar Estado de Valuación</h2>
+              </div>
 
-      {/* Modal para cambiar estado */}
-      {mostrarModal && valuacionSeleccionada && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Cambiar estado de la valuación</h2>
-            <p>
-              <strong>Número de Valuación:</strong> {valuacionSeleccionada.numero_valuacion}
-            </p>
-            <p>
-              <strong>Estado actual:</strong> {valuacionSeleccionada.estatus_proceso_nombre}
-            </p>
-            {valuacionSeleccionada.estatus_proceso_nombre !== "Facturado" && (
-              <>
-                <label className="block mt-4">
-                  <span className="font-semibold">Nuevo estado:</span>
-                  <select
-                    id="nuevoEstado"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-                    defaultValue={valuacionSeleccionada.estatus_proceso_nombre}
-                  >
-                    {getValidOptions(valuacionSeleccionada.estatus_proceso_nombre).map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {valuacionSeleccionada.estatus_proceso_nombre === "Por Facturar" && (
-                  <div className="mt-4">
-                    <label className="block">
-                      <span className="font-semibold">Número de Factura:</span>
-                      <input
-                        type="text"
-                        id="numeroFactura"
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-                        required
-                      />
-                    </label>
+              <div className="p-6">
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Número de Valuación:</span>
+                    <p className="text-lg font-semibold text-gray-900">{valuacionSeleccionada.numero_valuacion}</p>
                   </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Estado actual:</span>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {valuacionSeleccionada.estatus_proceso_nombre}
+                    </p>
+                  </div>
+                </div>
+
+                {valuacionSeleccionada.estatus_proceso_nombre !== "Facturado" && (
+                  <>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Nuevo estado:</label>
+                        <select
+                          id="nuevoEstado"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          defaultValue={valuacionSeleccionada.estatus_proceso_nombre}
+                        >
+                          {getValidOptions(valuacionSeleccionada.estatus_proceso_nombre).map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {valuacionSeleccionada.estatus_proceso_nombre === "Por Facturar" && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Número de Factura:</label>
+                          <input
+                            type="text"
+                            id="numeroFactura"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Ingrese el número de factura"
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end space-x-3 mt-8">
+                      <button
+                        type="button"
+                        onClick={() => setMostrarModal(false)}
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg"
+                        onClick={() => {
+                          const nuevoEstado = document.getElementById("nuevoEstado").value
+                          const numeroFactura = document.getElementById("numeroFactura")?.value
+                          handleChangeEstado(valuacionSeleccionada.id, nuevoEstado, numeroFactura)
+                        }}
+                      >
+                        Guardar Cambios
+                      </button>
+                    </div>
+                  </>
                 )}
-                <div className="flex justify-end mt-6 space-x-3">
+
+                {valuacionSeleccionada.estatus_proceso_nombre === "Facturado" && (
+                  <>
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                      <p className="text-green-800">
+                        El estado de esta valuación ya es <strong>Facturado</strong>. No se permite realizar cambios
+                        adicionales.
+                      </p>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setMostrarModal(false)}
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para editar monto */}
+        {mostrarModalEdicion && valuacionSeleccionada && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300">
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 rounded-t-2xl">
+                <h2 className="text-xl font-bold text-white">Editar Monto USD</h2>
+              </div>
+
+              <div className="p-6">
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Número de Valuación:</span>
+                    <p className="text-lg font-semibold text-gray-900">{valuacionSeleccionada.numero_valuacion}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Estado actual:</span>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {valuacionSeleccionada.estatus_proceso_nombre}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-8">
+                  <label className="block text-sm font-semibold text-gray-700">Monto USD:</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={montoEditado}
+                    onChange={(e) => setMontoEditado(e.target.value)}
+                    min="0"
+                    placeholder="Ingrese el nuevo monto"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3">
                   <button
                     type="button"
-                    onClick={() => setMostrarModal(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                    onClick={() => setMostrarModalEdicion(false)}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200"
                   >
                     Cancelar
                   </button>
                   <button
                     type="button"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                    onClick={() => {
-                      const nuevoEstado = document.getElementById("nuevoEstado").value
-                      const numeroFactura = document.getElementById("numeroFactura")?.value
-                      handleChangeEstado(valuacionSeleccionada.id, nuevoEstado, numeroFactura)
-                    }}
+                    onClick={handleActualizarMonto}
+                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg"
                   >
-                    Guardar Cambios
+                    Actualizar Monto
                   </button>
                 </div>
-              </>
-            )}
-            {valuacionSeleccionada.estatus_proceso_nombre === "Facturado" && (
-              <>
-                <p className="mt-4">
-                  El estado de esta valuación ya es <strong>Facturado</strong>. No se permite realizar cambios
-                  adicionales.
-                </p>
-                <div className="flex justify-end mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setMostrarModal(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Modal para editar monto */}
-      {mostrarModalEdicion && valuacionSeleccionada && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Editar Monto USD</h2>
-            <p>
-              <strong>Número de Valuación:</strong> {valuacionSeleccionada.numero_valuacion}
-            </p>
-            <p>
-              <strong>Estado actual:</strong> {valuacionSeleccionada.estatus_proceso_nombre}
-            </p>
-            <div className="mt-4">
-              <label className="block">
-                <span className="font-semibold">Monto USD:</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-                  value={montoEditado}
-                  onChange={(e) => setMontoEditado(e.target.value)}
-                  min="0"
-                  required
-                />
-              </label>
-            </div>
-            <div className="flex justify-end mt-6 space-x-3">
-              <button
-                type="button"
-                onClick={() => setMostrarModalEdicion(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleActualizarMonto}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-              >
-                Actualizar Monto
-              </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
 
 export default AvanceFinanciero
-

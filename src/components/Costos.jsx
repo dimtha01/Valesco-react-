@@ -1,12 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 import showNotification, { formatearFechaUTC, formatMontoConSeparador, UrlApi } from "../utils/utils"
 import Swal from "sweetalert2"
 import LoadingBar from "./LoadingBar"
-
-// Función local para formatear montos con separador de miles (formato: 1,234,567.89)
+import {
+  FiDollarSign,
+  FiShoppingCart,
+  FiCreditCard,
+  FiTrendingUp,
+  FiBarChart2,
+  FiEdit3,
+  FiCalendar,
+  FiFileText,
+} from "react-icons/fi"
 
 const Costos = () => {
   const params = useParams()
@@ -18,7 +26,7 @@ const Costos = () => {
   const [montoAnticipo, setMontoAnticipo] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [rowsPerPage, setRowsPerPage] = useState(7)
   const [error, setError] = useState(null)
 
   // Estados para el modal de cambio de estatus
@@ -33,24 +41,20 @@ const Costos = () => {
   const [mostrarModalAmortizacion, setMostrarModalAmortizacion] = useState(false)
   const [amortizacionEditada, setAmortizacionEditada] = useState("")
 
-  // Actualizar el estado estatusOptions para que coincida con los estatus de AvanceFinanciero
   const [estatusOptions, setEstatusOptions] = useState([
     { id: 4, nombre: "Por Valuar" },
     { id: 5, nombre: "Por Facturar" },
     { id: 6, nombre: "Facturado" },
   ])
 
-  // Estado para el formulario
-  // Modificar el estado nuevoCosto para incluir el campo amortizacion
   const [nuevoCosto, setNuevoCosto] = useState({
     costo: "",
     fecha_inicio: "",
     fecha_fin: "",
-    numero_valuacion: "", // Campo para número de valuación
-    amortizacion: "", // Añadir campo para amortización
+    numero_valuacion: "",
+    amortizacion: "",
   })
 
-  // Estado para el formulario de amortización
   const [nuevaAmortizacion, setNuevaAmortizacion] = useState({
     id_costo: "",
     amortizacion: "",
@@ -67,7 +71,6 @@ const Costos = () => {
   const paginatedData = costos.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
   const totalPages = Math.ceil(costos.length / rowsPerPage)
 
-  // Actualizar la función getEstatusColor para que coincida con los colores de AvanceFinanciero
   const getEstatusColor = (estatusNombre) => {
     if (!estatusNombre) return "bg-gray-100 text-gray-800"
 
@@ -76,11 +79,9 @@ const Costos = () => {
     if (nombreLower.includes("por facturar")) return "bg-yellow-100 text-yellow-800"
     if (nombreLower.includes("facturado")) return "bg-green-100 text-green-800"
 
-    // Color por defecto
     return "bg-gray-100 text-gray-800"
   }
 
-  // Actualizar la función getValidOptions para que coincida con las transiciones de AvanceFinanciero
   const getValidOptions = (estatusActual) => {
     switch (estatusActual) {
       case "Por Valuar":
@@ -109,7 +110,6 @@ const Costos = () => {
       setCostoOrdenesCompra(Number(data.CostoOrdenesCompra) || 0)
       setTotalAmortizacion(Number(data.totalAmortizacion) || 0)
 
-      // Calcular el costo total
       const total = data.costos.reduce((sum, costo) => sum + Number(costo.costo), 0)
       setCostoTotal(total)
 
@@ -149,7 +149,6 @@ const Costos = () => {
     }
   }
 
-  // Modificar la función handleSubmit para incluir la amortización
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -158,7 +157,6 @@ const Costos = () => {
       return
     }
 
-    // Validar que la fecha de fin no sea anterior a la fecha de inicio
     if (new Date(nuevoCosto.fecha_fin) < new Date(nuevoCosto.fecha_inicio)) {
       showNotification("error", "Fechas inválidas", "La fecha de fin no puede ser anterior a la fecha de inicio.")
       return
@@ -166,14 +164,11 @@ const Costos = () => {
 
     const nuevoCostoNumerico = Number(nuevoCosto.costo)
     const nuevoTotal = costoTotal + nuevoCostoNumerico
-    // Ya no calculamos monto_sobrepasado porque no aplica según la imagen
-    const montoSobrepasado = 0 // Establecido a 0 porque "Monto sobre pasado No aplica"
+    const montoSobrepasado = 0
     const amortizacionNumerica = Number(nuevoCosto.amortizacion || 0)
 
-    // Calcular la suma total de amortizaciones existentes
     const totalAmortizacionesExistentes = costos.reduce((sum, costo) => sum + Number(costo.amortizacion || 0), 0)
 
-    // Verificar que la suma total de amortizaciones no exceda el monto de anticipo
     if (totalAmortizacionesExistentes + amortizacionNumerica > montoAnticipo) {
       showNotification(
         "error",
@@ -192,11 +187,11 @@ const Costos = () => {
           id_proyecto: Number.parseInt(params.id),
           fecha: new Date().toISOString().split("T")[0],
           costo: nuevoCostoNumerico,
-          monto_sobrepasado: montoSobrepasado, // Siempre 0 porque no aplica
+          monto_sobrepasado: montoSobrepasado,
           fecha_inicio: nuevoCosto.fecha_inicio,
           fecha_fin: nuevoCosto.fecha_fin,
-          numero_valuacion: nuevoCosto.numero_valuacion, // Número de valuación del proveedor
-          amortizacion: amortizacionNumerica, // Usar el valor ingresado
+          numero_valuacion: nuevoCosto.numero_valuacion,
+          amortizacion: amortizacionNumerica,
         }),
       })
 
@@ -209,7 +204,7 @@ const Costos = () => {
         fecha_inicio: "",
         fecha_fin: "",
         numero_valuacion: "",
-        amortizacion: "", // Limpiar también el campo de amortización
+        amortizacion: "",
       })
       fetchCostos()
       showNotification("success", "Éxito", "El costo ha sido agregado exitosamente.")
@@ -267,10 +262,7 @@ const Costos = () => {
     }
   }
 
-  // Asegurémonos de que la importación de Swal esté correcta y que la condición funcione adecuadamente
-  // Modificar la función handleRowClick para usar una verificación más explícita
   const handleRowClick = (costo) => {
-    // No permitir cambiar el estatus si ya está facturado
     if (costo.nombre_estatus === "Facturado") {
       showNotification(
         "warning",
@@ -284,23 +276,20 @@ const Costos = () => {
     setMostrarModalEstatus(true)
   }
 
-  // Función para abrir el modal de edición de monto
   const handleEditarMonto = (costo, e) => {
-    e.stopPropagation() // Evitar que se propague al handleRowClick
+    e.stopPropagation()
     setCostoSeleccionado(costo)
     setMontoEditado(costo.costo)
     setMostrarModalEdicion(true)
   }
 
-  // Función para abrir el modal de edición de amortización
   const handleEditarAmortizacion = (costo, e) => {
-    e.stopPropagation() // Evitar que se propague al handleRowClick
+    e.stopPropagation()
     setCostoSeleccionado(costo)
     setAmortizacionEditada(costo.amortizacion || "0")
     setMostrarModalAmortizacion(true)
   }
 
-  // Función para actualizar el monto
   const handleActualizarMonto = async () => {
     if (!montoEditado || isNaN(montoEditado) || Number(montoEditado) <= 0) {
       showNotification("error", "Monto inválido", "Por favor, ingrese un monto válido mayor que cero.")
@@ -327,14 +316,12 @@ const Costos = () => {
     }
   }
 
-  // Función para actualizar la amortización
   const handleActualizarAmortizacion = async () => {
     if (!amortizacionEditada || isNaN(amortizacionEditada) || Number(amortizacionEditada) < 0) {
       showNotification("error", "Amortización inválida", "Por favor, ingrese un valor válido para la amortización.")
       return
     }
 
-    // Calcular la suma total de amortizaciones existentes, excluyendo la que se está editando
     const totalAmortizacionesExistentes = costos.reduce((sum, costo) => {
       if (costo.id !== costoSeleccionado.id) {
         return sum + Number(costo.amortizacion || 0)
@@ -344,7 +331,6 @@ const Costos = () => {
 
     const nuevaAmortizacion = Number(amortizacionEditada)
 
-    // Verificar que la suma total de amortizaciones no exceda el monto de anticipo
     if (totalAmortizacionesExistentes + nuevaAmortizacion > montoAnticipo) {
       showNotification(
         "error",
@@ -378,7 +364,6 @@ const Costos = () => {
     }
   }
 
-  // Función para cambiar el estatus de un costo
   const handleChangeEstado = async () => {
     if (!costoSeleccionado) return
 
@@ -395,7 +380,7 @@ const Costos = () => {
 
     try {
       const response = await fetch(`${UrlApi}/api/costos/estatus/${costoSeleccionado.id}`, {
-        method: "PUT", // Cambiado de PATCH a PUT según lo indicado
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_estatus: Number(nuevoEstatusId) }),
       })
@@ -404,9 +389,8 @@ const Costos = () => {
         throw new Error("Error al actualizar el estatus del costo")
       }
 
-      // Actualizar la lista de costos
       fetchCostos()
-      setMostrarModalEstatus(false) // Cerrar el modal
+      setMostrarModalEstatus(false)
 
       Swal.fire({
         icon: "success",
@@ -425,233 +409,402 @@ const Costos = () => {
     }
   }
 
+  // Métricas para las tarjetas
+  const metrics = [
+    {
+      id: "planificado",
+      title: "Costo Planificado",
+      value: costoOfertado,
+      icon: FiBarChart2,
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200/50",
+      titleColor: "text-blue-600",
+      valueColor: "text-blue-900",
+      iconBgColor: "blue-500",
+    },
+    {
+      id: "ordenCompra",
+      title: "Costo por Orden de Compra",
+      value: costoOrdenesCompra,
+      icon: FiShoppingCart,
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200/50",
+      titleColor: "text-red-600",
+      valueColor: "text-red-900",
+      iconBgColor: "red-500",
+    },
+    {
+      id: "anticipo",
+      title: "Monto Anticipo a Proveedores",
+      value: montoAnticipo,
+      icon: FiCreditCard,
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200/50",
+      titleColor: "text-purple-600",
+      valueColor: "text-purple-900",
+      iconBgColor: "purple-500",
+    },
+    {
+      id: "pendiente",
+      title: "Pendiente Por Amortizar",
+      value: montoAnticipo - totalAmortizacion,
+      icon: FiTrendingUp,
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-200/50",
+      titleColor: "text-amber-600",
+      valueColor: "text-amber-900",
+      iconBgColor: "amber-500",
+    },
+    {
+      id: "real",
+      title: "Costo Real",
+      value: costoTotal,
+      icon: FiDollarSign,
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-200/50",
+      titleColor: "text-emerald-600",
+      valueColor: "text-emerald-900",
+      iconBgColor: "emerald-500",
+    },
+  ]
+
   return (
-    <>
-      <div className="flex flex-col h-auto overflow-hidden p-4">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Gestión de Costos</h1>
-        {costoOfertado > 0 && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-4 my-3">
-            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Planificado (USD)</h3>
-              <p className="text-lg font-bold text-gray-900">{formatMontoConSeparador(costoOfertado)}</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+
+
+      {/* Header */}
+      <div className="mb-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 p-4 rounded-2xl mr-4 shadow-lg">
+              <FiDollarSign className="h-8 w-8 text-white" />
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo por Orden de Compra (USD)</h3>
-              <p className="text-lg font-bold text-red-600">{formatMontoConSeparador(costoOrdenesCompra || 0)}</p>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Monto Anticipo a Proveedores (USD)</h3>
-              <p className="text-lg font-bold text-blue-600">{formatMontoConSeparador(montoAnticipo || 0)}</p>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Perdiente Por Amortizar</h3>
-              <p className="text-lg font-bold text-purple-600">{formatMontoConSeparador((montoAnticipo - totalAmortizacion) || 0)}</p>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Real (USD)</h3>
-              <p className="text-lg font-bold text-green-600">{formatMontoConSeparador(costoTotal)}</p>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Gestión de Costos</h1>
+              <p className="text-gray-600 mt-1">Control financiero y seguimiento de gastos del proyecto</p>
             </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-            <p>{error}</p>
+      {/* Error Message */}
+      {error && (
+        <div className="px-6 mb-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        <div className="flex flex-col">
-          <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-            <div className="px-0 py-2 border-b border-gray-200 mb-4">
+      {/* Main Content */}
+      <div className="px-6 pb-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Metrics Cards */}
+          {costoOfertado > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-200/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-600 text-sm font-medium mb-1 ">Costo Planificado</p>
+                    <p className="text-2xl font-bold text-blue-900">${formatMontoConSeparador(costoOfertado)}</p>
+                    <p className="text-blue-500 text-xs mt-1">Presupuesto estimado</p>
+                  </div>
+                  <div className="bg-blue-500 p-3 rounded-xl">
+                    <FiBarChart2 className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-red-200/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-red-600 text-sm font-medium mb-1 ">Costo por Orden de Compra</p>
+                    <p className="text-2xl font-bold text-red-900">${formatMontoConSeparador(costoOrdenesCompra)}</p>
+                    <p className="text-red-500 text-xs mt-1">Órdenes procesadas</p>
+                  </div>
+                  <div className="bg-red-500 p-3 rounded-xl">
+                    <FiShoppingCart className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-200/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-600 text-sm font-medium mb-1 ">Monto Anticipo a Proveedores</p>
+                    <p className="text-2xl font-bold text-purple-900">${formatMontoConSeparador(montoAnticipo)}</p>
+                    <p className="text-purple-500 text-xs mt-1">Anticipos otorgados</p>
+                  </div>
+                  <div className="bg-purple-500 p-3 rounded-xl">
+                    <FiCreditCard className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-amber-200/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-amber-600 text-sm font-medium mb-1 ">Pendiente Por Amortizar</p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      ${formatMontoConSeparador(montoAnticipo - totalAmortizacion)}
+                    </p>
+                    <p className="text-amber-500 text-xs mt-1">Saldo pendiente</p>
+                  </div>
+                  <div className="bg-amber-500 p-3 rounded-xl">
+                    <FiTrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-200/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-emerald-600 text-sm font-medium mb-1 ">Costo Real</p>
+                    <p className="text-2xl font-bold text-emerald-900">${formatMontoConSeparador(costoTotal)}</p>
+                    <p className="text-emerald-500 text-xs mt-1">Gasto ejecutado</p>
+                  </div>
+                  <div className="bg-emerald-500 p-3 rounded-xl">
+                    <FiDollarSign className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Form Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800">Registrar Nuevo Costo</h2>
               <p className="text-sm text-gray-500">Ingrese los detalles del nuevo costo</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Modificar el formulario de registro de costos para incluir el campo de amortización */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* N° Valuación del Proveedor - Cambiado según la imagen */}
-                <div className="form-control w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">N° Valuación del Proveedor</label>
-                  <input
-                    type="text"
-                    name="numero_valuacion"
-                    placeholder="Ingrese el número de valuación"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={nuevoCosto.numero_valuacion}
-                    onChange={(e) => setNuevoCosto({ ...nuevoCosto, numero_valuacion: e.target.value })}
-                    required
-                  />
-                </div>
-
-                {/* Monto (USD) - Cambiado de "Costo" a "Monto" según la imagen */}
-                <div className="form-control w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monto (USD)</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+            <div className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* N° Valuación del Proveedor */}
+                  <div className="space-y-2">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <FiFileText className="h-4 w-4 mr-2 text-gray-500" />
+                      N° Valuación del Proveedor
+                    </label>
                     <input
-                      type="number"
-                      step="0.01"
-                      name="costo"
-                      placeholder="Ingrese el monto en USD"
-                      className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={nuevoCosto.costo}
-                      onChange={handleChangeNumero}
-                      min="0"
+                      type="text"
+                      name="numero_valuacion"
+                      placeholder="Ingrese el número de valuación"
+                      className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                      value={nuevoCosto.numero_valuacion}
+                      onChange={(e) => setNuevoCosto({ ...nuevoCosto, numero_valuacion: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  {/* Monto (USD) */}
+                  <div className="space-y-2">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <FiDollarSign className="h-4 w-4 mr-2 text-gray-500" />
+                      Monto (USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="costo"
+                        placeholder="0.00"
+                        className="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                        value={nuevoCosto.costo}
+                        onChange={handleChangeNumero}
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Monto de Amortización (USD) */}
+                  <div className="space-y-2">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <FiCreditCard className="h-4 w-4 mr-2 text-gray-500" />
+                      Monto de Amortización (USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        name="amortizacion"
+                        placeholder="0.00"
+                        className="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                        value={nuevoCosto.amortizacion}
+                        onChange={handleChangeNumero}
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fecha de Inicio */}
+                  <div className="space-y-2">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <FiCalendar className="h-4 w-4 mr-2 text-gray-500" />
+                      Fecha de Inicio
+                    </label>
+                    <input
+                      type="date"
+                      name="fecha_inicio"
+                      className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                      value={nuevoCosto.fecha_inicio}
+                      onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_inicio: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  {/* Fecha de Fin */}
+                  <div className="space-y-2">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <FiCalendar className="h-4 w-4 mr-2 text-gray-500" />
+                      Fecha de Fin
+                    </label>
+                    <input
+                      type="date"
+                      name="fecha_fin"
+                      className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                      value={nuevoCosto.fecha_fin}
+                      onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_fin: e.target.value })}
+                      min={nuevoCosto.fecha_inicio}
                       required
                     />
                   </div>
                 </div>
 
-                {/* Monto de Amortización (USD) - Nuevo campo */}
-                <div className="form-control w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monto de Amortización (USD)</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="amortizacion"
-                      placeholder="Ingrese el monto de amortización"
-                      className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={nuevoCosto.amortizacion}
-                      onChange={handleChangeNumero}
-                      min="0"
-                    />
-                  </div>
+                {/* Botón de Agregar */}
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    Agregar Costo
+                  </button>
                 </div>
-
-                {/* Fecha de Inicio */}
-                <div className="form-control w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio</label>
-                  <input
-                    type="date"
-                    name="fecha_inicio"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={nuevoCosto.fecha_inicio}
-                    onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_inicio: e.target.value })}
-                    required
-                  />
-                </div>
-
-                {/* Fecha de Fin */}
-                <div className="form-control w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Fin</label>
-                  <input
-                    type="date"
-                    name="fecha_fin"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={nuevoCosto.fecha_fin}
-                    onChange={(e) => setNuevoCosto({ ...nuevoCosto, fecha_fin: e.target.value })}
-                    min={nuevoCosto.fecha_inicio}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Botón de Agregar */}
-              <div className="flex justify-end mt-6">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                >
-                  Agregar Costo
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
 
-          {/* Formulario de Amortización */}
-
+          {/* Table Section */}
           {isLoading ? (
-            <LoadingBar />
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
+              <div className="flex justify-center items-center">
+                <LoadingBar />
+              </div>
+            </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-800">Registro de Costos</h2>
                 <p className="text-sm text-gray-500">Detalle de costos del proyecto</p>
               </div>
 
-              {/* Modificar la sección de la tabla para tener altura fija */}
               <div className="overflow-x-auto">
-                <div className="h-[500px] overflow-y-auto">
+                <div className="h-[500px] overflow-y-hidden">
                   <table className="min-w-full">
-                    <thead className="bg-gray-50 sticky top-0 z-10">
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                      <tr>
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Fecha
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           N° Valuación del Proveedor
                         </th>
-                        {/* Cambiado de "Costo USD" a "Monto USD" según la imagen */}
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Monto USD
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Amortización
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Fecha Inicio
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Fecha Fin
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Estatus
                         </th>
-                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="py-4 px-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           Acciones
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="divide-y divide-gray-100 bg-white">
                       {paginatedData.length === 0 ? (
                         <tr>
-                          <td colSpan="8" className="text-center py-4 text-gray-500">
-                            No hay datos disponibles.
+                          <td colSpan="8" className="px-6 py-12 text-center">
+                            <div className="flex flex-col items-center">
+                              <FiDollarSign className="w-16 h-16 text-gray-300 mb-4" />
+                              <p className="text-gray-500 text-lg font-medium">No hay costos registrados</p>
+                              <p className="text-gray-400 text-sm">Agrega el primer costo para comenzar</p>
+                            </div>
                           </td>
                         </tr>
                       ) : (
                         paginatedData.map((costo) => (
                           <tr
                             key={costo.id}
-                            className={`hover:bg-gray-50 ${costo.nombre_estatus !== "Facturado" ? "cursor-pointer" : ""}`}
+                            className={`hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 transition-all duration-300 group ${costo.nombre_estatus !== "Facturado" ? "cursor-pointer" : ""
+                              }`}
                             onClick={() => handleRowClick(costo)}
                           >
-                            <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha)}</td>
-                            <td className="py-4 px-4 text-sm text-gray-900">{costo.numero_valuacion || "-"}</td>
-                            <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                              {formatMontoConSeparador(costo.costo)}
+                            <td className="py-4 px-4 text-sm text-gray-900 group-hover:text-emerald-600 transition-colors">
+                              {formatearFechaUTC(costo.fecha)}
                             </td>
-                            <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                              {formatMontoConSeparador(costo.amortizacion || 0)}
+                            <td className="py-4 px-4 text-sm text-gray-900 group-hover:text-emerald-600 transition-colors">
+                              {costo.numero_valuacion || "-"}
+                            </td>
+                            <td className="py-4 px-4 text-sm font-medium text-gray-900 ">
+                              ${formatMontoConSeparador(costo.costo)}
+                            </td>
+                            <td className="py-4 px-4 text-sm font-medium text-gray-900 ">
+                              ${formatMontoConSeparador(costo.amortizacion || 0)}
                             </td>
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha_inicio)}</td>
                             <td className="py-4 px-4 text-sm text-gray-900">{formatearFechaUTC(costo.fecha_fin)}</td>
                             <td className="py-4 px-4">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstatusColor(
+                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstatusColor(
                                   costo.nombre_estatus,
                                 )}`}
                               >
                                 {costo.nombre_estatus || "-"}
                               </span>
                             </td>
-                            {/* Nueva columna de acciones */}
                             <td className="py-4 px-4 text-sm" onClick={(e) => e.stopPropagation()}>
                               <div className="flex space-x-2">
                                 <button
                                   onClick={(e) => handleEditarMonto(costo, e)}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs transition-colors"
+                                  className="p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-colors duration-300"
+                                  title="Editar Monto"
                                 >
-                                  Editar Monto
+                                  <FiEdit3 className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={(e) => handleEditarAmortizacion(costo, e)}
-                                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded text-xs transition-colors"
+                                  className="p-2 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg transition-colors duration-300"
+                                  title="Editar Amortización"
                                 >
-                                  Editar Amortización
+                                  <FiCreditCard className="h-4 w-4" />
                                 </button>
                               </div>
                             </td>
@@ -663,27 +816,31 @@ const Costos = () => {
                 </div>
               </div>
 
-              {/* Paginador */}
-              <div className="px-6 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Mostrando {costos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} a{" "}
-                  {Math.min(currentPage * rowsPerPage, costos.length)} de {costos.length} resultados
+              {/* Pagination */}
+              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Mostrando{" "}
+                  <span className="font-medium">{costos.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}</span> a{" "}
+                  <span className="font-medium">{Math.min(currentPage * rowsPerPage, costos.length)}</span> de{" "}
+                  <span className="font-medium">{costos.length}</span> resultados
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >
-                    &lt;
+                    Anterior
                   </button>
-                  <span className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-md">{currentPage}</span>
+                  <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 shadow-sm">
+                    {currentPage} de {totalPages || 1}
+                  </span>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >
-                    &gt;
+                    Siguiente
                   </button>
                 </div>
               </div>
@@ -692,60 +849,66 @@ const Costos = () => {
         </div>
       </div>
 
+      {/* Modals */}
       {/* Modal para cambiar estatus */}
       {mostrarModalEstatus && costoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Gestionar Estatus de Valuación del Proveedor</h2>
-            <p>
-              <strong>Fecha:</strong> {formatearFechaUTC(costoSeleccionado.fecha)}
-            </p>
-            <p>
-              <strong>N° Valuación del Proveedor:</strong> {costoSeleccionado.numero_valuacion || "-"}
-            </p>
-            <p>
-              <strong>Monto:</strong> {formatMontoConSeparador(costoSeleccionado.costo)} USD
-            </p>
-            <p>
-              <strong>Estado actual:</strong>{" "}
-              <span
-                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstatusColor(
-                  costoSeleccionado.nombre_estatus,
-                )}`}
-              >
-                {costoSeleccionado.nombre_estatus || "No definido"}
-              </span>
-            </p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">Gestionar Estatus de Valuación</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  <strong>Fecha:</strong> {formatearFechaUTC(costoSeleccionado.fecha)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>N° Valuación:</strong> {costoSeleccionado.numero_valuacion || "-"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Monto:</strong> ${formatMontoConSeparador(costoSeleccionado.costo)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Estado actual:</strong>{" "}
+                  <span
+                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstatusColor(
+                      costoSeleccionado.nombre_estatus,
+                    )}`}
+                  >
+                    {costoSeleccionado.nombre_estatus || "No definido"}
+                  </span>
+                </p>
+              </div>
 
-            <label className="block mt-4">
-              <span className="font-semibold">Nuevo estatus:</span>
-              <select
-                id="nuevoEstatus"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Seleccione un nuevo estatus
-                </option>
-                {getValidOptions(costoSeleccionado.nombre_estatus).map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.nombre}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Nuevo estatus:</label>
+                <select
+                  id="nuevoEstatus"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Seleccione un nuevo estatus
                   </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="flex justify-end mt-6 space-x-3">
+                  {getValidOptions(costoSeleccionado.nombre_estatus).map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setMostrarModalEstatus(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300"
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-300"
                 onClick={handleChangeEstado}
               >
                 Guardar Cambios
@@ -757,44 +920,48 @@ const Costos = () => {
 
       {/* Modal para editar monto */}
       {mostrarModalEdicion && costoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Editar Monto USD</h2>
-            <p>
-              <strong>N° Valuación del Proveedor:</strong> {costoSeleccionado.numero_valuacion}
-            </p>
-            <p>
-              <strong>Estado actual:</strong> {costoSeleccionado.nombre_estatus}
-            </p>
-            <div className="mt-4">
-              <label className="block">
-                <span className="font-semibold">Monto USD:</span>
-                <div className="relative mt-1">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">Editar Monto USD</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  <strong>N° Valuación:</strong> {costoSeleccionado.numero_valuacion}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Estado actual:</strong> {costoSeleccionado.nombre_estatus}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Monto USD:</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">$</span>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                     value={montoEditado}
                     onChange={(e) => setMontoEditado(e.target.value)}
                     min="0"
                     required
                   />
                 </div>
-              </label>
+              </div>
             </div>
-            <div className="flex justify-end mt-6 space-x-3">
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setMostrarModalEdicion(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleActualizarMonto}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300"
               >
                 Actualizar Monto
               </button>
@@ -805,44 +972,48 @@ const Costos = () => {
 
       {/* Modal para editar amortización */}
       {mostrarModalAmortizacion && costoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Editar Amortización</h2>
-            <p>
-              <strong>N° Valuación del Proveedor:</strong> {costoSeleccionado.numero_valuacion}
-            </p>
-            <p>
-              <strong>Estado actual:</strong> {costoSeleccionado.nombre_estatus}
-            </p>
-            <div className="mt-4">
-              <label className="block">
-                <span className="font-semibold">Amortización USD:</span>
-                <div className="relative mt-1">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">Editar Amortización</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  <strong>N° Valuación:</strong> {costoSeleccionado.numero_valuacion}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Estado actual:</strong> {costoSeleccionado.nombre_estatus}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Amortización USD:</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">$</span>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
                     value={amortizacionEditada}
                     onChange={(e) => setAmortizacionEditada(e.target.value)}
                     min="0"
                     required
                   />
                 </div>
-              </label>
+              </div>
             </div>
-            <div className="flex justify-end mt-6 space-x-3">
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => setMostrarModalAmortizacion(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleActualizarAmortizacion}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300"
               >
                 Actualizar Amortización
               </button>
@@ -850,7 +1021,7 @@ const Costos = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

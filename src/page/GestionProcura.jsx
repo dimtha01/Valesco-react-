@@ -11,6 +11,7 @@ const GestionProcura = () => {
 
   const [formData, setFormData] = useState({
     tipo: "",
+    tipoGasto: "", // Nuevo campo para tipo de gasto
     id_proyecto: "",
     numero_requisicion: "",
     id_proveedor: "",
@@ -143,6 +144,15 @@ const GestionProcura = () => {
     }))
   }
 
+  const handleTipoGastoChange = (tipoGasto) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      tipoGasto,
+      // Si es gasto administrativo, limpiar el proyecto
+      id_proyecto: tipoGasto === "administrativo" ? "" : prevState.id_proyecto,
+    }))
+  }
+
   // Función para formatear fechas
   const formatDate = (dateString) => {
     if (!dateString) return "-"
@@ -214,6 +224,7 @@ const GestionProcura = () => {
     // Llenar el formulario con los datos de la requisición seleccionada
     setFormData({
       tipo: tipo,
+      tipoGasto: requisicion.tipo_gasto || "",
       id_proyecto: requisicion.id_proyecto,
       numero_requisicion: requisicion.nro_requisicion || "",
       id_proveedor: requisicion.id_proveedores,
@@ -233,11 +244,7 @@ const GestionProcura = () => {
 
     // Desplazar la página hacia arriba para mostrar el formulario
 
-
     // Mostrar mensaje informativo
-
-
-
   }
 
   // Modificar también la función handleSelectFromModal para asegurar la misma funcionalidad
@@ -253,13 +260,19 @@ const GestionProcura = () => {
 
     const requiredFields = [
       "tipo",
-      "id_proyecto",
+      "tipoGasto",
       "numero_requisicion",
       "id_proveedor",
       "fecha_elaboracion",
       "monto_total",
       "numero_renglones",
     ]
+
+    // Solo requerir proyecto si es gasto de proyecto
+    if (formData.tipoGasto === "proyecto") {
+      requiredFields.push("id_proyecto")
+    }
+
     const emptyFields = requiredFields.filter((field) => !formData[field])
 
     if (emptyFields.length > 0) {
@@ -278,7 +291,7 @@ const GestionProcura = () => {
       // Preparar los datos para enviar
       const requisicionData = {
         id_tipo: id_tipo,
-        id_proyecto: Number.parseInt(formData.id_proyecto),
+        id_proyecto: formData.tipoGasto === "administrativo" ? null : Number.parseInt(formData.id_proyecto),
         nro_requisicion: formData.numero_requisicion,
         id_proveedores: Number.parseInt(formData.id_proveedor),
         fecha_elaboracion: formData.fecha_elaboracion,
@@ -286,6 +299,7 @@ const GestionProcura = () => {
         nro_renglones: Number.parseInt(formData.numero_renglones),
         monto_anticipo: Number.parseFloat(formData.monto_anticipo || 0),
         nro_odc: formData.nro_odc || null,
+        tipo_gasto: formData.tipoGasto, // Agregar el tipo de gasto
       }
 
       let response
@@ -328,6 +342,7 @@ const GestionProcura = () => {
         // Limpiar el formulario y resetear el estado de edición
         setFormData({
           tipo: "",
+          tipoGasto: "", // Agregar este campo
           id_proyecto: "",
           numero_requisicion: "",
           id_proveedor: "",
@@ -370,6 +385,7 @@ const GestionProcura = () => {
     // Limpiar el formulario y resetear el estado de edición
     setFormData({
       tipo: "",
+      tipoGasto: "", // Agregar este campo
       id_proyecto: "",
       numero_requisicion: "",
       id_proveedor: "",
@@ -471,21 +487,59 @@ const GestionProcura = () => {
                 </div>
               </div>
 
+              {/* Tipo de Gasto */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <h4 className="text-lg font-medium text-gray-700 mb-3">Tipo de Gasto</h4>
+                <div className="flex space-x-6">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="tipoGasto"
+                      className="radio radio-primary mr-2"
+                      checked={formData.tipoGasto === "administrativo"}
+                      onChange={() => handleTipoGastoChange("administrativo")}
+                    />
+                    <span>Gasto Administrativo</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="tipoGasto"
+                      className="radio radio-primary mr-2"
+                      checked={formData.tipoGasto === "proyecto"}
+                      onChange={() => handleTipoGastoChange("proyecto")}
+                    />
+                    <span>Gasto de Proyecto</span>
+                  </label>
+                </div>
+              </div>
+
               {/* Información de la Requisición */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <h4 className="text-lg font-medium text-gray-700 mb-3">Información de la Orden de Compra</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Selección Proyecto */}
                   <div className="form-control w-full">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Selección Proyecto</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Selección Proyecto
+                      {formData.tipoGasto === "administrativo" && (
+                        <span className="text-xs text-gray-500 ml-2">(Deshabilitado para gasto administrativo)</span>
+                      )}
+                    </label>
                     <select
                       name="id_proyecto"
-                      className="select select-bordered w-full h-12 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className={`select select-bordered w-full h-12 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${formData.tipoGasto === "administrativo" ? "bg-gray-100 cursor-not-allowed" : ""
+                        }`}
                       value={formData.id_proyecto}
                       onChange={handleChange}
-                      required
+                      required={formData.tipoGasto === "proyecto"}
+                      disabled={formData.tipoGasto === "administrativo"}
                     >
-                      <option value="">Lista de los Proyectos</option>
+                      <option value="">
+                        {formData.tipoGasto === "administrativo"
+                          ? "No aplica para gasto administrativo"
+                          : "Lista de los Proyectos"}
+                      </option>
                       {proyectos.map((proyecto) => (
                         <option key={proyecto.id} value={String(proyecto.id)}>
                           {proyecto.nombre_cortos}
@@ -726,8 +780,8 @@ const GestionProcura = () => {
                               <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
                                 <span
                                   className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${requisicion.tipo_requisition === "producto"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-green-100 text-green-800"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-green-100 text-green-800"
                                     }`}
                                 >
                                   {requisicion.tipo_requisition === "producto" ? "Producto" : "Servicio"}
@@ -741,7 +795,11 @@ const GestionProcura = () => {
 
                               {/* Columna: Proyecto */}
                               <td className="py-4 px-4 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
-                                {requisicion.nombre_corto_proyecto || "-"}
+                                {requisicion.nombre_corto_proyecto || (
+                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    Gasto Administrativo
+                                  </span>
+                                )}
                               </td>
 
                               {/* Columna: Proveedor */}
@@ -990,10 +1048,12 @@ const GestionProcura = () => {
                   {/* Proyecto */}
                   <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
                     <div className="flex items-center mb-4">
-                      <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                      <div
+                        className={`p-2 rounded-lg mr-3 ${requisicionSeleccionada.nombre_corto_proyecto ? "bg-blue-100" : "bg-orange-100"}`}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6 text-blue-600"
+                          className={`h-6 w-6 ${requisicionSeleccionada.nombre_corto_proyecto ? "text-blue-600" : "text-orange-600"}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -1006,21 +1066,52 @@ const GestionProcura = () => {
                           />
                         </svg>
                       </div>
-                      <h4 className="text-lg font-semibold text-gray-800">Información del Proyecto</h4>
+                      <h4 className="text-lg font-semibold text-gray-800">
+                        {requisicionSeleccionada.nombre_corto_proyecto ? "Información del Proyecto" : "Tipo de Gasto"}
+                      </h4>
                     </div>
-                    <div className="pl-2 border-l-4 border-blue-200">
-                      <div className="mb-3">
-                        <p className="text-sm font-medium text-gray-500">Nombre del Proyecto</p>
-                        <p className="text-base font-semibold text-gray-800">
-                          {requisicionSeleccionada.nombre_corto_proyecto || "No especificado"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">ID del Proyecto</p>
-                        <p className="text-base font-semibold text-gray-800">
-                          {requisicionSeleccionada.id_proyecto || "No especificado"}
-                        </p>
-                      </div>
+                    <div
+                      className={`pl-2 border-l-4 ${requisicionSeleccionada.nombre_corto_proyecto ? "border-blue-200" : "border-orange-200"}`}
+                    >
+                      {requisicionSeleccionada.nombre_corto_proyecto ? (
+                        <>
+                          <div className="mb-3">
+                            <p className="text-sm font-medium text-gray-500">Nombre del Proyecto</p>
+                            <p className="text-base font-semibold text-gray-800">
+                              {requisicionSeleccionada.nombre_corto_proyecto}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">ID del Proyecto</p>
+                            <p className="text-base font-semibold text-gray-800">
+                              {requisicionSeleccionada.id_proyecto}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <div className="inline-flex items-center px-4 py-2 bg-orange-100 rounded-full">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5 text-orange-600 mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            <span className="text-base font-semibold text-orange-800">Gasto Administrativo</span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Esta orden de compra no está asociada a un proyecto específico
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
