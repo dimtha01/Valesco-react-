@@ -530,42 +530,30 @@ const EditarProcedimientoComercial = () => {
       {/* Fondo con gradiente sutil */}
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         {/* Breadcrumbs */}
-        <div className="breadcrumbs text-sm md:text-lg mx-4 pt-4 text-gray-700">
+        <div className="breadcrumbs text-sm md:text-lg mx-2 mt-2 text-[#0f0f0f]">
           <ul className="flex items-center space-x-2">
             <li>
               <Link
                 to="/InicioAdministrador"
-                className="flex items-center hover:text-blue-600 transition-colors duration-300 px-2 py-1 rounded-md hover:bg-blue-50"
+                className="flex items-center hover:text-blue-500 transition-colors duration-300"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
                   fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-2"
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 stroke-current mr-1"
                 >
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                  <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                  />
                 </svg>
-                Sistema Administrativo
+                Sistema administrativo
               </Link>
             </li>
-            <li className="text-gray-400">/</li>
-            <li>
-              <Link
-                to="/InicioProcedimientoComercial"
-                className="flex items-center hover:text-blue-600 transition-colors duration-300 px-2 py-1 rounded-md hover:bg-blue-50"
-              >
-                Comercialización
-              </Link>
-            </li>
-            <li className="text-gray-400">/</li>
-            <li className="text-blue-600 font-medium">Editar Procedimiento Comercial</li>
+            <li >Editar Procedimiento Comercial</li>
           </ul>
         </div>
 
@@ -783,13 +771,12 @@ const EditarProcedimientoComercial = () => {
                             <td className="py-4 px-4 text-sm text-gray-900 font-medium">{item.numero}</td>
                             <td className="py-4 px-4 text-sm text-gray-900">
                               <span
-                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  !item.nombre_region
-                                    ? "bg-gray-100 text-gray-800"
-                                    : item.nombre_region === "Occidente"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                }`}
+                                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${!item.nombre_region
+                                  ? "bg-gray-100 text-gray-800"
+                                  : item.nombre_region === "Occidente"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                  }`}
                               >
                                 {item.nombre_region || "-"}
                               </span>
