@@ -268,7 +268,7 @@ const EditarProcedimientoComercial = () => {
       codigo_contrato_cliente: proyecto.codigo_contrato_cliente || "",
       monto_estimado_oferta_cerrado_sdo: proyecto.monto_estimado_oferta_cerrado_sdo || "",
       monto_estimado_oferta_cliente: proyecto.monto_estimado_oferta_cliente || "",
-      ofertaDelProveedor: proyecto.oferta_del_proveedor || "",
+      oferta_del_proveedor: proyecto.oferta_del_proveedor || "",
       fecha_inicio: formatDateForInput(proyecto.fecha_inicio),
       fecha_final: formatDateForInput(proyecto.fecha_final),
       observaciones: proyecto.observaciones || "",
@@ -1160,9 +1160,9 @@ const EditarProcedimientoComercial = () => {
                       </div>
                     </div>
 
-                    {/* Oferta del Proveedor */}
+                    {/* Costo Planificado */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Oferta del Proveedor (USD)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Costo Planificado (USD)</label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">
                           USD
@@ -1174,7 +1174,7 @@ const EditarProcedimientoComercial = () => {
                           value={formDataEdicion.ofertaDelProveedor}
                           onChange={handleChangeEdicion}
                           className="w-full p-3 pl-14 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-                          required
+                          
                         />
                       </div>
                     </div>
@@ -1758,7 +1758,7 @@ const EditarProcedimientoComercial = () => {
                                     className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 mt-0.5 mr-1"
                                   />
                                   <label htmlFor="costo-proveedor" className="block text-sm text-gray-700">
-                                    <span className="font-medium">Oferta del Proveedor:</span>
+                                    <span className="font-medium">Costo Planificado:</span>
                                     <span className="text-sm font-bold text-orange-600 ml-1">
                                       USD{" "}
                                       {formatMontoConSeparador(
