@@ -245,12 +245,12 @@ const RegionDetalles = () => {
       icon: FiActivity,
       color: "bg-indigo-100 text-indigo-600",
     },
-    {
-      id: "facturado",
-      title: "Facturado",
-      value: totalFacturado,
-      icon: FiCheckCircle,
-      color: "bg-purple-100 text-purple-600",
+   {
+      id: "porValuar",
+      title: "Por Valuar",
+      value: totalPorValuar,
+      icon: FiUsers,
+      color: "bg-pink-100 text-pink-600",
     },
     {
       id: "porFacturar",
@@ -259,12 +259,13 @@ const RegionDetalles = () => {
       icon: FiShoppingCart,
       color: "bg-yellow-100 text-yellow-600",
     },
-    {
-      id: "porValuar",
-      title: "Por Valuar",
-      value: totalPorValuar,
-      icon: FiUsers,
-      color: "bg-pink-100 text-pink-600",
+    
+     {
+      id: "facturado",
+      title: "Facturado",
+      value: totalFacturado,
+      icon: FiCheckCircle,
+      color: "bg-purple-100 text-purple-600",
     },
     // {
     //   id: "amortizacion",
