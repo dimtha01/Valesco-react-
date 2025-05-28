@@ -530,7 +530,7 @@ const ProcedimientoComercial = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          codigo_contrato_cliente: procedimientoSeleccionado.codigo_contrato_cliente,
+          codigoContratoCliente: procedimientoSeleccionado.codigo_contrato_cliente,
         }),
       })
 
@@ -573,7 +573,7 @@ const ProcedimientoComercial = () => {
             Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
           monto_estimado_oferta_cliente:
             Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0,
-          oferta_del_proveedor: Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
+          ofertaDelProveedor: Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
         }),
       })
 
@@ -599,6 +599,45 @@ const ProcedimientoComercial = () => {
         icon: "error",
         title: "Error",
         text: error.message || "Ocurrió un error inesperado al intentar actualizar los montos.",
+      })
+    }
+  }
+
+  // Función para actualizar las observaciones del proyecto
+  const actualizarObservaciones = async () => {
+    try {
+      const response = await fetch(`${UrlApi}/api/proyectos/${procedimientoSeleccionado.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          observaciones: procedimientoSeleccionado.observaciones || "",
+        }),
+      })
+
+      if (response.ok) {
+        // Actualizar la lista de proyectos
+        await recargarDatos()
+
+        // Mostrar mensaje de éxito
+        Swal.fire({
+          icon: "success",
+          title: "Observaciones actualizadas",
+          text: "Las observaciones del proyecto han sido actualizadas exitosamente.",
+          showConfirmButton: false,
+          timer: 1500,
+        })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al actualizar las observaciones del proyecto")
+      }
+    } catch (error) {
+      console.error("Error al actualizar observaciones:", error)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Ocurrió un error inesperado al intentar actualizar las observaciones.",
       })
     }
   }
@@ -747,7 +786,7 @@ const ProcedimientoComercial = () => {
                   {/* Sección de información básica */}
                   <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 shadow-inner">
                     <div className="flex items-center mb-4">
-                      <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                      <div className="p-2 bg-blue-100 rounded-full mr-4">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="20"
@@ -1636,8 +1675,46 @@ const ProcedimientoComercial = () => {
                               No.
                             </span>
                           </th>
-
-
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                            <span className="flex items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2 text-indigo-500"
+                              >
+                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                              </svg>
+                              Región
+                            </span>
+                          </th>
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                            <span className="flex items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2 text-indigo-500"
+                              >
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                              </svg>
+                              Cliente
+                            </span>
+                          </th>
                           <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
                             <span className="flex items-center">
                               <svg
@@ -1661,7 +1738,7 @@ const ProcedimientoComercial = () => {
                               Proyecto
                             </span>
                           </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
                             <span className="flex items-center">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1683,7 +1760,7 @@ const ProcedimientoComercial = () => {
                               Costo Planificado
                             </span>
                           </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
                             <span className="flex items-center">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1705,9 +1782,7 @@ const ProcedimientoComercial = () => {
                               Oferta al Cliente
                             </span>
                           </th>
-
-
-                          <th className="py-4 px-4  text-sm font-semibold text-gray-600 uppercase tracking-wider text-center">
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
                             <span className="flex items-center">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1721,9 +1796,12 @@ const ProcedimientoComercial = () => {
                                 strokeLinejoin="round"
                                 className="mr-2 text-indigo-500"
                               >
-                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                <line x1="16" x2="16" y1="2" y2="6"></line>
+                                <line x1="8" x2="8" y1="2" y2="6"></line>
+                                <line x1="3" x2="21" y1="10" y2="10"></line>
                               </svg>
-                              Estatus
+                              Inicio
                             </span>
                           </th>
                           <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
@@ -1742,7 +1820,7 @@ const ProcedimientoComercial = () => {
                               >
                                 <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
                               </svg>
-                              Observaciones
+                              Estatus
                             </span>
                           </th>
                         </tr>
@@ -1750,7 +1828,7 @@ const ProcedimientoComercial = () => {
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {paginatedData.length === 0 ? (
                           <tr>
-                            <td colSpan="7" className="px-6 py-10 text-center text-base text-gray-500">
+                            <td colSpan="8" className="px-6 py-10 text-center text-base text-gray-500">
                               <div className="flex flex-col items-center">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
@@ -1782,34 +1860,40 @@ const ProcedimientoComercial = () => {
                               className="hover:bg-blue-50 cursor-pointer transition-colors duration-150"
                               onClick={() => handleRowClick(item)}
                             >
-
+                              <td className="py-4 px-4 text-base text-gray-900 font-medium">{item.numero}</td>
                               <td className="py-4 px-4 text-base text-gray-900">
-                                <div className="truncate max-w-[180px]" >
-                                  {item.numero}
-                                </div>
-                                <div className={`text-xs text-gray-500 mt-1{!item.nombre_region
-                                    ? "bg-gray-100 text-gray-800"
-                                    : item.nombre_region === "Occidente"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                    }`}>{item.nombre_region || "-"} </div>
+                                <span
+                                  className={`px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full ${!item.nombre_region
+                                      ? "bg-gray-100 text-gray-800"
+                                      : item.nombre_region === "Occidente"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-yellow-100 text-yellow-800"
+                                    }`}
+                                >
+                                  {item.nombre_region || "-"}
+                                </span>
                               </td>
-
-
+                              <td className="py-4 px-4 text-base text-gray-900">
+                                <div className="truncate max-w-[150px]" title={item.nombre_cliente || "-"}>
+                                  {item.nombre_cliente || "-"}
+                                </div>
+                              </td>
                               <td className="py-4 px-4 text-base text-gray-900">
                                 <div className="truncate max-w-[180px]" title={item.nombre_proyecto}>
                                   {item.nombre_proyecto}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1">{item.nombre_cortos}</div>
                               </td>
-                              <td className="py-4 px-4 text-base text-end text-gray-900 font-medium">
-                                {formatMontoConSeparador(Number.parseFloat(item.oferta_del_proveedor))}
+                              <td className="py-4 px-4 text-base text-gray-900 font-medium">
+                                USD {formatMontoConSeparador(Number.parseFloat(item.costo_estimado))}
                               </td>
-                              <td className="py-4 px-4 text-base text-end  text-gray-900 font-medium">
-                                {formatMontoConSeparador(Number.parseFloat(item.monto_estimado_oferta_cliente))}
+                              <td className="py-4 px-4 text-base text-gray-900 font-medium">
+                                USD {formatMontoConSeparador(Number.parseFloat(item.monto_ofertado))}
                               </td>
-
-                              <td className="py-4 px-4 text-base text-gray- tracking-wider whitespace-nowrap text-center">
+                              <td className="py-4 px-4 text-base text-gray-900">
+                                {item.fecha_inicio ? formatDate(item.fecha_inicio) : "-"}
+                              </td>
+                              <td className="py-4 px-4 text-base text-gray-900">
                                 <span
                                   className={`px-3 py-1.5 inline-flex text-xs leading-4 font-medium rounded-full ${getEstatusColor(
                                     item.estatus_comercial,
@@ -1817,11 +1901,6 @@ const ProcedimientoComercial = () => {
                                 >
                                   {item.estatus_comercial || "-"}
                                 </span>
-                              </td>
-                              <td className="py-4 px-4 text-base text-gray-900">
-                                <div className="max-w-[400px] overflow-auto">
-                                  {item.observaciones}
-                                </div>
                               </td>
                             </tr>
                           ))
@@ -2088,46 +2167,53 @@ const ProcedimientoComercial = () => {
                         </span>
                       </div>
                       {/* Reemplazar la línea que muestra el código de contrato en la sección "Información del Proyecto" con: */}
+                      {/* Código Contrato Cliente con condición de Acta Inicio */}
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-500">Código Contrato Cliente:</span>
-                        <div className="flex items-center space-x-2 flex-1 justify-end">
-                          <input
-                            type="text"
-                            value={procedimientoSeleccionado.codigo_contrato_cliente || ""}
-                            onChange={(e) => {
-                              setProcedimientoSeleccionado({
-                                ...procedimientoSeleccionado,
-                                codigo_contrato_cliente: e.target.value,
-                              })
-                            }}
-                            className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-3 py-1.5 w-[180px] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
-                            placeholder="Ingrese código..."
-                          />
-                          <button
-                            type="button"
-                            onClick={actualizarCodigoContrato}
-                            className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded hover:from-blue-700 hover:to-indigo-700 transition-colors duration-200 flex items-center text-sm font-medium shadow-sm"
-                            title="Guardar código"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="mr-1"
+                        {procedimientoSeleccionado.estatus_comercial === "Acta Inicio." ? (
+                          <span className="text-base font-medium text-gray-800">
+                            {procedimientoSeleccionado.codigo_contrato_cliente || "-"}
+                          </span>
+                        ) : (
+                          <div className="flex items-center space-x-2 flex-1 justify-end">
+                            <input
+                              type="text"
+                              value={procedimientoSeleccionado.codigo_contrato_cliente || ""}
+                              onChange={(e) => {
+                                setProcedimientoSeleccionado({
+                                  ...procedimientoSeleccionado,
+                                  codigo_contrato_cliente: e.target.value,
+                                })
+                              }}
+                              className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-3 py-1.5 w-[180px] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
+                              placeholder="Ingrese código..."
+                            />
+                            <button
+                              type="button"
+                              onClick={actualizarCodigoContrato}
+                              className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded hover:from-blue-700 hover:to-indigo-700 transition-colors duration-200 flex items-center text-sm font-medium shadow-sm"
+                              title="Guardar código"
                             >
-                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                              <polyline points="7 3 7 8 15 8"></polyline>
-                            </svg>
-                            Guardar
-                          </button>
-                        </div>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-1"
+                              >
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                              </svg>
+                              Guardar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2370,31 +2456,77 @@ const ProcedimientoComercial = () => {
 
                 {/* Columna derecha - Gestión de estatus */}
                 <div className="space-y-3">
-                  {/* Observaciones */}
-                  {procedimientoSeleccionado.observaciones && (
-                    <div className="bg-white p-3 rounded border border-gray-200">
-                      <h3 className="text-base font-semibold text-gray-700 mb-2 flex items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="mr-1 text-amber-500"
-                        >
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        Observaciones
-                      </h3>
-                      <p className="text-sm text-gray-700 max-h-20 overflow-y-auto">
-                        {procedimientoSeleccionado.observaciones}
-                      </p>
-                    </div>
-                  )}
+                  {/* Observaciones con funcionalidad de edición */}
+                  <div className="bg-white p-3 rounded border border-gray-200">
+                    <h3 className="text-base font-semibold text-gray-700 mb-2 flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1 text-amber-500"
+                      >
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                      Observaciones
+                    </h3>
+
+                    {procedimientoSeleccionado.estatus_comercial === "Acta Inicio." ? (
+                      // Solo lectura cuando está en Acta Inicio
+                      <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                        <p className="text-sm text-gray-700 max-h-32 overflow-y-auto">
+                          {procedimientoSeleccionado.observaciones || "Sin observaciones"}
+                        </p>
+                      </div>
+                    ) : (
+                      // Editable cuando NO está en Acta Inicio
+                      <div className="space-y-2">
+                        <textarea
+                          value={procedimientoSeleccionado.observaciones || ""}
+                          onChange={(e) => {
+                            setProcedimientoSeleccionado({
+                              ...procedimientoSeleccionado,
+                              observaciones: e.target.value,
+                            })
+                          }}
+                          rows="4"
+                          className="w-full p-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white shadow-sm resize-none"
+                          placeholder="Ingrese observaciones del proyecto..."
+                        />
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={actualizarObservaciones}
+                            className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded hover:from-amber-700 hover:to-orange-700 transition-colors duration-200 flex items-center text-sm font-medium shadow-sm"
+                            title="Guardar observaciones"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="mr-1"
+                            >
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                              <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            Guardar Observaciones
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Estado del proyecto y actualización */}
                   <div className="bg-white p-3 rounded border border-gray-200">
@@ -2547,7 +2679,7 @@ const ProcedimientoComercial = () => {
                                     name="monto-ofertado"
                                     value="cliente"
                                     checked={montoOfertadoSeleccionado === "cliente"}
-                                    onChange={3}
+                                    onChange={handleMontoOfertadoChange}
                                     className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 mt-0.5 mr-1"
                                   />
                                   <label htmlFor="monto-cliente" className="block text-sm text-gray-700">
