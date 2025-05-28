@@ -266,20 +266,20 @@ const RegionDetalles = () => {
       icon: FiUsers,
       color: "bg-pink-100 text-pink-600",
     },
-    {
-      id: "amortizacion",
-      title: "Total Amortización",
-      value: totalAmortizacion,
-      icon: FiCreditCard,
-      color: "bg-orange-100 text-orange-600",
-    },
-    {
-      id: "anticipoTotal",
-      title: "Monto Anticipo Total",
-      value: dataTotales.total_monto_anticipo || 0,
-      icon: FiCreditCard,
-      color: "bg-teal-100 text-teal-600",
-    },
+    // {
+    //   id: "amortizacion",
+    //   title: "Total Amortización",
+    //   value: totalAmortizacion,
+    //   icon: FiCreditCard,
+    //   color: "bg-orange-100 text-orange-600",
+    // },
+    // {
+    //   id: "anticipoTotal",
+    //   title: "Monto Anticipo Total",
+    //   value: dataTotales.total_monto_anticipo || 0,
+    //   icon: FiCreditCard,
+    //   color: "bg-teal-100 text-teal-600",
+    // },
   ]
 
   return (
@@ -360,8 +360,8 @@ const RegionDetalles = () => {
       {/* Contenido Principal */}
       <div className="flex-1 overflow-y-hidden p-4 space-y-6">
         {/* Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {metrics.slice(0, 4).map((metric) => (
+        <div className="grid grid-cols-3 gap-4">
+          {metrics.slice(0, 6).map((metric) => (
             <div
               key={metric.id}
               className="p-4 bg-white shadow rounded-lg hover:shadow-md transition-shadow duration-300"
@@ -383,7 +383,7 @@ const RegionDetalles = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           {metrics.slice(4).map((metric) => (
             <div
               key={metric.id}
@@ -404,7 +404,7 @@ const RegionDetalles = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Tabla */}
         <div className="bg-white shadow rounded-lg overflow-hidden ">
@@ -447,13 +447,12 @@ const RegionDetalles = () => {
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Facturado
                   </th>
-                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Amortización
                   </th>
-                  {/* Agregar la columna de Monto Anticipo Total a la tabla */}
                   <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Monto Anticipo
-                  </th>
+                  </th> */}
 
                 </tr>
               </thead>
@@ -518,17 +517,16 @@ const RegionDetalles = () => {
                           {formatMontoConSeparador(project.facturado)}
                         </span>
                       </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {/* <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span title={formatMontoConSeparador(project.total_amortizacion)}>
                           {formatMontoConSeparador(project.total_amortizacion)}
                         </span>
                       </td>
-                      {/* Agregar el valor en la fila de la tabla (después de la columna de Amortización) */}
                       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span title={formatMontoConSeparador(project.monto_anticipo_total)}>
                           {formatMontoConSeparador(project.monto_anticipo_total)}
                         </span>
-                      </td>
+                      </td> */}
 
                     </tr>
                   ))

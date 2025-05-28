@@ -12,8 +12,6 @@ const ProcedimientoComercial = () => {
   const [selectedRegion, setSelectedRegion] = useState("")
   const [clientes, setClientes] = useState([])
   const [loadingClientes, setLoadingClientes] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false);
-
 
   // Definir regiones como constante en lugar de estado
   const regiones = [
@@ -206,7 +204,7 @@ const ProcedimientoComercial = () => {
     try {
       // Cargar proyectos según la región seleccionada
       const regionName = getRegionNameById(regionId)
-      const proyectosUrl = `${UrlApi}/api/proyectos/all?region=${encodeURIComponent(regionName)}`
+      const proyectosUrl = `${UrlApi}/api/proyectos/requisition?region=${encodeURIComponent(regionName)}`
 
       const proyectosResponse = await fetch(proyectosUrl)
       if (proyectosResponse.ok) {
@@ -327,7 +325,7 @@ const ProcedimientoComercial = () => {
           numero: formData.numero,
           nombre: formData.nombre,
           nombreCorto: formData.nombre_corto,
-          codigoContratoCliente: formData.codigo_contrato_cliente || null,
+          codigoContratoCliente: formData.codigo_contrato_cliente,
           idCliente: Number.parseInt(formData.id_cliente),
           idRegion: Number.parseInt(formData.id_region),
           fechaInicio: formData.fecha_inicio,
@@ -368,7 +366,7 @@ const ProcedimientoComercial = () => {
         })
 
         // Recargar datos
-        await fetchData()
+        await recargarDatos()
       } else {
         const errorData = await response.json()
         throw new Error(errorData.message || "Error al crear el proyecto")
@@ -441,20 +439,21 @@ const ProcedimientoComercial = () => {
         })
         return
       }
-      if (!procedimientoSeleccionado.codigo_contrato_cliente) {
-        Swal.fire({
-          icon: "warning",
-          title: "Selección requerida",
-          text: "Para cambiar a Acta de Inicio, debe ingresar el Codigo Contrato Cliente",
-        })
-        return
-      }
 
       if (!costoEstimadoSeleccionado) {
         Swal.fire({
           icon: "warning",
           title: "Selección requerida",
           text: "Para cambiar a Acta de Inicio, debe seleccionar el costo estimado.",
+        })
+        return
+      }
+
+      if (!procedimientoSeleccionado.codigo_contrato_cliente) {
+        Swal.fire({
+          icon: "warning",
+          title: "Selección requerida",
+          text: "Para cambiar a Acta de Inicio, debe ingresar el código de contrato del cliente.",
         })
         return
       }
@@ -523,15 +522,6 @@ const ProcedimientoComercial = () => {
     }
   }
 
-  // Remover estas líneas de estado:
-  // const [editandoCodigoContrato, setEditandoCodigoContrato] = useState(false)
-  // const [nuevoCodigoContrato, setNuevoCodigoContrato] = useState("")
-
-  // Añadir un estado para controlar el modo de edición del código de contrato:
-  // const [editandoCodigoContrato, setEditandoCodigoContrato] = useState(false)
-  // const [nuevoCodigoContrato, setNuevoCodigoContrato] = useState("")
-
-  // Modificar la función actualizarCodigoContrato para usar el nuevo estado:
   const actualizarCodigoContrato = async () => {
     try {
       const response = await fetch(`${UrlApi}/api/proyectos/${procedimientoSeleccionado.id}`, {
@@ -545,12 +535,6 @@ const ProcedimientoComercial = () => {
       })
 
       if (response.ok) {
-        // Actualizar el objeto local
-        // setProcedimientoSeleccionado({
-        //   ...procedimientoSeleccionado,
-        //   codigo_contrato_cliente: nuevoCodigoContrato,
-        // })
-
         // Actualizar la lista de proyectos
         await recargarDatos()
 
@@ -562,9 +546,6 @@ const ProcedimientoComercial = () => {
           showConfirmButton: false,
           timer: 1500,
         })
-
-        // Salir del modo edición
-        // setEditandoCodigoContrato(false)
       } else {
         const errorData = await response.json()
         throw new Error(errorData.message || "Error al actualizar el código de contrato")
@@ -579,20 +560,48 @@ const ProcedimientoComercial = () => {
     }
   }
 
-  // Añadir una función para iniciar la edición del código:
-  // const iniciarEdicionCodigo = () => {
-  //   setNuevoCodigoContrato(procedimientoSeleccionado.codigo_contrato_cliente || "")
-  //   setEditandoCodigoContrato(true)
-  // }
+  // Función para actualizar los montos del proyecto
+  const actualizarMontos = async () => {
+    try {
+      const response = await fetch(`${UrlApi}/api/proyectos/${procedimientoSeleccionado.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          monto_estimado_oferta_cerrado_sdo:
+            Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
+          monto_estimado_oferta_cliente:
+            Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0,
+          oferta_del_proveedor: Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
+        }),
+      })
 
-  // Añadir una función para cancelar la edición:
-  // const cancelarEdicionCodigo = () => {
-  //   setEditandoCodigoContrato(false)
-  // }
+      if (response.ok) {
+        // Actualizar la lista de proyectos
+        await recargarDatos()
 
-  // Y remover estas funciones:
-  // const iniciarEdicionCodigo = () => { ... }
-  // const cancelarEdicionCodigo = () => { ... }
+        // Mostrar mensaje de éxito
+        Swal.fire({
+          icon: "success",
+          title: "Montos actualizados",
+          text: "Los montos del proyecto han sido actualizados exitosamente.",
+          showConfirmButton: false,
+          timer: 1500,
+        })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al actualizar los montos del proyecto")
+      }
+    } catch (error) {
+      console.error("Error al actualizar montos:", error)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Ocurrió un error inesperado al intentar actualizar los montos.",
+      })
+    }
+  }
 
   // Modificar la función handleRowClick para verificar el estatus al abrir el modal
   const handleRowClick = (procedimiento) => {
@@ -1089,7 +1098,7 @@ const ProcedimientoComercial = () => {
                             value={formData.monto_estimado_oferta_cerrado_sdo}
                             onChange={handleChange}
                             className="input input-bordered w-full h-12 pl-14 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-
+                            required
                           />
                         </div>
                       </div>
@@ -1129,7 +1138,7 @@ const ProcedimientoComercial = () => {
                             value={formData.ofertaDelProveedor}
                             onChange={handleChange}
                             className="input input-bordered w-full h-12 pl-14 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-
+                            required
                           />
                         </div>
                       </div>
@@ -1169,7 +1178,7 @@ const ProcedimientoComercial = () => {
                             value={formData.monto_estimado_oferta_cliente}
                             onChange={handleChange}
                             className="input input-bordered w-full h-12 pl-14 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-
+                            required
                           />
                         </div>
                       </div>
@@ -1235,7 +1244,7 @@ const ProcedimientoComercial = () => {
                           value={formData.fecha_inicio}
                           onChange={handleChange}
                           className="input input-bordered w-full h-12 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm"
-
+                          required
                         />
                       </div>
 
@@ -1267,7 +1276,7 @@ const ProcedimientoComercial = () => {
                           value={formData.fecha_final}
                           onChange={handleChange}
                           className="input input-bordered w-full h-12 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm"
-
+                          required
                         />
                       </div>
                     </div>
@@ -1335,12 +1344,12 @@ const ProcedimientoComercial = () => {
             </div>
 
             {/* SEGUNDO: Tabla de proyectos con nuevo diseño */}
-            <div className=" bg-whiterounded-xl shadow-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+            <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
               <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-indigo-500 to-purple-600">
                 <h2 className="text-2xl font-bold text-white">Listado de Proyectos</h2>
                 {/* Sección de filtros */}
                 {/* Sección de filtros mejorada */}
-                <div className="px-8 py-6 border-b border-gray-200">
+                <div className="px-8 py-6 bg-white border-b border-gray-200">
                   <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
                     {/* Controles de filtros */}
                     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
@@ -1484,7 +1493,7 @@ const ProcedimientoComercial = () => {
                             setFiltroRegionTabla("")
                             setOcultarActaInicio(false)
                           }}
-                          className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors duration-200 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-red-50 bg-white"
+                          className="text-xs font-medium text-gray-500 hover:text-red-600 transition-colors duration-200 flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-red-50"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1501,7 +1510,7 @@ const ProcedimientoComercial = () => {
                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
                             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
                           </svg>
-                          <span >Limpiar todo</span>
+                          <span>Limpiar todo</span>
                         </button>
                       </div>
 
@@ -2146,47 +2155,171 @@ const ProcedimientoComercial = () => {
                       Información Financiera
                     </h3>
                     <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Monto Estimado Oferta Sobre Cerrado:</span>
-                        <span className="text-base font-medium text-green-600">
-                          USD{" "}
-                          {formatMontoConSeparador(
-                            Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Monto Estimado Oferta al Cliente:</span>
-                        <span className="text-base font-medium text-green-600">
-                          USD{" "}
-                          {formatMontoConSeparador(
-                            Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0,
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Monto Ofertado Actual:</span>
-                        <span className="text-base font-bold text-blue-600">
-                          USD{" "}
-                          {formatMontoConSeparador(Number.parseFloat(procedimientoSeleccionado.monto_ofertado) || 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Costo Estimado:</span>
-                        <span className="text-base font-bold text-orange-600">
-                          USD{" "}
-                          {formatMontoConSeparador(Number.parseFloat(procedimientoSeleccionado.costo_estimado) || 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">Oferta del Proveedor:</span>
-                        <span className="text-base font-bold text-purple-600">
-                          USD{" "}
-                          {formatMontoConSeparador(
-                            Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
-                          )}
-                        </span>
-                      </div>
+                      {/* Verificar si el proyecto está en Acta de Inicio */}
+                      {procedimientoSeleccionado.estatus_comercial === "Acta Inicio." ? (
+                        <>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Monto Estimado Oferta Sobre Cerrado:</span>
+                            <span className="text-base font-medium text-green-600">
+                              USD{" "}
+                              {formatMontoConSeparador(
+                                Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Monto Estimado Oferta al Cliente:</span>
+                            <span className="text-base font-medium text-green-600">
+                              USD{" "}
+                              {formatMontoConSeparador(
+                                Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Monto Ofertado Actual:</span>
+                            <span className="text-base font-bold text-blue-600">
+                              USD{" "}
+                              {formatMontoConSeparador(
+                                Number.parseFloat(procedimientoSeleccionado.monto_ofertado) || 0,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Costo Estimado:</span>
+                            <span className="text-base font-bold text-orange-600">
+                              USD{" "}
+                              {formatMontoConSeparador(
+                                Number.parseFloat(procedimientoSeleccionado.costo_estimado) || 0,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Oferta del Proveedor:</span>
+                            <span className="text-base font-bold text-purple-600">
+                              USD{" "}
+                              {formatMontoConSeparador(
+                                Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* Monto Estimado Oferta Sobre Cerrado */}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-500">Monto Estimado Oferta Sobre Cerrado:</span>
+                            <div className="flex items-center space-x-2 flex-1 justify-end">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo || ""}
+                                onChange={(e) => {
+                                  setProcedimientoSeleccionado({
+                                    ...procedimientoSeleccionado,
+                                    monto_estimado_oferta_cerrado_sdo: e.target.value,
+                                  })
+                                }}
+                                className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-3 py-1.5 w-[180px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
+                                placeholder="Ingrese monto..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Monto Estimado Oferta al Cliente */}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-500">Monto Estimado Oferta al Cliente:</span>
+                            <div className="flex items-center space-x-2 flex-1 justify-end">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={procedimientoSeleccionado.monto_estimado_oferta_cliente || ""}
+                                onChange={(e) => {
+                                  setProcedimientoSeleccionado({
+                                    ...procedimientoSeleccionado,
+                                    monto_estimado_oferta_cliente: e.target.value,
+                                  })
+                                }}
+                                className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-3 py-1.5 w-[180px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
+                                placeholder="Ingrese monto..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Oferta del Proveedor */}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-500">Oferta del Proveedor:</span>
+                            <div className="flex items-center space-x-2 flex-1 justify-end">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={procedimientoSeleccionado.oferta_del_proveedor || ""}
+                                onChange={(e) => {
+                                  setProcedimientoSeleccionado({
+                                    ...procedimientoSeleccionado,
+                                    oferta_del_proveedor: e.target.value,
+                                  })
+                                }}
+                                className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-3 py-1.5 w-[180px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
+                                placeholder="Ingrese monto..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Botón para guardar cambios de montos */}
+                          <div className="flex justify-end mt-2">
+                            <button
+                              type="button"
+                              onClick={actualizarMontos}
+                              className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded hover:from-green-700 hover:to-emerald-700 transition-colors duration-200 flex items-center text-sm font-medium shadow-sm"
+                              title="Guardar montos"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-1"
+                              >
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                              </svg>
+                              Guardar Montos
+                            </button>
+                          </div>
+
+                          {/* Mostrar montos actuales si existen */}
+                          {(procedimientoSeleccionado.monto_ofertado > 0 ||
+                            procedimientoSeleccionado.costo_estimado > 0) && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-500">Monto Ofertado Actual:</span>
+                                  <span className="text-base font-bold text-blue-600">
+                                    USD{" "}
+                                    {formatMontoConSeparador(
+                                      Number.parseFloat(procedimientoSeleccionado.monto_ofertado) || 0,
+                                    )}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-500">Costo Estimado:</span>
+                                  <span className="text-base font-bold text-orange-600">
+                                    USD{" "}
+                                    {formatMontoConSeparador(
+                                      Number.parseFloat(procedimientoSeleccionado.costo_estimado) || 0,
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -2414,7 +2547,7 @@ const ProcedimientoComercial = () => {
                                     name="monto-ofertado"
                                     value="cliente"
                                     checked={montoOfertadoSeleccionado === "cliente"}
-                                    onChange={handleMontoOfertadoChange}
+                                    onChange={3}
                                     className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 mt-0.5 mr-1"
                                   />
                                   <label htmlFor="monto-cliente" className="block text-sm text-gray-700">
@@ -2484,7 +2617,6 @@ const ProcedimientoComercial = () => {
 
                   {/* Botones de acción */}
                   <div className="flex justify-end space-x-2 pt-2 border-t border-gray-200">
-
                     {nuevoEstatus && !(procedimientoSeleccionado.estatus_comercial === "Acta Inicio.") && (
                       <button
                         type="button"
