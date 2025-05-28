@@ -1155,7 +1155,7 @@ const EditarProcedimientoComercial = () => {
                           value={formDataEdicion.monto_estimado_oferta_cerrado_sdo}
                           onChange={handleChangeEdicion}
                           className="w-full p-3 pl-14 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-                          required
+                          
                         />
                       </div>
                     </div>
@@ -1195,7 +1195,7 @@ const EditarProcedimientoComercial = () => {
                           value={formDataEdicion.monto_estimado_oferta_cliente}
                           onChange={handleChangeEdicion}
                           className="w-full p-3 pl-14 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-                          required
+                          
                         />
                       </div>
                     </div>
@@ -1236,7 +1236,7 @@ const EditarProcedimientoComercial = () => {
                         value={formDataEdicion.fecha_inicio}
                         onChange={handleChangeEdicion}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm"
-                        required
+                        
                       />
                     </div>
 
@@ -1249,7 +1249,7 @@ const EditarProcedimientoComercial = () => {
                         value={formDataEdicion.fecha_final}
                         onChange={handleChangeEdicion}
                         className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm"
-                        required
+                        
                       />
                     </div>
 
