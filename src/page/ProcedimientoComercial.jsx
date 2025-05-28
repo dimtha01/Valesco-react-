@@ -429,8 +429,58 @@ const ProcedimientoComercial = () => {
     // Verificar si el estatus seleccionado es ID 8
     const esActaInicio = esEstatusActaInicio(nuevoEstatus)
 
-    // Si es estatus ID 8, verificar que se haya seleccionado un monto ofertado y un costo estimado
+    // Si es estatus ID 8, verificar que se cumplan todos los requisitos usando datos del API
     if (esActaInicio) {
+      // Validar que exista el código de contrato del cliente (datos del API)
+      if (
+        !procedimientoSeleccionado.codigo_contrato_cliente ||
+        procedimientoSeleccionado.codigo_contrato_cliente.trim() === ""
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Código de Contrato Requerido",
+          text: "Para cambiar a Acta de Inicio, debe ingresar el código de contrato del cliente.",
+          confirmButtonText: "Entendido",
+        })
+        return
+      }
+
+      // Validar que existan los montos estimados (datos del API)
+      const montoOfertaCerrado = Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0
+      const montoOfertaCliente = Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0
+      const ofertaProveedor = Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0
+
+      if (montoOfertaCerrado <= 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Monto Requerido",
+          text: "Para cambiar a Acta de Inicio, el Monto Estimado Oferta Sobre Cerrado debe ser mayor a cero.",
+          confirmButtonText: "Entendido",
+        })
+        return
+      }
+
+      if (montoOfertaCliente <= 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Monto Requerido",
+          text: "Para cambiar a Acta de Inicio, el Monto Estimado Oferta al Cliente debe ser mayor a cero.",
+          confirmButtonText: "Entendido",
+        })
+        return
+      }
+
+      if (ofertaProveedor <= 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Oferta del Proveedor Requerida",
+          text: "Para cambiar a Acta de Inicio, la Oferta del Proveedor debe ser mayor a cero.",
+          confirmButtonText: "Entendido",
+        })
+        return
+      }
+
+      // Validar que se haya seleccionado un monto ofertado
       if (!montoOfertadoSeleccionado) {
         Swal.fire({
           icon: "warning",
@@ -440,20 +490,12 @@ const ProcedimientoComercial = () => {
         return
       }
 
+      // Validar que se haya seleccionado un costo estimado
       if (!costoEstimadoSeleccionado) {
         Swal.fire({
           icon: "warning",
           title: "Selección requerida",
           text: "Para cambiar a Acta de Inicio, debe seleccionar el costo estimado.",
-        })
-        return
-      }
-
-      if (!procedimientoSeleccionado.codigo_contrato_cliente) {
-        Swal.fire({
-          icon: "warning",
-          title: "Selección requerida",
-          text: "Para cambiar a Acta de Inicio, debe ingresar el código de contrato del cliente.",
         })
         return
       }
@@ -465,7 +507,7 @@ const ProcedimientoComercial = () => {
         id_estatus_comercial: nuevoEstatus,
       }
 
-      // Si es estatus ID 8, añadir el monto ofertado y costo estimado
+      // Si es estatus ID 8, añadir el monto ofertado y costo estimado usando datos del API
       if (esActaInicio) {
         let montoOfertado = 0
         if (montoOfertadoSeleccionado === "cerrado") {
@@ -530,7 +572,7 @@ const ProcedimientoComercial = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          codigoContratoCliente: procedimientoSeleccionado.codigo_contrato_cliente,
+          codigo_contrato_cliente: procedimientoSeleccionado.codigo_contrato_cliente,
         }),
       })
 
@@ -573,7 +615,7 @@ const ProcedimientoComercial = () => {
             Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
           monto_estimado_oferta_cliente:
             Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0,
-          ofertaDelProveedor: Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
+          oferta_del_proveedor: Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
         }),
       })
 
@@ -1675,46 +1717,8 @@ const ProcedimientoComercial = () => {
                               No.
                             </span>
                           </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                            <span className="flex items-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 text-indigo-500"
-                              >
-                                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                              </svg>
-                              Región
-                            </span>
-                          </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                            <span className="flex items-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 text-indigo-500"
-                              >
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                              </svg>
-                              Cliente
-                            </span>
-                          </th>
+
+
                           <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
                             <span className="flex items-center">
                               <svg
@@ -1738,7 +1742,7 @@ const ProcedimientoComercial = () => {
                               Proyecto
                             </span>
                           </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                             <span className="flex items-center">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1760,7 +1764,7 @@ const ProcedimientoComercial = () => {
                               Costo Planificado
                             </span>
                           </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                             <span className="flex items-center">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1782,29 +1786,9 @@ const ProcedimientoComercial = () => {
                               Oferta al Cliente
                             </span>
                           </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                            <span className="flex items-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 text-indigo-500"
-                              >
-                                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                                <line x1="16" x2="16" y1="2" y2="6"></line>
-                                <line x1="8" x2="8" y1="2" y2="6"></line>
-                                <line x1="3" x2="21" y1="10" y2="10"></line>
-                              </svg>
-                              Inicio
-                            </span>
-                          </th>
-                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+
+
+                          <th className="py-4 px-4  text-sm font-semibold text-gray-600 uppercase tracking-wider text-center">
                             <span className="flex items-center">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -1823,12 +1807,31 @@ const ProcedimientoComercial = () => {
                               Estatus
                             </span>
                           </th>
+                          <th className="py-4 px-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                            <span className="flex items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2 text-indigo-500"
+                              >
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                              </svg>
+                              Observaciones
+                            </span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {paginatedData.length === 0 ? (
                           <tr>
-                            <td colSpan="8" className="px-6 py-10 text-center text-base text-gray-500">
+                            <td colSpan="7" className="px-6 py-10 text-center text-base text-gray-500">
                               <div className="flex flex-col items-center">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
@@ -1860,40 +1863,34 @@ const ProcedimientoComercial = () => {
                               className="hover:bg-blue-50 cursor-pointer transition-colors duration-150"
                               onClick={() => handleRowClick(item)}
                             >
-                              <td className="py-4 px-4 text-base text-gray-900 font-medium">{item.numero}</td>
+
                               <td className="py-4 px-4 text-base text-gray-900">
-                                <span
-                                  className={`px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full ${!item.nombre_region
-                                      ? "bg-gray-100 text-gray-800"
-                                      : item.nombre_region === "Occidente"
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-yellow-100 text-yellow-800"
-                                    }`}
-                                >
-                                  {item.nombre_region || "-"}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-base text-gray-900">
-                                <div className="truncate max-w-[150px]" title={item.nombre_cliente || "-"}>
-                                  {item.nombre_cliente || "-"}
+                                <div className="truncate max-w-[180px]" >
+                                  {item.numero}
                                 </div>
+                                <div className={`text-xs text-gray-500 mt-1{!item.nombre_region
+                                    ? "bg-gray-100 text-gray-800"
+                                    : item.nombre_region === "Occidente"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                    }`}>{item.nombre_region || "-"} </div>
                               </td>
+
+
                               <td className="py-4 px-4 text-base text-gray-900">
                                 <div className="truncate max-w-[180px]" title={item.nombre_proyecto}>
                                   {item.nombre_proyecto}
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1">{item.nombre_cortos}</div>
                               </td>
-                              <td className="py-4 px-4 text-base text-gray-900 font-medium">
-                                USD {formatMontoConSeparador(Number.parseFloat(item.costo_estimado))}
+                              <td className="py-4 px-4 text-base text-end text-gray-900 font-medium">
+                                {formatMontoConSeparador(Number.parseFloat(item.oferta_del_proveedor))}
                               </td>
-                              <td className="py-4 px-4 text-base text-gray-900 font-medium">
-                                USD {formatMontoConSeparador(Number.parseFloat(item.monto_ofertado))}
+                              <td className="py-4 px-4 text-base text-end  text-gray-900 font-medium">
+                                {formatMontoConSeparador(Number.parseFloat(item.monto_estimado_oferta_cliente))}
                               </td>
-                              <td className="py-4 px-4 text-base text-gray-900">
-                                {item.fecha_inicio ? formatDate(item.fecha_inicio) : "-"}
-                              </td>
-                              <td className="py-4 px-4 text-base text-gray-900">
+
+                              <td className="py-4 px-4 text-base text-gray- tracking-wider whitespace-nowrap text-center">
                                 <span
                                   className={`px-3 py-1.5 inline-flex text-xs leading-4 font-medium rounded-full ${getEstatusColor(
                                     item.estatus_comercial,
@@ -1901,6 +1898,11 @@ const ProcedimientoComercial = () => {
                                 >
                                   {item.estatus_comercial || "-"}
                                 </span>
+                              </td>
+                              <td className="py-4 px-4 text-base text-gray-900">
+                                <div className="max-w-[400px] overflow-auto">
+                                  {item.observaciones}
+                                </div>
                               </td>
                             </tr>
                           ))
@@ -2646,6 +2648,119 @@ const ProcedimientoComercial = () => {
                               Configuración para Acta de Inicio
                             </h4>
 
+                            {/* Verificaciones de requisitos */}
+                            <div className="mb-3 p-2 bg-white rounded border border-emerald-200">
+                              <p className="text-sm font-medium text-emerald-800 mb-2">Verificación de Requisitos:</p>
+                              <div className="space-y-1">
+                                {/* Código de contrato - usando datos del API */}
+                                <div className="flex items-center space-x-2">
+                                  {procedimientoSeleccionado.codigo_contrato_cliente &&
+                                    procedimientoSeleccionado.codigo_contrato_cliente.trim() !== "" ? (
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
+                                  <span
+                                    className={`text-xs ${procedimientoSeleccionado.codigo_contrato_cliente && procedimientoSeleccionado.codigo_contrato_cliente.trim() !== "" ? "text-green-700" : "text-red-700"}`}
+                                  >
+                                    Código de Contrato del Cliente
+                                  </span>
+                                </div>
+
+                                {/* Monto oferta cerrado - usando datos del API */}
+                                <div className="flex items-center space-x-2">
+                                  {(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) ||
+                                    0) > 0 ? (
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
+                                  <span
+                                    className={`text-xs ${(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0) > 0 ? "text-green-700" : "text-red-700"}`}
+                                  >
+                                    Monto Estimado Oferta Sobre Cerrado {">"} 0
+                                  </span>
+                                </div>
+
+                                {/* Monto oferta cliente - usando datos del API */}
+                                <div className="flex items-center space-x-2">
+                                  {(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0) >
+                                    0 ? (
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
+                                  <span
+                                    className={`text-xs ${(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0) > 0 ? "text-green-700" : "text-red-700"}`}
+                                  >
+                                    Monto Estimado Oferta al Cliente {">"} 0
+                                  </span>
+                                </div>
+
+                                {/* Oferta del proveedor - usando datos del API */}
+                                <div className="flex items-center space-x-2">
+                                  {(Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0) > 0 ? (
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                  )}
+                                  <span
+                                    className={`text-xs ${(Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0) > 0 ? "text-green-700" : "text-red-700"}`}
+                                  >
+                                    Oferta del Proveedor {">"} 0
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
                             {/* Selección de monto ofertado */}
                             <div className="mb-2">
                               <p className="text-sm font-medium text-emerald-800 mb-1">Seleccione el monto ofertado:</p>
@@ -2739,7 +2854,7 @@ const ProcedimientoComercial = () => {
                                 <line x1="12" x2="12" y1="8" y2="12"></line>
                                 <line x1="12" x2="12.01" y1="16" y2="16"></line>
                               </svg>
-                              Debe seleccionar un monto ofertado y un costo estimado.
+                              Todos los requisitos deben cumplirse para proceder con Acta de Inicio.
                             </div>
                           </div>
                         )}
