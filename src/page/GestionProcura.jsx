@@ -699,7 +699,7 @@ const GestionProcura = () => {
                         <tr className="border-b border-gray-200">
                           {/* Columna: N° O/C */}
                           <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
-                            N° O/C
+                            ID
                           </th>
 
                           {/* Columna: N° ODC */}

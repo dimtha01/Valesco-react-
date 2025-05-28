@@ -553,7 +553,7 @@ const EditarProcedimientoComercial = () => {
                 Sistema administrativo
               </Link>
             </li>
-            <li >Editar Procedimiento Comercial</li>
+            <li   >Editar Procedimiento Comercial</li>
           </ul>
         </div>
 
