@@ -368,7 +368,7 @@ const ProcedimientoComercial = () => {
         })
 
         // Recargar datos
-        await recargarDatos()
+        await fetchData()
       } else {
         const errorData = await response.json()
         throw new Error(errorData.message || "Error al crear el proyecto")
