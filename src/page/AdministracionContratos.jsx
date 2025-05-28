@@ -332,7 +332,7 @@ const AdministracionContratos = () => {
         {/* Loading state or table */}
         {isLoading ? (
           <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-lg">
-            <LoadingComponent />
+
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
@@ -352,7 +352,7 @@ const AdministracionContratos = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <div className="max-h-[600px] overflow-y-auto">
+              <div className="h-[600px] overflow-y-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr>
@@ -403,9 +403,7 @@ const AdministracionContratos = () => {
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                                {proyecto.numero?.slice(-2) || "N/A"}
-                              </div>
+
                               <div className="ml-3">
                                 <div className="text-sm font-medium text-gray-900">{proyecto.numero || "N/A"}</div>
                               </div>
@@ -429,10 +427,10 @@ const AdministracionContratos = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-center hidden md:table-cell">
                             <span
                               className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${proyecto.nombre_region === "Centro"
-                                  ? "bg-blue-100 text-blue-800 border border-blue-200"
-                                  : proyecto.nombre_region === "Occidente"
-                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                    : "bg-amber-100 text-amber-800 border border-amber-200"
+                                ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                : proyecto.nombre_region === "Occidente"
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                  : "bg-amber-100 text-amber-800 border border-amber-200"
                                 }`}
                             >
                               {proyecto.nombre_region || "N/A"}
@@ -497,8 +495,8 @@ const AdministracionContratos = () => {
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
                           className={`relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${currentPage === pageNum
-                              ? "bg-blue-600 text-white shadow-sm"
-                              : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
                             }`}
                         >
                           {pageNum}

@@ -73,7 +73,7 @@ const InicioAdministrador = () => {
             </div>
           </div>
 
-          {/* Tarjeta Actualizar Proyectos */}
+        
           <div className="card bg-white shadow-md rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg">
             <figure className="h-48 overflow-hidden">
               <img
@@ -91,7 +91,7 @@ const InicioAdministrador = () => {
               </p>
               <div className="card-actions mt-4">
                 <Link
-                  to="/InicioAdministrador/EditarProyectos"
+                  to="/InicioAdministrador/EditarProcedimientoComercial"
                   className="btn btn-primary w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 rounded-md transition-colors duration-300"
                 >
                   <svg

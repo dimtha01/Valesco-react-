@@ -30,6 +30,7 @@ import AdministracionContratos from "./page/AdministracionContratos"
 import AvanceFinanciero from "./components/AvanceFinanciero"
 import GestionUsuariosAdministracionContratos from "./page/GestionUsuariosAdministraciónContratos"
 import ScrollToTop from "./components/ScrollToTop"
+import EditarProcedimientoComercial from "./page/EditarProcedimientoComercial"
 
 const App = () => {
   return (
@@ -119,6 +120,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <EditarCliente />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/InicioAdministrador/EditarProcedimientoComercial"
+                element={
+                  <ProtectedRoute>
+                    <EditarProcedimientoComercial  />
                   </ProtectedRoute>
                 }
               />
