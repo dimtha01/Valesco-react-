@@ -27,7 +27,6 @@ const ProcedimientoComercial = () => {
     nombre: "",
     nombre_corto: "",
     codigo_contrato_cliente: "",
-    monto_estimado_oferta_cerrado_sdo: "",
     monto_estimado_oferta_cliente: "",
     ofertaDelProveedor: "",
     fecha_inicio: "",
@@ -332,7 +331,6 @@ const ProcedimientoComercial = () => {
           fechaFinal: formData.fecha_final,
           observaciones: formData.observaciones,
           montoEstimadoOfertaCliente: Number.parseFloat(formData.monto_estimado_oferta_cliente) || 0,
-          montoEstimadoOfertaCerradoSdo: Number.parseFloat(formData.monto_estimado_oferta_cerrado_sdo) || 0,
           ofertaDelProveedor: Number.parseFloat(formData.ofertaDelProveedor) || 0,
         }),
       })
@@ -357,7 +355,6 @@ const ProcedimientoComercial = () => {
           nombre: "",
           nombre_corto: "",
           codigo_contrato_cliente: "",
-          monto_estimado_oferta_cerrado_sdo: "",
           monto_estimado_oferta_cliente: "",
           ofertaDelProveedor: "",
           fecha_inicio: "",
@@ -446,19 +443,8 @@ const ProcedimientoComercial = () => {
       }
 
       // Validar que existan los montos estimados (datos del API)
-      const montoOfertaCerrado = Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0
       const montoOfertaCliente = Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0
       const ofertaProveedor = Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0
-
-      if (montoOfertaCerrado <= 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Monto Requerido",
-          text: "Para cambiar a Acta de Inicio, el Monto Estimado Oferta Sobre Cerrado debe ser mayor a cero.",
-          confirmButtonText: "Entendido",
-        })
-        return
-      }
 
       if (montoOfertaCliente <= 0) {
         Swal.fire({
@@ -473,8 +459,8 @@ const ProcedimientoComercial = () => {
       if (ofertaProveedor <= 0) {
         Swal.fire({
           icon: "warning",
-          title: "Oferta del Proveedor Requerida",
-          text: "Para cambiar a Acta de Inicio, la Oferta del Proveedor debe ser mayor a cero.",
+          title: "Costo Planificado Requerida",
+          text: "Para cambiar a Acta de Inicio, la Costo Planificado debe ser mayor a cero.",
           confirmButtonText: "Entendido",
         })
         return
@@ -510,9 +496,7 @@ const ProcedimientoComercial = () => {
       // Si es estatus ID 8, añadir el monto ofertado y costo estimado usando datos del API
       if (esActaInicio) {
         let montoOfertado = 0
-        if (montoOfertadoSeleccionado === "cerrado") {
-          montoOfertado = Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0
-        } else if (montoOfertadoSeleccionado === "cliente") {
+        if (montoOfertadoSeleccionado === "cliente") {
           montoOfertado = Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0
         }
 
@@ -611,8 +595,6 @@ const ProcedimientoComercial = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          monto_estimado_oferta_cerrado_sdo:
-            Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
           monto_estimado_oferta_cliente:
             Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0,
           oferta_del_proveedor: Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0,
@@ -708,7 +690,6 @@ const ProcedimientoComercial = () => {
       nombre: "",
       nombre_corto: "",
       codigo_contrato_cliente: "",
-      monto_estimado_oferta_cerrado_sdo: "",
       monto_estimado_oferta_cliente: "",
       ofertaDelProveedor: "",
       fecha_inicio: "",
@@ -1146,45 +1127,7 @@ const ProcedimientoComercial = () => {
                       <h3 className="text-lg font-semibold text-gray-800">Información Financiera</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Monto Estimado Oferta Sobre Cerrado USD */}
-                      <div className="form-control w-full">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <span className="flex items-center">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="mr-2 text-green-500"
-                            >
-                              <rect width="20" height="14" x="2" y="7" rx="2"></rect>
-                              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                            </svg>
-                            Monto Estimado Oferta Sobre Cerrado (USD)
-                          </span>
-                        </label>
-                        <div className="relative">
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">
-                            USD
-                          </span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            name="monto_estimado_oferta_cerrado_sdo"
-                            value={formData.monto_estimado_oferta_cerrado_sdo}
-                            onChange={handleChange}
-                            className="input input-bordered w-full h-12 pl-14 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {/* Oferta del Proveedor */}
+                      {/* Costo Planificado */}
                       <div className="form-control w-full">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           <span className="flex items-center">
@@ -1205,7 +1148,7 @@ const ProcedimientoComercial = () => {
                               <path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"></path>
                               <path d="m15 9 6-6"></path>
                             </svg>
-                            Oferta del Proveedor (USD)
+                            Costo Planificado (USD)
                           </span>
                         </label>
                         <div className="relative">
@@ -2247,15 +2190,6 @@ const ProcedimientoComercial = () => {
                       {procedimientoSeleccionado.estatus_comercial === "Acta Inicio." ? (
                         <>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-500">Monto Estimado Oferta Sobre Cerrado:</span>
-                            <span className="text-base font-medium text-green-600">
-                              USD{" "}
-                              {formatMontoConSeparador(
-                                Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0,
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-500">Monto Estimado Oferta al Cliente:</span>
                             <span className="text-base font-medium text-green-600">
                               USD{" "}
@@ -2274,16 +2208,7 @@ const ProcedimientoComercial = () => {
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-500">Costo Estimado:</span>
-                            <span className="text-base font-bold text-orange-600">
-                              USD{" "}
-                              {formatMontoConSeparador(
-                                Number.parseFloat(procedimientoSeleccionado.costo_estimado) || 0,
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-500">Oferta del Proveedor:</span>
+                            <span className="text-sm text-gray-500">Costo Planificado:</span>
                             <span className="text-base font-bold text-purple-600">
                               USD{" "}
                               {formatMontoConSeparador(
@@ -2294,26 +2219,6 @@ const ProcedimientoComercial = () => {
                         </>
                       ) : (
                         <>
-                          {/* Monto Estimado Oferta Sobre Cerrado */}
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm text-gray-500">Monto Estimado Oferta Sobre Cerrado:</span>
-                            <div className="flex items-center space-x-2 flex-1 justify-end">
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo || ""}
-                                onChange={(e) => {
-                                  setProcedimientoSeleccionado({
-                                    ...procedimientoSeleccionado,
-                                    monto_estimado_oferta_cerrado_sdo: e.target.value,
-                                  })
-                                }}
-                                className="text-sm font-medium text-gray-800 border border-gray-300 rounded px-3 py-1.5 w-[180px] focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
-                                placeholder="Ingrese monto..."
-                              />
-                            </div>
-                          </div>
-
                           {/* Monto Estimado Oferta al Cliente */}
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm text-gray-500">Monto Estimado Oferta al Cliente:</span>
@@ -2334,9 +2239,9 @@ const ProcedimientoComercial = () => {
                             </div>
                           </div>
 
-                          {/* Oferta del Proveedor */}
+                          {/* Costo Planificado */}
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm text-gray-500">Oferta del Proveedor:</span>
+                            <span className="text-sm text-gray-500">Costo Planificado:</span>
                             <div className="flex items-center space-x-2 flex-1 justify-end">
                               <input
                                 type="number"
@@ -2679,33 +2584,6 @@ const ProcedimientoComercial = () => {
                                   </span>
                                 </div>
 
-                                {/* Monto oferta cerrado - usando datos del API */}
-                                <div className="flex items-center space-x-2">
-                                  {(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) ||
-                                    0) > 0 ? (
-                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  ) : (
-                                    <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  )}
-                                  <span
-                                    className={`text-xs ${(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo) || 0) > 0 ? "text-green-700" : "text-red-700"}`}
-                                  >
-                                    Monto Estimado Oferta Sobre Cerrado {">"} 0
-                                  </span>
-                                </div>
-
                                 {/* Monto oferta cliente - usando datos del API */}
                                 <div className="flex items-center space-x-2">
                                   {(Number.parseFloat(procedimientoSeleccionado.monto_estimado_oferta_cliente) || 0) >
@@ -2755,7 +2633,7 @@ const ProcedimientoComercial = () => {
                                   <span
                                     className={`text-xs ${(Number.parseFloat(procedimientoSeleccionado.oferta_del_proveedor) || 0) > 0 ? "text-green-700" : "text-red-700"}`}
                                   >
-                                    Oferta del Proveedor {">"} 0
+                                    Costo Planificado {">"} 0
                                   </span>
                                 </div>
                               </div>
@@ -2765,28 +2643,6 @@ const ProcedimientoComercial = () => {
                             <div className="mb-2">
                               <p className="text-sm font-medium text-emerald-800 mb-1">Seleccione el monto ofertado:</p>
                               <div className="space-y-2">
-                                <div className="flex items-start p-2 border border-emerald-200 rounded bg-white">
-                                  <input
-                                    type="radio"
-                                    id="monto-cerrado"
-                                    name="monto-ofertado"
-                                    value="cerrado"
-                                    checked={montoOfertadoSeleccionado === "cerrado"}
-                                    onChange={handleMontoOfertadoChange}
-                                    className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 mt-0.5 mr-1"
-                                  />
-                                  <label htmlFor="monto-cerrado" className="block text-sm text-gray-700">
-                                    <span className="font-medium">Monto Estimado Oferta Sobre Cerrado:</span>
-                                    <span className="text-sm font-bold text-green-600 ml-1">
-                                      USD{" "}
-                                      {formatMontoConSeparador(
-                                        Number.parseFloat(
-                                          procedimientoSeleccionado.monto_estimado_oferta_cerrado_sdo,
-                                        ) || 0,
-                                      )}
-                                    </span>
-                                  </label>
-                                </div>
                                 <div className="flex items-start p-2 border border-emerald-200 rounded bg-white">
                                   <input
                                     type="radio"
@@ -2825,7 +2681,7 @@ const ProcedimientoComercial = () => {
                                     className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 mt-0.5 mr-1"
                                   />
                                   <label htmlFor="costo-proveedor" className="block text-sm text-gray-700">
-                                    <span className="font-medium">Oferta del Proveedor:</span>
+                                    <span className="font-medium">Costo Planificado:</span>
                                     <span className="text-sm font-bold text-orange-600 ml-1">
                                       USD{" "}
                                       {formatMontoConSeparador(
