@@ -23,6 +23,13 @@ const AvanceFinanciero = () => {
   const [valuacionSeleccionada, setValuacionSeleccionada] = useState(null)
   const [mostrarModal, setMostrarModal] = useState(false)
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false)
+  const [mostrarModalEdicionCompleta, setMostrarModalEdicionCompleta] = useState(false)
+  const [avanceEditado, setAvanceEditado] = useState({
+    numero_valuacion: "",
+    monto_usd: "",
+    fecha_inicio: "",
+    fecha_fin: "",
+  })
   const [montoEditado, setMontoEditado] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 5
@@ -220,6 +227,134 @@ const AvanceFinanciero = () => {
     setValuacionSeleccionada(avance)
     setMontoEditado(avance.monto_usd)
     setMostrarModalEdicion(true)
+  }
+
+  // Función para abrir el modal de edición completa
+  const handleSeleccionarAvance = (avance, e) => {
+    e.stopPropagation() // Evitar que se propague al handleRowClick
+    setValuacionSeleccionada(avance)
+
+    // Función auxiliar para formatear fechas
+    const formatearFechaParaInput = (fecha) => {
+      if (!fecha) return ""
+
+      try {
+        // Si la fecha ya está en formato YYYY-MM-DD, la devolvemos tal como está
+        if (typeof fecha === "string" && fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          return fecha
+        }
+
+        // Si la fecha tiene timestamp, extraemos solo la parte de la fecha
+        if (typeof fecha === "string" && fecha.includes("T")) {
+          return fecha.split("T")[0]
+        }
+
+        // Si es un objeto Date, lo convertimos
+        const fechaObj = new Date(fecha)
+        if (!isNaN(fechaObj.getTime())) {
+          return fechaObj.toISOString().split("T")[0]
+        }
+
+        return ""
+      } catch (error) {
+        console.error("Error al formatear fecha:", error)
+        return ""
+      }
+    }
+
+    setAvanceEditado({
+      numero_valuacion: avance.numero_valuacion ? String(avance.numero_valuacion) : "",
+      monto_usd: avance.monto_usd || "",
+      fecha_inicio: formatearFechaParaInput(avance.fecha_inicio),
+      fecha_fin: formatearFechaParaInput(avance.fecha_fin),
+    })
+    setMostrarModalEdicionCompleta(true)
+  }
+
+  // Función para actualizar el avance completo
+  const handleActualizarAvanceCompleto = async () => {
+    if (!avanceEditado.numero_valuacion || String(avanceEditado.numero_valuacion).trim() === "") {
+      showNotification("error", "Campo requerido", "El número de valuación es obligatorio.")
+      return
+    }
+
+    if (!avanceEditado.monto_usd || isNaN(avanceEditado.monto_usd) || Number(avanceEditado.monto_usd) <= 0) {
+      showNotification("error", "Monto inválido", "Por favor, ingrese un monto válido mayor que cero.")
+      return
+    }
+
+    if (!avanceEditado.fecha_inicio || !avanceEditado.fecha_fin) {
+      showNotification("error", "Fechas requeridas", "Las fechas de inicio y fin son obligatorias.")
+      return
+    }
+
+    if (new Date(avanceEditado.fecha_fin) < new Date(avanceEditado.fecha_inicio)) {
+      showNotification("error", "Fechas inválidas", "La fecha de fin no puede ser anterior a la fecha de inicio.")
+      return
+    }
+
+    // Validar que el número de valuación sea único (excluyendo el actual)
+    const numeroValuacionExiste = avancesFinancieros.some(
+      (avance) =>
+        String(avance.numero_valuacion) === String(avanceEditado.numero_valuacion).trim() &&
+        avance.id !== valuacionSeleccionada.id,
+    )
+
+    if (numeroValuacionExiste) {
+      showNotification(
+        "error",
+        "Número de Valuación duplicado",
+        "El Número de Valuación ya existe. Por favor, ingresa uno diferente.",
+      )
+      return
+    }
+
+    // Calcular la suma total de los montos excluyendo la valuación actual
+    const sumaMontos = avancesFinancieros.reduce((total, avance) => {
+      if (avance.id !== valuacionSeleccionada.id) {
+        return total + Number.parseFloat(avance.monto_usd || 0)
+      }
+      return total
+    }, 0)
+
+    // Verificar que el nuevo monto + la suma de los demás no exceda el monto ofertado
+    const nuevoMontoTotal = sumaMontos + Number.parseFloat(avanceEditado.monto_usd)
+    if (nuevoMontoTotal > proyecto.monto_ofertado) {
+      showNotification(
+        "error",
+        "Monto excedido",
+        `El monto total (${formatMontoConSeparador(nuevoMontoTotal)}) superaría el monto ofertado del proyecto (${formatMontoConSeparador(proyecto.monto_ofertado)}).`,
+      )
+      return
+    }
+
+    try {
+      const response = await fetch(`${UrlApi}/api/avanceFinanciero/${valuacionSeleccionada.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numero_valuacion: String(avanceEditado.numero_valuacion).trim(),
+          monto_usd: Number.parseFloat(avanceEditado.monto_usd),
+          fecha_inicio: avanceEditado.fecha_inicio,
+          fecha_fin: avanceEditado.fecha_fin,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar el avance financiero")
+      }
+
+      fetchAvancesFinancieros()
+      setMostrarModalEdicionCompleta(false)
+      showNotification("success", "Éxito", "El avance financiero ha sido actualizado exitosamente.")
+    } catch (error) {
+      console.error("Error al actualizar el avance financiero:", error)
+      showNotification(
+        "error",
+        "Error",
+        "Ocurrió un problema al actualizar el avance financiero. Por favor, inténtalo de nuevo.",
+      )
+    }
   }
 
   // Función para actualizar el monto
@@ -686,23 +821,32 @@ const AvanceFinanciero = () => {
                           <td className="py-4 px-6 text-sm text-gray-500">{avance.numero_factura || "-"}</td>
                           <td className="py-4 px-6">
                             <span
-                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${avance.estatus_proceso_nombre.toLowerCase() === "facturado"
+                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                avance.estatus_proceso_nombre.toLowerCase() === "facturado"
                                   ? "bg-green-100 text-green-800"
                                   : avance.estatus_proceso_nombre.toLowerCase() === "por facturar"
                                     ? "bg-yellow-100 text-yellow-800"
                                     : "bg-blue-100 text-blue-800"
-                                }`}
+                              }`}
                             >
                               {avance.estatus_proceso_nombre}
                             </span>
                           </td>
                           <td className="py-4 px-6 text-sm" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              onClick={(e) => handleEditarMonto(avance, e)}
-                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                            >
-                              Editar Monto
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={(e) => handleEditarMonto(avance, e)}
+                                className="px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs"
+                              >
+                                Editar Monto
+                              </button>
+                              <button
+                                onClick={(e) => handleSeleccionarAvance(avance, e)}
+                                className="px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs"
+                              >
+                                Seleccionar
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -892,6 +1036,128 @@ const AvanceFinanciero = () => {
                     className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg"
                   >
                     Actualizar Monto
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para edición completa */}
+        {mostrarModalEdicionCompleta && valuacionSeleccionada && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all duration-300">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-t-2xl">
+                <h2 className="text-xl font-bold text-white">Editar Avance Financiero Completo</h2>
+              </div>
+
+              <div className="p-6">
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">ID del Avance:</span>
+                    <p className="text-lg font-semibold text-gray-900">{valuacionSeleccionada.id}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Estado actual:</span>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {valuacionSeleccionada.estatus_proceso_nombre}
+                    </p>
+                  </div>
+                </div>
+
+                <form className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Número de Valuación */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">N° de Valuación del Cliente</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={avanceEditado.numero_valuacion}
+                        onChange={(e) => setAvanceEditado({ ...avanceEditado, numero_valuacion: e.target.value })}
+                        placeholder="Ingrese el número de valuación"
+                        required
+                      />
+                    </div>
+
+                    {/* Monto USD */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Monto USD</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={avanceEditado.monto_usd}
+                        onChange={(e) => setAvanceEditado({ ...avanceEditado, monto_usd: e.target.value })}
+                        min="0"
+                        placeholder="Ingrese el monto en USD"
+                        required
+                      />
+                    </div>
+
+                    {/* Fecha de Inicio */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Fecha de Inicio</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={avanceEditado.fecha_inicio}
+                        onChange={(e) => setAvanceEditado({ ...avanceEditado, fecha_inicio: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    {/* Fecha de Fin */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Fecha de Fin</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={avanceEditado.fecha_fin}
+                        onChange={(e) => setAvanceEditado({ ...avanceEditado, fecha_fin: e.target.value })}
+                        min={avanceEditado.fecha_inicio}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-yellow-800">Información importante</h3>
+                        <div className="mt-2 text-sm text-yellow-700">
+                          <p>• El número de valuación debe ser único</p>
+                          <p>• El monto total no puede exceder el monto ofertado del proyecto</p>
+                          <p>• La fecha de fin debe ser posterior a la fecha de inicio</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+
+                <div className="flex justify-end space-x-3 mt-8">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarModalEdicionCompleta(false)}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleActualizarAvanceCompleto}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg"
+                  >
+                    Actualizar Avance
                   </button>
                 </div>
               </div>
